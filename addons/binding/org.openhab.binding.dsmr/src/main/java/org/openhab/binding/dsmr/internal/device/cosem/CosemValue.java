@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -9,14 +9,11 @@
 package org.openhab.binding.dsmr.internal.device.cosem;
 
 import java.text.ParseException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.eclipse.smarthome.core.types.State;
 
 /**
- * CosemValue represents the mapping between COSEM formatted values and openHAB
- * type values
+ * CosemValue represents the mapping between COSEM formatted values and {@link State} type values
  *
  * @author M. Volaart - Initial contribution
  * @param <S> the native type this CosemValue represent
@@ -26,7 +23,7 @@ public abstract class CosemValue<S extends Object> {
     protected S value;
 
     /**
-     * unit of this cosemValue
+     * unit of this CosemValue
      */
     private final String unit;
 
@@ -40,10 +37,10 @@ public abstract class CosemValue<S extends Object> {
     }
 
     /**
-     * Parses the string value to the openHAB type
+     * Parses the string value to the {@link State} value
      *
-     * @param cosemValue the COSEM value to parse
-     * @return S the native object type of this COSEM value
+     * @param CosemValue the Cosem value to parse
+     * @return S the native object type of this Cosem value
      * @throws ParseException if parsing failed
      */
     protected abstract S parse(String cosemValue) throws ParseException;
@@ -58,34 +55,11 @@ public abstract class CosemValue<S extends Object> {
      * @throws ParseException if parsing failed
      */
     public void setValue(String cosemValue) throws ParseException {
-        if (unit.length() > 0) {
-            /*
-             * Check if COSEM value has a unit, check and parse the value. We assume here numbers (float or integers)
-             * The specification states that the delimiter between the value and the unit is a '*'-character.
-             * We have seen on the Kaifa 0025 meter that both '*' and the '_' character are used.
-             *
-             * On the Kampstrup 162JxC in some CosemValues the seperator is missing
-             *
-             * The above quirks are supported
-             *
-             * We also support unit that do not follow the exact case.
-             */
-            Pattern p = Pattern.compile("^(\\d+\\.?\\d+)[\\*_]?" + unit + "$", Pattern.CASE_INSENSITIVE);
-            Matcher m = p.matcher(cosemValue);
-
-            if (m.matches()) {
-                value = parse(m.group(1));
-            } else {
-                throw new ParseException("Unit of " + cosemValue + " is not " + unit, 0);
-            }
-        } else {
-            // COSEM value does not have a unit, parse value
-            value = parse(cosemValue);
-        }
+        value = parse(cosemValue);
     }
 
     /**
-     * Return the cosem Value
+     * Return the Cosem value
      *
      * @return native object value
      */
@@ -94,32 +68,32 @@ public abstract class CosemValue<S extends Object> {
     }
 
     /**
-     * Returns the OpenHAB state object representing this CosemValue
+     * Returns the {@link State} object representing the Cosem value
      *
-     * @return OpenHAB state object representing this CosemValue
+     * @return {@link State} object representing the Cosem value
      */
-    public abstract State getOpenHABValue();
+    public abstract State getStateValue();
 
     /**
-     * Returns the unit of this COSEM value
+     * Returns the unit of this Cosem value
      *
-     * @return the unit of this COSEM value
+     * @return the unit of this Cosem value
      */
     public String getUnit() {
         return unit;
     }
 
     /**
-     * Returns String representation of this CosemValue
+     * Returns String representation of the Cosem value
      *
-     * @return String representation of this CosemValue
+     * @return String representation of the Cosem value
      */
     @Override
     public String toString() {
-        if (value != null) {
-            return value.toString();
-        } else {
+        if (value == null) {
             return "CosemValue is not initialized yet";
+        } else {
+            return value.toString();
         }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,17 +8,19 @@
  */
 package org.openhab.binding.dsmr.internal.discovery;
 
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.config.discovery.DiscoveryResult;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.config.discovery.DiscoveryService;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.openhab.binding.dsmr.DSMRBindingConstants;
+import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,18 +31,17 @@ import gnu.io.CommPortIdentifier;
  * This implements the discovery service for detecting new DSMR Meters
  *
  * @author M. Volaart - Initial contribution
+ * @author Hilbrand Bouwkamp - Added discovery of meters to discovery service
  */
-@Component(service = DiscoveryService.class)
-public class DSMRBridgeDiscoveryService extends AbstractDiscoveryService implements DSMRBridgeDiscoveryListener {
+@NonNullByDefault
+@Component(service = DiscoveryService.class, configurationPid = "discovery.dsmr")
+public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements DSMRBridgeDiscoveryListener {
     private final Logger logger = LoggerFactory.getLogger(DSMRBridgeDiscoveryService.class);
 
-    /**
-     * Constructs a new DSMRBridgeDiscoveryService
-     */
-    public DSMRBridgeDiscoveryService() {
-        super(Collections.singleton(DSMRBindingConstants.THING_TYPE_DSMR_BRIDGE),
-                DSMRBindingConstants.DSMR_DISCOVERY_TIMEOUT_SECONDS, false);
-    }
+    private final DSMRMeterDetector meterDetector = new DSMRMeterDetector();
+
+    @Nullable
+    private DSMRBridgeDiscoveryHelper discoveryHelper;
 
     /**
      * Starts a new discovery scan.
@@ -49,7 +50,7 @@ public class DSMRBridgeDiscoveryService extends AbstractDiscoveryService impleme
      */
     @Override
     protected void startScan() {
-        logger.debug("Started Discovery Scan");
+        logger.debug("Started discovery scan");
 
         @SuppressWarnings("unchecked")
         Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
@@ -59,13 +60,29 @@ public class DSMRBridgeDiscoveryService extends AbstractDiscoveryService impleme
             CommPortIdentifier portIdentifier = portEnum.nextElement();
 
             // Check only available SERIAL ports
-            if (portIdentifier.getPortType() == CommPortIdentifier.PORT_SERIAL && !portIdentifier.isCurrentlyOwned()) {
-                logger.debug("Start discovery for serial port: {}", portIdentifier.getName());
-                DSMRBridgeDiscoveryHelper discoveryHelper = new DSMRBridgeDiscoveryHelper(portIdentifier.getName(),
-                        this);
-                discoveryHelper.startDiscovery();
+            logger.trace("Possible port to check:{}, owned:{} by:{}", portIdentifier.getName(),
+                    portIdentifier.isCurrentlyOwned(), portIdentifier.getCurrentOwner());
+            if (portIdentifier.getPortType() == CommPortIdentifier.PORT_SERIAL) {
+                if (!portIdentifier.isCurrentlyOwned()) {
+                    logger.debug("Start discovery for serial port: {}", portIdentifier.getName());
+                    discoveryHelper = new DSMRBridgeDiscoveryHelper(portIdentifier.getName(), this, scheduler);
+                    discoveryHelper.startDiscovery();
+                } else if (DSMRBindingConstants.DSMR_PORT_NAME.equals(portIdentifier.getCurrentOwner())) {
+                    logger.info("The port {} is owned by this binding. If no devices have been found yet it "
+                            + "might indicate the port is locked by an older instance of this binding. "
+                            + "Restart the system to unlock the port.", portIdentifier.getName());
+                }
             }
         }
+    }
+
+    @Override
+    protected synchronized void stopScan() {
+        super.stopScan();
+        if (discoveryHelper != null) {
+            discoveryHelper.stopScan();
+        }
+        logger.debug("Finished discovery scan");
     }
 
     /**
@@ -78,7 +95,7 @@ public class DSMRBridgeDiscoveryService extends AbstractDiscoveryService impleme
      * @return true if bridge is accepted, false otherwise
      */
     @Override
-    public boolean bridgeDiscovered(String serialPort) {
+    public boolean bridgeDiscovered(String serialPort, List<CosemObject> cosemObjects) {
         ThingUID thingUID = new ThingUID(DSMRBindingConstants.THING_TYPE_DSMR_BRIDGE,
                 Integer.toHexString(serialPort.hashCode()));
 
@@ -93,7 +110,7 @@ public class DSMRBridgeDiscoveryService extends AbstractDiscoveryService impleme
         logger.debug("{} for serialPort {}", discoveryResult, serialPort);
 
         thingDiscovered(discoveryResult);
-
+        meterDetector.detectMeters(cosemObjects).forEach(m -> meterDiscovered(m, thingUID));
         return true;
     }
 }

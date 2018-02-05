@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -10,6 +10,7 @@ package org.openhab.binding.dsmr.internal.device.p1telegram;
 
 import java.util.List;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 
 /**
@@ -17,21 +18,23 @@ import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
  *
  * @author M. Volaart - Initial contribution
  */
+@NonNullByDefault
 public interface P1TelegramListener {
     /**
      * The TelegramState described the meta data of the P1Telegram
-     *
-     * The following levels are supported:
-     * - OK. Telegram was successful received and CRC16 checksum is verified (CRC16 only for DSMR V4 and up)
-     * - CRC_ERROR. CRC16 checksum failed (only DSMR V4 and up)
-     * - DATA_CORRUPTION. The P1 telegram has syntax errors.
-     *
-     * @author M. Volaart
-     * @since 2.1.0
      */
     public enum TelegramState {
+        /**
+         * OK. Telegram was successful received and CRC16 checksum is verified (CRC16 only for DSMR V4 and up)
+         */
         OK("P1 telegram received OK"),
+        /**
+         * CRC_ERROR. CRC16 checksum failed (only DSMR V4 and up)
+         */
         CRC_ERROR("CRC checksum failed for received P1 telegram"),
+        /**
+         * DATA_CORRUPTION. The P1 telegram has syntax errors.
+         */
         DATA_CORRUPTION("Received P1 telegram is corrupted");
 
         /**
@@ -56,9 +59,6 @@ public interface P1TelegramListener {
      * received telegram.
      *
      * It is up to the listener how to handle the TelegramState
-     *
-     * The caller of this method should be aware that implementations can be time consuming and should
-     * consider to call this method asynchronous.
      *
      * @param cosemObjects List of received CosemObjects within the P1 telegram
      * @param telegramState {@link TelegramState} containing meta data about the received telegram

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,11 +8,12 @@
  */
 package org.openhab.binding.dsmr.internal.discovery;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObjectType;
 import org.openhab.binding.dsmr.internal.meter.DSMRMeterDescriptor;
@@ -27,7 +28,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author M. Volaart - Initial contribution
  */
-public class DSMRMeterDetector {
+@NonNullByDefault
+class DSMRMeterDetector {
     private final Logger logger = LoggerFactory.getLogger(DSMRMeterDetector.class);
 
     /**
@@ -41,18 +43,20 @@ public class DSMRMeterDetector {
     public List<DSMRMeterDescriptor> detectMeters(List<CosemObject> messages) {
         Map<DSMRMeterKind, DSMRMeterDescriptor> detectedMeters = new HashMap<>();
         Map<CosemObjectType, CosemObject> availableCosemObjects = new HashMap<>();
+        Map<CosemObjectType, CosemObject> undetectedCosemObjects = new HashMap<>();
 
         // Fill hashmap for fast comparing the set of received Cosem objects to the required set of Cosem Objects
-        for (CosemObject msg : messages) {
-            availableCosemObjects.put(msg.getType(), msg);
-        }
+        messages.forEach(msg -> availableCosemObjects.put(msg.getType(), msg));
+        undetectedCosemObjects.putAll(availableCosemObjects);
 
         // Find compatible meters
         for (DSMRMeterType meterType : DSMRMeterType.values()) {
-            logger.debug("Trying if meter type {} is compatible", meterType);
+            logger.trace("Trying if meter type {} is compatible", meterType);
             DSMRMeterDescriptor meterDescriptor = meterType.isCompatible(availableCosemObjects);
 
-            if (meterDescriptor != null) {
+            if (meterDescriptor == null) {
+                logger.trace("Meter type {} is not compatible", meterType);
+            } else {
                 logger.debug("Meter type {} is compatible", meterType);
 
                 DSMRMeterDescriptor prevDetectedMeter = detectedMeters.get(meterType.meterKind);
@@ -63,11 +67,14 @@ public class DSMRMeterDetector {
                                         .getMeterType().requiredCosemObjects.length)) {
                     logger.debug("New compatible meter descriptor {}", meterDescriptor);
                     detectedMeters.put(meterType.meterKind, meterDescriptor);
+                    for (CosemObjectType cot : meterDescriptor.getMeterType().supportedCosemObjects) {
+                        undetectedCosemObjects.remove(cot);
+                    }
                 }
-            } else {
-                logger.debug("Meter type {} is not compatible", meterType);
             }
         }
-        return new LinkedList<DSMRMeterDescriptor>(detectedMeters.values());
+        undetectedCosemObjects
+                .forEach((k, v) -> logger.debug("Unrecognized cosem object '{}' found in the data: {}", k, v));
+        return new ArrayList<DSMRMeterDescriptor>(detectedMeters.values());
     }
 }

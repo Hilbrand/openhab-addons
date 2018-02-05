@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,16 +8,11 @@
  */
 package org.openhab.binding.dsmr.internal.device.p1telegram;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Pattern;
 
-import org.eclipse.smarthome.core.common.ThreadPoolManager;
-import org.openhab.binding.dsmr.DSMRBindingConstants;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObjectFactory;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener.TelegramState;
@@ -33,17 +28,11 @@ import org.slf4j.LoggerFactory;
  * @author M. Volaart - Initial contribution
  */
 public class P1TelegramParser {
-    private final Logger logger = LoggerFactory.getLogger(P1TelegramParser.class);
-
-    /**
-     * Pattern for the CRC-code
-     */
-    private static final String CRC_PATTERN = "[0-9A-Z]{4}";
 
     /**
      * State of the parser
      */
-    private static enum State {
+    private enum State {
         // Wait for the '/' character
         WAIT_FOR_START,
         // '/' character seen
@@ -58,7 +47,14 @@ public class P1TelegramParser {
         DATA_OBIS_VALUE_END,
         // Parsing CRC value following '!'
         CRC_VALUE
-    };
+    }
+
+    private final Logger logger = LoggerFactory.getLogger(P1TelegramParser.class);
+
+    /**
+     * Pattern for the CRC-code
+     */
+    private static final String CRC_PATTERN = "[0-9A-Z]{4}";
 
     /* internal state variables */
 
@@ -105,7 +101,7 @@ public class P1TelegramParser {
     /**
      * Received Cosem Objects in the P1Telegram that is currently received
      */
-    private List<CosemObject> cosemObjects = new LinkedList<>();
+    private List<CosemObject> cosemObjects = new ArrayList<>();
 
     /**
      * Listener for new P1 telegrams
@@ -115,8 +111,8 @@ public class P1TelegramParser {
     /**
      * Service for sending P1 telegrams asynchronous
      */
-    private ScheduledExecutorService p1TelegramService = ThreadPoolManager
-            .getScheduledPool(DSMRBindingConstants.DSMR_SCHEDULED_THREAD_POOL_NAME);
+    // private ScheduledExecutorService p1TelegramService = ThreadPoolManager
+    // .getScheduledPool(DSMRBindingConstants.DSMR_SCHEDULED_THREAD_POOL_NAME);
 
     /**
      * Creates a new P1TelegramParser
@@ -254,15 +250,7 @@ public class P1TelegramParser {
                         }
 
                         if (factory != null && telegramListener != null) {
-                            /*
-                             * Send messages asynchronous to keep reading the Serial port.
-                             * If there are no messages to send, still let the listener
-                             * known that there are no messages and if the parsing was successful
-                             * This enables the listener to reinitialize the Serial Port for example
-                             */
-                            FutureTask<Void> task = new FutureTask<>(
-                                    new P1TelegramCallable(cosemObjects, telegramState));
-                            p1TelegramService.execute(task);
+                            telegramListener.telegramReceived(cosemObjects, telegramState);
                         }
 
                         setState(State.WAIT_FOR_START);
@@ -283,9 +271,9 @@ public class P1TelegramParser {
     }
 
     /**
-     * Abort the current telegram
+     * Reset the current telegram state
      */
-    public void abortTelegram() {
+    public void reset() {
         setState(State.WAIT_FOR_START);
     }
 
@@ -370,8 +358,6 @@ public class P1TelegramParser {
     private void storeCurrentCosemObject() {
         CosemObject cosemObject = factory.getCosemObject(obisId.toString(), cosemObjectValuesString.toString());
 
-        logger.trace("Storing {}", cosemObject);
-
         if (cosemObject != null) {
             logger.trace("Adding {} to list of Cosem Objects", cosemObject);
             cosemObjects.add(cosemObject);
@@ -423,39 +409,5 @@ public class P1TelegramParser {
      */
     public void setLenientMode(boolean lenientMode) {
         this.lenientMode = lenientMode;
-    }
-
-    /**
-     * P1TelegramCallable enables sending OBIS messages asynchronous to the OpenHAB2 system
-     *
-     * @author M. Volaart
-     * @since 2.1.0
-     */
-    private class P1TelegramCallable implements Callable<Void> {
-        private List<CosemObject> cosemObjects;
-        private TelegramState p1TelegramParseState;
-
-        /**
-         * Constructs a new P1TelegramCallable object
-         *
-         * @param obisMessages the obis messages to send
-         * @param p1TelegramParsedOK if the P1 telegram was parsed successfully
-         */
-        P1TelegramCallable(List<CosemObject> obisMessages, TelegramState p1TelegramParseState) {
-            this.cosemObjects = obisMessages;
-            this.p1TelegramParseState = p1TelegramParseState;
-        }
-
-        /**
-         * Worker
-         *
-         * Calls the listener for new P1 telegrams
-         */
-        @Override
-        public Void call() {
-            telegramListener.telegramReceived(cosemObjects, p1TelegramParseState);
-
-            return null;
-        }
     }
 }

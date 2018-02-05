@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -98,12 +98,12 @@ public class CosemDate extends CosemValue<ZonedDateTime> {
     @Override
     protected ZonedDateTime parse(String cosemValue) throws ParseException {
         for (CosemDateFormat cosemDateFormat : CosemDateFormat.values()) {
-            logger.debug("Trying pattern: {}", cosemDateFormat.pattern);
+            logger.trace("Trying pattern: {}", cosemDateFormat.pattern);
 
             Matcher m = cosemDateFormat.pattern.matcher(cosemValue);
 
             if (m.matches()) {
-                logger.debug("{} matches pattern: {}", cosemValue, cosemDateFormat.pattern);
+                logger.trace("{} matches pattern: {}", cosemValue, cosemDateFormat.pattern);
 
                 LocalDateTime localDateTime = LocalDateTime.parse(m.group(1), cosemDateFormat.formatter);
                 return ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
@@ -119,7 +119,7 @@ public class CosemDate extends CosemValue<ZonedDateTime> {
      * @return {@link DateTimeType} representing the value of this CosemDate
      */
     @Override
-    public DateTimeType getOpenHABValue() {
+    public DateTimeType getStateValue() {
         return new DateTimeType(value);
     }
 }

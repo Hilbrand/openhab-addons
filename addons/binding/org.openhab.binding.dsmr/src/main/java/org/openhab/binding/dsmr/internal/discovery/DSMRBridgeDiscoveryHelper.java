@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -10,16 +10,14 @@ package org.openhab.binding.dsmr.internal.discovery;
 
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
-import org.eclipse.smarthome.core.common.ThreadPoolManager;
-import org.openhab.binding.dsmr.DSMRBindingConstants;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConstants;
-import org.openhab.binding.dsmr.internal.device.DSMRDeviceConstants.DSMRPortEvent;
-import org.openhab.binding.dsmr.internal.device.DSMRPort;
 import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
+import org.openhab.binding.dsmr.internal.device.serial.DSMRPortEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,43 +25,39 @@ import org.slf4j.LoggerFactory;
  * The class DSMRBridgeDiscoveryHelper try to identify a DSMR Bridge for a given Serial Port.
  *
  * The helper class will open the given serial port and wait for telegrams.
- * After SERIAL_PORT_AUTO_DETECT_TIMEOUT seconds it will switch the baud rate and wait again for telegrams.
- * After DSMR_DISCOVERY_TIMEOUT seconds the helper will give up (assuming no DSMR Bridge is present)
+ * After {@link DSMRDeviceConstants#SERIAL_PORT_AUTO_DETECT_TIMEOUT_SECONDS} seconds it will switch the baud rate and
+ * wait again for telegrams. After {@link DSMRDeviceConstants#DSMR_DISCOVERY_TIMEOUT_SECONDS} seconds the helper will
+ * give up (assuming no DSMR Bridge is present)
  *
  * If a telegram is received with at least 1 Cosem Object a bridge is assumed available and a Thing is added
  * (regardless if there were problems receiving the telegram) and the discovery is stopped.
  *
- * If there are commmunication problems the baud rate is switched
+ * If there are communication problems the baud rate is switched
  *
  * @author M. Volaart - Initial contribution
+ * @author Hilbrand Bouwkamp -
  */
-public class DSMRBridgeDiscoveryHelper implements DSMRPortEventListener {
+@NonNullByDefault
+class DSMRBridgeDiscoveryHelper implements DSMRPortEventListener {
     private final Logger logger = LoggerFactory.getLogger(DSMRBridgeDiscoveryHelper.class);
 
-    /**
-     * List of available DiscoveryEvents
-     */
-    private enum DiscoveryEvent {
-        DISCOVERY_START,
-        DISCOVERY_FAILED,
-        DISCOVERY_SWITCHBAUDRATE,
-        BRIDGE_DISCOVERED;
-    }
-
-    /**
-     * Discovery state
-     */
-    private enum DiscoveryState {
-        DISCOVERY_RUNNING,
-        DISCOVERY_FINISHED
-    }
-
-    /**
-     * Discovery status (also used for locking the state object)
-     */
-    private static class DiscoveryStatus {
-        DiscoveryState state;
-    }
+    // /**
+    // * Discovery state
+    // */
+    // private enum DiscoveryState {
+    // /**
+    // *
+    // */
+    // RUNNING,
+    // /**
+    // *
+    // */
+    // SWITCHING_BAUDRATE,
+    // /**
+    // *
+    // */
+    // FINISHED
+    // }
 
     /**
      * The port name
@@ -71,171 +65,183 @@ public class DSMRBridgeDiscoveryHelper implements DSMRPortEventListener {
     private final String portName;
 
     /**
-     * DSMR Port instance
-     */
-    private DSMRPort dsmrPort;
-
-    /**
-     * current discovery status
-     */
-    private final DiscoveryStatus status;
-
-    /**
      * Listener for discovered devices
      */
     private final DSMRBridgeDiscoveryListener discoveryListener;
 
     /**
-     * Service for handling timers
+    *
+    */
+    private final ScheduledExecutorService scheduler;
+
+    /**
+     *
      */
-    private ScheduledExecutorService discoveryTimers = ThreadPoolManager
-            .getScheduledPool(DSMRBindingConstants.DSMR_SCHEDULED_THREAD_POOL_NAME);
+    // private DiscoveryState state = DiscoveryState.FINISHED;
+
+    /**
+     * DSMR Port instance
+     */
+    // @Nullable
+    // private DSMRPort dsmrPort;
 
     /**
      * Timer for handling discovery half time
      */
-    private ScheduledFuture<?> halfTimeTimer;
+    // @Nullable
+    // private ScheduledFuture<?> halfTimeTimer;
 
     /**
      * Timer for handling end of discovery
      */
-    private ScheduledFuture<?> endTimeTimer;
+    // @Nullable
+    // private ScheduledFuture<?> endTimeTimer;
+
+    @Nullable
+    private DSMRAutoConfigDevice detector;
+
+    // private Semaphore discoveryLock = new Semaphore(0);
 
     /**
      * Creates a new DSMRBridgeDiscoveryHelper
      *
      * @param portName the port name (e.g. /dev/ttyUSB0 or COM1)
      * @param listener the {@link DSMRMeterDiscoveryListener} to notify of new detected bridges
+     * @param scheduler
      */
-    public DSMRBridgeDiscoveryHelper(String portName, DSMRBridgeDiscoveryListener listener) {
-        status = new DiscoveryStatus();
-        status.state = DiscoveryState.DISCOVERY_RUNNING;
+    public DSMRBridgeDiscoveryHelper(String portName, DSMRBridgeDiscoveryListener listener,
+            ScheduledExecutorService scheduler) {
         this.portName = portName;
         this.discoveryListener = listener;
+        this.scheduler = scheduler;
     }
 
     /**
-     * Start the discovery
+     * Start the discovery process.
      */
     public void startDiscovery() {
+        // try {
+        // discoveryLock.acquire();
+        // } catch (InterruptedException e) {
+        // Thread.currentThread().interrupt();
+        // }
         logger.debug("[{}] Start discovery", portName);
-        handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_START);
+        // halfTimeTimer = scheduler.schedule(this::switchBaudrate,
+        // DSMRDeviceConstants.SERIAL_PORT_AUTO_DETECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        // endTimeTimer = scheduler.schedule(this::stopScan, DSMRDeviceConstants.DSMR_DISCOVERY_TIMEOUT_SECONDS,
+        // TimeUnit.SECONDS);
+
+        // dsmrPort = new DSMRPort(portName, true);
+        detector = new DSMRAutoConfigDevice(portName, this, scheduler);
+        detector.start();
     }
 
-    /**
-     * Handle discovery events
-     *
-     * @param event {@link DiscoveryEvent}
-     */
-    private void handleDiscoveryEvent(DiscoveryEvent event) {
-        logger.debug("[{}] Handle discovery event {} in state {}", portName, event, status.state);
-        synchronized (status) {
-            if (status.state == DiscoveryState.DISCOVERY_RUNNING) {
-                switch (event) {
-                    case DISCOVERY_START:
-                        halfTimeTimer = discoveryTimers.schedule(() -> {
-                            logger.debug(
-                                    "[{}] Discovery is running for half time now and still nothing discovered, try to switch baudrate",
-                                    portName);
-                            handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_SWITCHBAUDRATE);
-                        }, DSMRDeviceConstants.SERIAL_PORT_AUTO_DETECT_TIMEOUT, TimeUnit.MILLISECONDS);
-                        endTimeTimer = discoveryTimers.schedule(() -> {
-                            logger.debug("[{}] Discovery time is over and still nothing discovered, stop discovery",
-                                    portName);
-                            handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_FAILED);
-                        }, DSMRBindingConstants.DSMR_DISCOVERY_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
-                        dsmrPort = new DSMRPort(portName, this, null, true);
-                        dsmrPort.open();
-                        break;
-                    case BRIDGE_DISCOVERED:
-                        halfTimeTimer.cancel(true);
-                        endTimeTimer.cancel(true);
-
-                        dsmrPort.close();
-                        dsmrPort = null;
-                        status.state = DiscoveryState.DISCOVERY_FINISHED;
-                        discoveryListener.bridgeDiscovered(portName);
-
-                        break;
-                    case DISCOVERY_FAILED:
-                        halfTimeTimer.cancel(true);
-                        endTimeTimer.cancel(true);
-
-                        dsmrPort.close();
-                        dsmrPort = null;
-                        status.state = DiscoveryState.DISCOVERY_FINISHED;
-                        break;
-                    case DISCOVERY_SWITCHBAUDRATE:
-                        dsmrPort.close();
-                        dsmrPort.switchPortSpeed();
-                        dsmrPort.open();
-                    default:
-                        break;
-                }
-            } else {
-                // Make sure port is closed
-                dsmrPort.close();
-            }
-        }
-    }
+    // /**
+    // *
+    // */
+    // private synchronized void switchBaudrate() {
+    // if (dsmrPort != null && state == DiscoveryState.RUNNING) {
+    // state = DiscoveryState.SWITCHING_BAUDRATE;
+    // logger.debug(
+    // "[{}] Discovery is running for half time now and still nothing discovered, switching baudrate and retrying",
+    // portName);
+    // dsmrPort.switchPortSpeed();
+    // state = DiscoveryState.RUNNING;
+    // }
+    // }
 
     /**
-     * Event handler for DSMR Port events
-     *
-     * @param portEvent {@link DSMRPortEvent} to handle
+     * Called when an event was triggered that could
      */
+    // private synchronized void handleError() {
+    // if (state == DiscoveryState.RUNNING) {
+    // stopScan();
+    // }
+    // }
+
     @Override
-    public void handleDSMRPortEvent(DSMRPortEvent portEvent) {
-        logger.debug("[{}] Received portEvent {}", portName, portEvent);
-        switch (portEvent) {
-            case CLOSED: // Port closed is an expected event when switch baudaate, ignore
-                break;
-            case CONFIGURATION_ERROR:
-                // Configuration error can occur for incompatible port
-                handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_FAILED);
-                break;
-            case DONT_EXISTS:
-                // Port does not exists (unexpected, since it was there, so port is not usable)
-                handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_FAILED);
-                break;
-            case ERROR:
-                // General error (port is not usable)
-                handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_FAILED);
-                break;
-            case IN_USE:
-                // Port is in use
-                handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_FAILED);
-                break;
-            case LINE_BROKEN:
-                // No data available (try switching port speed)
-                handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_SWITCHBAUDRATE);
-                break;
-            case NOT_COMPATIBLE:
-                // Port not compatible
-                handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_FAILED);
-                break;
-            case OPENED:
-                // Port is opened (this is expected), ignore this events
-                break;
-            case READ_ERROR:
-                // read error(try switching port speed)
-                handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_SWITCHBAUDRATE);
-                break;
-            case READ_OK:
-                // Read is successful, so wait for telegrams and ignore this event
-                break;
-            case WRONG_BAUDRATE:
-                // wrong baud rate (try switching port speed)
-                handleDiscoveryEvent(DiscoveryEvent.DISCOVERY_SWITCHBAUDRATE);
-                break;
-            default:
-                // Unknown event, log and do nothing
-                logger.warn("Unknown event {}", portEvent);
-                break;
-
-        }
+    public void handlePortErrorEvent(DSMRPortEvent portEvent) {
+        stopScan();
+        logger.debug("Error on port [{}] during discovery.", portName);
     }
+
+    /**
+     *
+     */
+    public synchronized void stopScan() {
+        logger.trace("Stop discovery on port [{}].", portName);
+        if (detector != null) {
+            detector.dispose();
+        }
+        // if (halfTimeTimer != null) {
+        // halfTimeTimer.cancel(true);
+        // }
+        // if (endTimeTimer != null) {
+        // endTimeTimer.cancel(true);
+        // }
+
+        // if (dsmrPort != null) {
+        // dsmrPort.close();
+        // dsmrPort = null;
+        // }
+        // state = DiscoveryState.FINISHED;
+        // if (discoveryLock.availablePermits() == 0) {
+        // discoveryLock.release();
+        // }
+    }
+
+    // /**
+    // * Event handler for DSMR Port events
+    // *
+    // * @param portEvent {@link DSMRPortEvent} to handle
+    // */
+    // @Override
+    // public void handleDSMRPortEvent(DSMRPortEvent portEvent) {
+    // if (state == DiscoveryState.SWITCHING_BAUDRATE) {
+    // logger.debug("[{}] Received portEvent during switching baudrate {}", portName, portEvent);
+    // return;
+    // }
+    // logger.trace("[{}] Received portEvent {}", portName, portEvent);
+    // switch (portEvent) {
+    // // case CLOSED: // Port closed is an expected event when switch baudrate, ignore
+    // // break;
+    // case DONT_EXISTS:
+    // // Port does not exists (unexpected, since it was there, so port is not usable)
+    // handleError();
+    // break;
+    // case IN_USE:
+    // // Port is in use
+    // handleError(/* portEvent.getEventDetails() */);
+    // break;
+    // // case LINE_BROKEN:
+    // // No data available (try switching port speed)
+    // // switchBaudrate();
+    // // break;
+    // case NOT_COMPATIBLE:
+    // // Port not compatible
+    // handleError();
+    // break;
+    // // case OPENED:
+    // // // Port is opened (this is expected), ignore this events
+    // // break;
+    // case READ_ERROR:
+    // // read error(try switching port speed)
+    // switchBaudrate();
+    // break;
+    // // case READ_OK:
+    // // Read is successful, so wait for telegrams and ignore this event
+    // // break;
+    // // case WRONG_BAUDRATE:
+    // // wrong baud rate (try switching port speed)
+    // // switchBaudrate();
+    // // break;
+    // default:
+    // // Unknown event, log and do nothing
+    // logger.warn("Unknown event {}", portEvent);
+    // break;
+    //
+    // }
+    // }
 
     /**
      * Handle if telegrams are received.
@@ -246,10 +252,12 @@ public class DSMRBridgeDiscoveryHelper implements DSMRPortEventListener {
      * @param stateDetails the details of the received telegram (this parameter is ignored)
      */
     @Override
-    public void p1TelegramReceived(List<CosemObject> cosemObjects, String stateDetails) {
+    public synchronized void handleTelegramReceived(List<CosemObject> cosemObjects, String stateDetails) {
         logger.debug("[{}] Received {} cosemObjects", portName, cosemObjects.size());
         if (!cosemObjects.isEmpty()) {
-            handleDiscoveryEvent(DiscoveryEvent.BRIDGE_DISCOVERED);
+            stopScan();
+            discoveryListener.bridgeDiscovered(portName, cosemObjects);
         }
     }
+
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -24,12 +24,26 @@ import org.slf4j.LoggerFactory;
  * @author M. Volaart - Initial contribution
  */
 public class CosemObject {
-    private final Logger logger = LoggerFactory.getLogger(CosemObject.class);
 
     /**
      * Regular expression for finding CosemValues
      */
-    private static final Pattern cosemValuesPattern = Pattern.compile("(\\(([^\\(\\)]*)\\))");
+    private static final Pattern COSEM_VALUES_PATTERN = Pattern.compile("(\\(([^\\(\\)]*)\\))");
+    /**
+     * Check if COSEM value has a unit, check and parse the value. We assume here numbers (float or integers)
+     * The specification states that the delimiter between the value and the unit is a '*'-character.
+     * We have seen on the Kaifa 0025 meter that both '*' and the '_' character are used.
+     *
+     * On the Kampstrup 162JxC in some CosemValues the separator is missing
+     *
+     * The above quirks are supported
+     *
+     * We also support unit that do not follow the exact case.
+     */
+    private static final Pattern COSEM_VALUE_WITH_UNIT_PATTERN = Pattern.compile("^(\\d+\\.?\\d+)[\\*_]?(.+)$",
+            Pattern.CASE_INSENSITIVE);
+
+    private final Logger logger = LoggerFactory.getLogger(CosemObject.class);
 
     /**
      * CosemObject type
@@ -95,7 +109,7 @@ public class CosemObject {
     }
 
     /**
-     * Parses the List of COSEM String value to internal openHAB values.
+     * Parses the List of COSEM String value to COSEM objects values.
      * <p>
      * When the parser has problems it throws an {@link ParseException}. The
      * already parsed values will still be available. It is up to the caller how
@@ -109,7 +123,7 @@ public class CosemObject {
     public void parseCosemValues(String cosemValueString) throws ParseException {
         logger.trace("Parsing CosemValue string {}", cosemValueString);
 
-        Matcher cosemValueMatcher = cosemValuesPattern.matcher(cosemValueString);
+        Matcher cosemValueMatcher = COSEM_VALUES_PATTERN.matcher(cosemValueString);
 
         int nrOfCosemValues = 0;
         while (cosemValueMatcher.find()) {
@@ -125,7 +139,6 @@ public class CosemObject {
             while (cosemValueMatcher.find()) {
                 String cosemStringValue = cosemValueMatcher.group(2);
                 CosemValueDescriptor valueDescriptor = type.getDescriptor(cosemValueItr);
-
                 CosemValue<? extends Object> cosemValue = parseCosemValue(valueDescriptor, cosemStringValue);
 
                 if (cosemValue != null) {
@@ -135,8 +148,6 @@ public class CosemObject {
                         logger.warn("Value for descriptor {} already exists, dropping value {}", valueDescriptor,
                                 cosemValue);
                     }
-                } else {
-                    logger.warn("Failed to parse: {} for OBISMsgType: {}", cosemStringValue, type);
                 }
                 cosemValueItr++;
             }
@@ -159,17 +170,54 @@ public class CosemObject {
         Class<? extends CosemValue<? extends Object>> cosemValueClass = cosemValueDescriptor.getCosemValueClass();
 
         String unit = cosemValueDescriptor.getUnit();
+        String value = matchValue(cosemValueDescriptor, cosemValueString);
 
-        try {
-            Constructor<? extends CosemValue<? extends Object>> c = cosemValueClass.getConstructor(String.class);
+        if (value == null) {
+            logger.trace("Failed to parse: {} for OBISMsgType: {}", cosemValueString, type);
+            return null;
+        } else {
+            try {
+                Constructor<? extends CosemValue<? extends Object>> c = cosemValueClass.getConstructor(String.class);
 
-            CosemValue<? extends Object> cosemValue = c.newInstance(unit);
-            cosemValue.setValue(cosemValueString);
+                CosemValue<? extends Object> cosemValue = c.newInstance(unit);
+                cosemValue.setValue(value);
 
-            return cosemValue;
-        } catch (ReflectiveOperationException roe) {
-            logger.warn("Failed to create {} message", type.obisId, roe);
+                return cosemValue;
+            } catch (ReflectiveOperationException roe) {
+                logger.warn("Failed to create {} message", type.obisId, roe);
+                return null;
+            }
         }
-        return null;
+    }
+
+    /**
+     *
+     * @param cosemValueDescriptor
+     * @param cosemValueString
+     * @return
+     * @throws ParseException
+     */
+    private String matchValue(CosemValueDescriptor cosemValueDescriptor, String cosemValueString)
+            throws ParseException {
+        String unit = cosemValueDescriptor.getUnit();
+        String value;
+
+        if (unit.isEmpty()) {
+            value = cosemValueString;
+        } else {
+            Matcher m = COSEM_VALUE_WITH_UNIT_PATTERN.matcher(cosemValueString);
+
+            if (m.matches()) {
+                if (unit.equalsIgnoreCase(m.group(2))) {
+                    value = m.group(1);
+                } else {
+                    logger.trace("Unit of {} is not same as expected unit:{}", cosemValueString, unit);
+                    value = null;
+                }
+            } else {
+                throw new ParseException("Unit of " + cosemValueString + " is not " + unit, 0);
+            }
+        }
+        return value;
     }
 }

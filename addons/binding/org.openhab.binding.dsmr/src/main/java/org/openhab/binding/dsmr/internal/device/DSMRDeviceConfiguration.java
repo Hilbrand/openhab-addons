@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -46,7 +46,7 @@ public class DSMRDeviceConfiguration {
     /**
      * Serial port auto detection flag
      */
-    public Boolean serialPortDisableAutoDetection;
+    public Boolean serialPortEnableAutoDetection = true;
 
     /**
      * The DSMR Device can work in a lenient mode.
@@ -57,11 +57,13 @@ public class DSMRDeviceConfiguration {
      */
     public Boolean lenientMode;
 
+    public Integer receivedTimeout;
+
     @Override
     public String toString() {
         return "DSMRDeviceConfiguration(portName:" + serialPort + ", baudrate:" + serialPortBaudrate + ", data bits:"
                 + serialPortDatabits + ", parity:" + serialPortParity + ", stop bits:" + serialPortStopbits
-                + ", auto detection disabled:" + serialPortDisableAutoDetection + ", lenientMode:" + lenientMode + ")";
+                + ", auto detection enabled:" + serialPortEnableAutoDetection + ", lenientMode:" + lenientMode + ")";
     }
 
     /**
@@ -81,12 +83,12 @@ public class DSMRDeviceConfiguration {
         return serialPort.equals(o.serialPort) && serialPortBaudrate.equals(o.serialPortBaudrate)
                 && serialPortDatabits.equals(o.serialPortDatabits) && serialPortParity.equals(o.serialPortParity)
                 && serialPortStopbits.equals(o.serialPortStopbits) && lenientMode == o.lenientMode
-                && serialPortDisableAutoDetection == o.serialPortDisableAutoDetection;
+                && serialPortEnableAutoDetection == o.serialPortEnableAutoDetection;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(serialPort, serialPortBaudrate, serialPortDatabits, serialPortParity, serialPortStopbits,
-                lenientMode, serialPortDisableAutoDetection);
+                lenientMode, serialPortEnableAutoDetection);
     }
 }

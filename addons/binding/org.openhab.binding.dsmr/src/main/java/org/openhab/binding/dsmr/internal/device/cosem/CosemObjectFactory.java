@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -9,8 +9,8 @@
 package org.openhab.binding.dsmr.internal.device.cosem;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,13 +62,13 @@ public class CosemObjectFactory {
          */
         obisLookupTableFixed = new HashMap<>();
         obisLookupTableDynamic = new HashMap<>();
-        obisWildcardCosemTypeList = new LinkedList<>();
+        obisWildcardCosemTypeList = new ArrayList<>();
 
         for (CosemObjectType msgType : CosemObjectType.values()) {
-            if (!msgType.obisId.reducedOBISIdentifierIsWildCard()) {
-                obisLookupTableFixed.put(msgType.obisId, msgType);
-            } else {
+            if (msgType.obisId.reducedOBISIdentifierIsWildCard()) {
                 obisWildcardCosemTypeList.add(msgType);
+            } else {
+                obisLookupTableFixed.put(msgType.obisId, msgType);
             }
         }
     }
@@ -109,9 +109,9 @@ public class CosemObjectFactory {
             for (CosemObjectType obisMsgType : obisWildcardCosemTypeList) {
                 if (obisMsgType.obisId.equalsWildCard(reducedObisId)) {
                     cosemObject = getCosemObjectInternal(obisMsgType, obisId, cosemStringValues);
-                    logger.debug("Search reducedObisId {} in the wild card type list, result: {}", reducedObisId,
-                            cosemObject);
                     if (cosemObject != null) {
+                        logger.debug("Search reducedObisId {} in the wild card type list, result: {}", reducedObisId,
+                                cosemObject);
                         obisLookupTableDynamic.put(reducedObisId, obisMsgType);
                         break;
                     }
@@ -141,7 +141,6 @@ public class CosemObjectFactory {
 
         try {
             logger.trace("Parse values for Cosem Object type: {}", cosemObjectType);
-
             obj.parseCosemValues(cosemStringValues);
 
             return obj;

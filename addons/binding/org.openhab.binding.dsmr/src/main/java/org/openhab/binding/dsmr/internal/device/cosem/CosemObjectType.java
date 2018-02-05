@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -76,7 +76,8 @@ public enum CosemObjectType {
     EMETER_ACTIVE_IMPORT_POWER(new OBISIdentifier(1, null, 15, 7, 0, null),
             new CosemValueDescriptor(CosemDouble.class, "W")),
     EMETER_ACTUAL_DELIVERY(new OBISIdentifier(1, 0, 1, 7, 0, null), new CosemValueDescriptor(CosemDouble.class, "kW")),
-    EMETER_ACTUAL_PRODUCTION(new OBISIdentifier(1, 0, 2, 7, 0, null), new CosemValueDescriptor(CosemDouble.class, "kW")),
+    EMETER_ACTUAL_PRODUCTION(new OBISIdentifier(1, 0, 2, 7, 0, null),
+            new CosemValueDescriptor(CosemDouble.class, "kW")),
     EMETER_TRESHOLD_A_V2_1(new OBISIdentifier(1, 0, 17, 0, 0, null), new CosemValueDescriptor(CosemInteger.class, "A")),
     EMETER_TRESHOLD_A(new OBISIdentifier(0, 0, 17, 0, 0, null), new CosemValueDescriptor(CosemInteger.class, "A")),
     EMETER_TRESHOLD_KWH(new OBISIdentifier(0, 0, 17, 0, 0, null), new CosemValueDescriptor(CosemDouble.class, "kW")),
@@ -95,9 +96,12 @@ public enum CosemObjectType {
     EMETER_VOLTAGE_SAGS_L1(new OBISIdentifier(1, 0, 32, 32, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
     EMETER_VOLTAGE_SAGS_L2(new OBISIdentifier(1, 0, 52, 32, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
     EMETER_VOLTAGE_SAGS_L3(new OBISIdentifier(1, 0, 72, 32, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_VOLTAGE_SWELLS_L1(new OBISIdentifier(1, 0, 32, 36, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_VOLTAGE_SWELLS_L2(new OBISIdentifier(1, 0, 52, 36, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_VOLTAGE_SWELLS_L3(new OBISIdentifier(1, 0, 72, 36, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
+    EMETER_VOLTAGE_SWELLS_L1(new OBISIdentifier(1, 0, 32, 36, 0, null),
+            new CosemValueDescriptor(CosemDouble.class, "")),
+    EMETER_VOLTAGE_SWELLS_L2(new OBISIdentifier(1, 0, 52, 36, 0, null),
+            new CosemValueDescriptor(CosemDouble.class, "")),
+    EMETER_VOLTAGE_SWELLS_L3(new OBISIdentifier(1, 0, 72, 36, 0, null),
+            new CosemValueDescriptor(CosemDouble.class, "")),
     EMETER_INSTANT_CURRENT_L1(new OBISIdentifier(1, 0, 31, 7, 0, null),
             new CosemValueDescriptor(CosemDouble.class, "A")),
     EMETER_INSTANT_CURRENT_L2(new OBISIdentifier(1, 0, 51, 7, 0, null),

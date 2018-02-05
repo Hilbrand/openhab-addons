@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,15 +8,14 @@
  */
 package org.openhab.binding.dsmr.internal.meter;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObjectType;
 import org.openhab.binding.dsmr.internal.device.cosem.OBISIdentifier;
-import org.openhab.binding.dsmr.internal.discovery.DSMRMeterDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +42,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author M. Volaart - Initial contribution
  */
+@NonNullByDefault
 public class DSMRMeter {
     private final Logger logger = LoggerFactory.getLogger(DSMRMeter.class);
 
@@ -57,24 +57,14 @@ public class DSMRMeter {
     private List<OBISIdentifier> supportedIdentifiers;
 
     /**
-     * Listener of new meter values
-     */
-    private DSMRMeterListener meterListener;
-
-    /**
      * Creates a new DSMRMeter
      *
      * @param meterDescriptor {@link DSMRMeterDescriptor} containing the description of the new meter
-     * @param meterListener {@link DSMRMeterListener} containing the listener for new Cosem Objects
      */
-    public DSMRMeter(DSMRMeterDescriptor meterDescriptor, DSMRMeterListener meterListener) {
-        if (meterListener == null) {
-            throw new IllegalArgumentException("meterListener can not be null");
-        }
+    public DSMRMeter(DSMRMeterDescriptor meterDescriptor) {
         this.meterDescriptor = meterDescriptor;
-        this.meterListener = meterListener;
 
-        supportedIdentifiers = new LinkedList<>();
+        supportedIdentifiers = new ArrayList<>();
 
         for (CosemObjectType msgType : meterDescriptor.getMeterType().supportedCosemObjects) {
             OBISIdentifier obisId = msgType.obisId;
@@ -93,30 +83,13 @@ public class DSMRMeter {
      * @param cosemObjects the list of CosemObject that must be processed
      * @return List of CosemObject that this meter can process
      */
-    private List<CosemObject> filterMeterValues(List<CosemObject> cosemObjects) {
+    public List<CosemObject> filterMeterValues(List<CosemObject> cosemObjects) {
         logger.trace("supported identifiers: {}, searching for objects {}", supportedIdentifiers, cosemObjects);
-        return cosemObjects.stream()
+        List<CosemObject> filteredValues = cosemObjects.stream()
                 .filter(cosemObject -> supportedIdentifiers
                         .contains(cosemObject.getObisIdentifier().getReducedOBISIdentifier()))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Handles the new CosemObjects
-     *
-     * This method will process the messages specific for this DSMRMeter
-     *
-     * @param cosemObjects List of CosemObject to process
-     *
-     * @return List of OBISMessages that were processed by this DSMRMeter
-     */
-    public List<CosemObject> handleCosemObjects(List<CosemObject> cosemObjects) {
-        List<CosemObject> filteredValues = filterMeterValues(cosemObjects);
-
-        for (CosemObject newValue : filteredValues) {
-            logger.trace("Send new meter value {}", newValue);
-            meterListener.meterValueReceived(newValue);
-        }
+        cosemObjects.removeAll(filteredValues);
         return filteredValues;
     }
 
@@ -127,26 +100,6 @@ public class DSMRMeter {
      */
     public DSMRMeterDescriptor getMeterDescriptor() {
         return meterDescriptor;
-    }
-
-    /**
-     * Returns true if the identification and metertype are equal
-     *
-     * @return true if the identification and metertype are equal
-     */
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof DSMRMeter)) {
-            return false;
-        }
-        DSMRMeter o = (DSMRMeter) other;
-
-        return meterDescriptor.equals(o.meterDescriptor);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(meterDescriptor);
     }
 
     @Override

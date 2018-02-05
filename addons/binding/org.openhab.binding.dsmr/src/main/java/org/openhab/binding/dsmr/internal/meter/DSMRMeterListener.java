@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,6 +8,9 @@
  */
 package org.openhab.binding.dsmr.internal.meter;
 
+import java.util.List;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 
 /**
@@ -16,6 +19,7 @@ import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
  *
  * @author M. Volaart - Initial contribution
  */
+@NonNullByDefault
 public interface DSMRMeterListener {
     /**
      * This method is called when a new meter value is received.
@@ -24,5 +28,5 @@ public interface DSMRMeterListener {
      *
      * @param newMeterValue {@link CosemObject} containing the new meter value
      */
-    public void meterValueReceived(CosemObject newMeterValue);
+    public void meterValueReceived(List<CosemObject> cosemObjects);
 }

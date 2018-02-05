@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -236,7 +236,7 @@ public class OBISIdentifier {
      * Returns whether or not the reduced OBIS Identifier is a wildcard identifier (meaning groupA groupB or groupC is
      * null)
      * Note that the DSMR specification does not use groupF so this is implemented always as a wildcard.
-     * To distuinguish wildcard from non wildcard OBISIdentifiers, groupF is ignored.
+     * To distinguish wildcard from non wildcard OBISIdentifiers, groupF is ignored.
      *
      * @return true if the reducedOBISIdentifier is a wildcard identifier, false otherwise.
      */

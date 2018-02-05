@@ -1,12 +1,16 @@
 /**
- * Copyright (c) 2010-2017 by the respective copyright holders.
+ * Copyright (c) 2010-2018 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.dsmr.internal.device;
+package org.openhab.binding.dsmr.internal.device.serial;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.dsmr.internal.device.DSMRDeviceConfiguration;
 
 import gnu.io.SerialPort;
 
@@ -20,6 +24,7 @@ import gnu.io.SerialPort;
  *
  * @author M. Volaart - Initial contribution
  */
+@NonNullByDefault
 public class DSMRPortSettings {
     /**
      * Fixed settings for high speed communication (DSMR V4 and up)
@@ -150,12 +155,15 @@ public class DSMRPortSettings {
     }
 
     /**
+     * Returns the manual entered port setting, but only if not serialPortEnableAutoDetection is enabled and if all
+     * configuration fields have a value (not null).
      *
-     * @param portSettings
-     * @return
+     * @param portSettings manual entered device configuration
+     * @return configuration or null if auto detection enabled or any configuration field is null or not recognized.
      */
+    @Nullable
     public static DSMRPortSettings getPortSettingsFromConfiguration(DSMRDeviceConfiguration deviceConfiguration) {
-        if (deviceConfiguration == null || deviceConfiguration.serialPortBaudrate == null
+        if (deviceConfiguration.serialPortEnableAutoDetection || deviceConfiguration.serialPortBaudrate == null
                 || deviceConfiguration.serialPortDatabits == null || deviceConfiguration.serialPortParity == null
                 || deviceConfiguration.serialPortStopbits == null) {
             return null;

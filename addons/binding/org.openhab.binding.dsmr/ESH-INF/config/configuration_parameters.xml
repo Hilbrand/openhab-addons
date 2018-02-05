@@ -15,11 +15,16 @@
 			<label>Serial Port</label>
 			<description>The Serial Port where the P1 port of the Smart Meter is connected (e.g. Linux: /dev/ttyUSB0, Windows: COM1)</description>
 		</parameter>
-		<parameter name="serialPortDisableAutoDetection" type="boolean" required="true" groupName="serialPortAdvanced">
-			<default>false</default>
-			<label>Disable Serial Port auto detection</label>
+		<parameter name="serialPortEnableAutoDetection" type="boolean" required="true" groupName="serialPortAdvanced">
+			<default>true</default>
+			<label>Enable Serial Port auto detection</label>
 			<description>In case auto detection of the DSMR-device does not work it is possible 
 		              to disable auto detection and use the manual Serial port parameters.</description>
+		</parameter>
+		<parameter name="receivedTimeout" type="integer" required="true" min="1">
+			<default>30</default>
+			<label>Receive Timeout</label>
+			<description>The time period within results are expected in seconds</description>
 		</parameter>
 		<parameter name="serialPortBaudrate" type="integer" required="true" groupName="serialPortAdvanced">
 			<default>115200</default>
@@ -75,7 +80,13 @@
 			<advanced>true</advanced>
 		</parameter>
 	</config-description>
+
 	<config-description uri="binding:dsmr:meterdescriptor">
+		<parameter name="refresh" type="integer" required="true" min="1">
+			<default>60</default>
+			<label>Refresh</label>
+			<description>The time interval the data is refreshed in seconds</description>
+		</parameter>
 		<parameter name="channel" type="integer" required="true">
 			<advanced>true</advanced>
 			<label>Channel</label>
