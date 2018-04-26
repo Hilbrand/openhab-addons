@@ -110,6 +110,8 @@ public class Sysinfo extends ErrorResponse {
     private String devName;
     private String iconHash;
     private int relayState; // 0 is off, 1 is on
+    // dimmer specific system info
+    private int brightness;
     private long onTime;
     private String feature; // HS100 -> TIM, HS110 -> TIM:ENE
     // Disabled updating as it's a different type for different devices.
@@ -181,6 +183,10 @@ public class Sysinfo extends ErrorResponse {
 
     public OnOffType getRelayState() {
         return relayState == 1 ? OnOffType.ON : OnOffType.OFF;
+    }
+
+    public int getBrightness() {
+        return brightness;
     }
 
     public long getOnTime() {
@@ -264,10 +270,10 @@ public class Sysinfo extends ErrorResponse {
         return "Sysinfo [swVer=" + swVer + ", hwVer=" + hwVer + ", model=" + model + ", deviceId=" + deviceId
                 + ", hwId=" + hwId + ", oemId=" + oemId + ", alias=" + alias + ", activeMode=" + activeMode + ", rssi="
                 + rssi + ", type=" + type + ", mac=" + mac + ", fwId=" + fwId + ", devName=" + devName + ", iconHash="
-                + iconHash + ", relayState=" + relayState + ", onTime=" + onTime + ", feature=" + feature + ", ledOff="
-                + ledOff + ", latitude=" + latitude + ", longitude=" + longitude + ", isFactory=" + isFactory
-                + ", discoVer=" + discoVer + ", ctrlProtocols=" + ctrlProtocols + ", lightState=" + lightState
-                + ", ledStatus=" + ledStatus + ", plug=" + plug + ", system=" + system + ", reWireless=" + reWireless
-                + "]";
+                + iconHash + ", relayState=" + relayState + ", brightness=" + brightness + ", onTime=" + onTime
+                + ", feature=" + feature + ", ledOff=" + ledOff + ", latitude=" + latitude + ", longitude=" + longitude
+                + ", isFactory=" + isFactory + ", discoVer=" + discoVer + ", ctrlProtocols=" + ctrlProtocols
+                + ", lightState=" + lightState + ", ledStatus=" + ledStatus + ", plug=" + plug + ", system=" + system
+                + ", reWireless=" + reWireless + "]";
     }
 }
