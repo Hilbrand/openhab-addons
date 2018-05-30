@@ -17,7 +17,7 @@ import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramParser;
 import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortHandler;
+import org.openhab.binding.dsmr.internal.device.serial.DSMRPortListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 @NonNullByDefault
-public class DSMRTelegramListener implements P1TelegramListener, DSMRPortHandler {
+public class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
 
     private static final int _100 = 100;
 

@@ -46,7 +46,7 @@ import gnu.io.UnsupportedCommOperationException;
  */
 @NonNullByDefault
 public class DSMRPort implements SerialPortEventListener {
-    private static final int _1000 = 100;
+    private static final int _1000 = 1000;
 
     private final Logger logger = LoggerFactory.getLogger(DSMRPort.class);
 
@@ -75,7 +75,7 @@ public class DSMRPort implements SerialPortEventListener {
     /**
      * DSMR Port listener
      */
-    private final DSMRPortHandler dsmrPortListener;
+    private final DSMRPortListener dsmrPortListener;
 
     /**
      * The portLock is used for the shared data used when opening and closing
@@ -99,7 +99,7 @@ public class DSMRPort implements SerialPortEventListener {
      *            Device identifier of the post (e.g. /dev/ttyUSB0)
      *
      */
-    public DSMRPort(String portName, boolean lenientMode, DSMRPortHandler dsmrPortListener) {
+    public DSMRPort(String portName, boolean lenientMode, DSMRPortListener dsmrPortListener) {
         this.portName = portName;
         this.dsmrPortListener = dsmrPortListener;
     }
@@ -130,13 +130,11 @@ public class DSMRPort implements SerialPortEventListener {
         synchronized (portLock) {
             try {
                 logger.debug("Opening port {}", portName);
-
                 // Opening Operating System Serial Port
                 CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
                 CommPort commPort = portIdentifier.open(DSMRBindingConstants.DSMR_PORT_NAME,
                         (int) TimeUnit.SECONDS.toMillis(DSMRDeviceConstants.SERIAL_PORT_READ_TIMEOUT_SECONDS));
                 serialPort = (SerialPort) commPort;
-                serialPort.enableReceiveTimeout(_1000);
 
                 // Configure Serial Port based on specified port speed
                 logger.debug("Configure serial port parameters: {}", portSettings);
@@ -167,6 +165,8 @@ public class DSMRPort implements SerialPortEventListener {
                 serialPort.notifyOnFramingError(true);
                 serialPort.notifyOnOverrunError(true);
                 serialPort.notifyOnParityError(true);
+
+                serialPort.enableReceiveTimeout(_1000);
                 // The binding is ready, let the meter know we want to receive values
                 serialPort.setRTS(true);
 
@@ -278,9 +278,23 @@ public class DSMRPort implements SerialPortEventListener {
      * Switch the Serial Port speed (LOW --> HIGH and vice versa).
      */
     public void restart(DSMRPortSettings portSettings) {
-        close();
-        logger.info("Restarted port {} with settings: {}", this.portName, portSettings);
-        open(portSettings);
+        synchronized (portLock) {
+            if (open) {
+                logger.info("Set port {} with settings: {}", this.portName, portSettings);
+                try {
+                    serialPort.setSerialPortParams(portSettings.getBaudrate(), portSettings.getDataBits(),
+                            portSettings.getStopbits(), portSettings.getParity());
+                } catch (UnsupportedCommOperationException e) {
+                    logger.debug(
+                            "Port does not support requested port settings (invalid dsmr:portsettings parameter?): {}",
+                            portName, portSettings);
+                    dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.NOT_COMPATIBLE);
+                }
+            } else {
+                close();
+                open(portSettings);
+            }
+        }
     }
 
     @Override

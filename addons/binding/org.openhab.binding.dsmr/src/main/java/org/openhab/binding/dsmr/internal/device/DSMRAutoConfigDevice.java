@@ -123,17 +123,15 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
      */
     @Override
     public void start() {
-        portSettings = DEFAULT_PORT_SETTINGS;
+        // portSettings = DEFAULT_PORT_SETTINGS;
         handler.setDsmrPortListener(this);
+        state = DetectorState.DETECTING_SETTINGS;
         logger.debug("[{}] Start detecting port settings.", portName);
+        dsmrPort.open(portSettings);
         halfTimeTimer = scheduler.schedule(this::switchBaudrate,
                 DSMRDeviceConstants.SERIAL_PORT_AUTO_DETECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         endTimeTimer = scheduler.schedule(this::stop, DSMRDeviceConstants.DSMR_DISCOVERY_TIMEOUT_SECONDS,
                 TimeUnit.SECONDS);
-
-        // dsmrPort = new DSMRPort(portName, this, null, null, true);
-        dsmrPort.open(portSettings);
-        state = DetectorState.DETECTING_SETTINGS;
     }
 
     @Override
@@ -145,6 +143,11 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
         } else if (state == DetectorState.ERROR || (endTimeTimer != null && endTimeTimer.isDone())) {
             // did receive anything but was an error.
             stop();
+            try {
+                Thread.sleep(TimeUnit.SECONDS.toMillis(10));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             start();
         }
     }

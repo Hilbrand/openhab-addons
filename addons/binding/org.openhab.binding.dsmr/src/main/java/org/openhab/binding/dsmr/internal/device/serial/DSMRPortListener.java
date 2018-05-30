@@ -15,7 +15,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-public interface DSMRPortHandler {
+public interface DSMRPortListener {
 
     /**
      * Callback for DSMRPortEvent events
