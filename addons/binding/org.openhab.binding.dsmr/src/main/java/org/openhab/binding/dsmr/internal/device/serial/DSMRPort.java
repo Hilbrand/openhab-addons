@@ -41,30 +41,6 @@ import gnu.io.UnsupportedCommOperationException;
  * <p>
  * The close method can be called asynchronous and will release OS resources.
  * </p>
- * <code>
- * An example DSMR telegram in accordance to IEC 62056-21 Mode D.<br>
- * /ISk5\2MT382-1000<br>
- * 0-0:96.1.1(4B384547303034303436333935353037)<br>
- * 1-0:1.8.1(12345.678*kWh)<br>
- * 1-0:1.8.2(12345.678*kWh)<br>
- * 1-0:2.8.1(12345.678*kWh)<br>
- * 1-0:2.8.2(12345.678*kWh)<br>
- * 0-0:96.14.0(0002)<br>
- * 1-0:1.7.0(001.19*kW)<br>
- * 1-0:2.7.0(000.00*kW)<br>
- * 0-0:17.0.0(016*A)<br>
- * 0-0:96.3.10(1)<br>
- * 0-0:96.13.1(303132333435363738)<br>
- * 0-0:96.13.0(303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F<br>
- * 303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F<br>
- * 303132333435363738393A3B3C3D3E3F)<br>
- * 0-1:96.1.0(3232323241424344313233343536373839)<br>
- * 0-1:24.1.0(03)<br>
- * 0-1:24.3.0(090212160000)(00)(60)(1)(0-1:24.2.1)(m3)<br>
- * (00000.000)<br>
- * 0-1:24.4.0(1)<br>
- * !<br>
- * </code>
  *
  * @author M. Volaart - Initial contribution
  */
@@ -160,7 +136,7 @@ public class DSMRPort implements SerialPortEventListener {
                 CommPort commPort = portIdentifier.open(DSMRBindingConstants.DSMR_PORT_NAME,
                         (int) TimeUnit.SECONDS.toMillis(DSMRDeviceConstants.SERIAL_PORT_READ_TIMEOUT_SECONDS));
                 serialPort = (SerialPort) commPort;
-                serialPort.enableReceiveTimeout(1000);
+                serialPort.enableReceiveTimeout(_1000);
 
                 // Configure Serial Port based on specified port speed
                 logger.debug("Configure serial port parameters: {}", portSettings);
@@ -175,7 +151,7 @@ public class DSMRPort implements SerialPortEventListener {
                 } catch (IOException ioe) {
                     logger.debug("Failed to get inputstream for serialPort. Closing port", ioe);
 
-                    dsmrPortListener.handlePortErrorEvent(DSMRPortEvent.READ_ERROR);
+                    dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
                 }
                 logger.info("DSMR Port opened successful with port settings: {}", portSettings);
 
@@ -191,23 +167,23 @@ public class DSMRPort implements SerialPortEventListener {
                 serialPort.notifyOnFramingError(true);
                 serialPort.notifyOnOverrunError(true);
                 serialPort.notifyOnParityError(true);
-                serialPort.enableReceiveTimeout(_1000);
                 // The binding is ready, let the meter know we want to receive values
                 serialPort.setRTS(true);
+
                 open = true;
             } catch (NoSuchPortException nspe) {
                 logger.debug("Port {} does not exists", portName, nspe);
 
-                dsmrPortListener.handlePortErrorEvent(DSMRPortEvent.DONT_EXISTS);
+                dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.DONT_EXISTS);
             } catch (PortInUseException piue) {
                 logger.debug("Port already in use: {}", portName, piue);
 
-                dsmrPortListener.handlePortErrorEvent(DSMRPortEvent.IN_USE);
+                dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.IN_USE);
             } catch (UnsupportedCommOperationException ucoe) {
                 logger.debug("Port does not support requested port settings (invalid dsmr:portsettings parameter?): {}",
                         portName, ucoe);
 
-                dsmrPortListener.handlePortErrorEvent(DSMRPortEvent.NOT_COMPATIBLE);
+                dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.NOT_COMPATIBLE);
             }
         }
     }
@@ -258,9 +234,7 @@ public class DSMRPort implements SerialPortEventListener {
      */
     private void handleDataAvailable() {
         try {
-            // logger.trace("handleDataAvailable");
             synchronized (readLock) {
-                // logger.trace("readlock");
                 // open port if it is not open
                 if (serialPort == null) {
                     logger.warn("DSMRPort is not open, no values will be read");
@@ -278,7 +252,7 @@ public class DSMRPort implements SerialPortEventListener {
                     rc++;
                     // logger.trace("Read #{} bytes.", bytesRead);
                     if (open && bytesAvailableRead > 0) {
-                        dsmrPortListener.push(Arrays.copyOfRange(buffer, 0, bytesAvailableRead));
+                        dsmrPortListener.handleData(Arrays.copyOfRange(buffer, 0, bytesAvailableRead));
                     } else {
                         logger.debug("Expected bytes {} to read, but {} bytes were read", bytesAvailable,
                                 bytesAvailableRead);
@@ -293,7 +267,7 @@ public class DSMRPort implements SerialPortEventListener {
                 }
             }
         } catch (IOException e) {
-            dsmrPortListener.handlePortErrorEvent(DSMRPortEvent.READ_ERROR);
+            dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
             logger.debug("Exception on read port", e);
         } catch (NullPointerException e) {
             logger.trace("Port closed during read.");
@@ -305,7 +279,7 @@ public class DSMRPort implements SerialPortEventListener {
      */
     public void restart(DSMRPortSettings portSettings) {
         close();
-        logger.info("Switched port settings for {}: {}", this.portName, portSettings);
+        logger.info("Restarted port {} with settings: {}", this.portName, portSettings);
         open(portSettings);
     }
 
@@ -344,7 +318,7 @@ public class DSMRPort implements SerialPortEventListener {
     private void handleErrorEvent(String typeName, SerialPortEvent portEvent) {
         if (open && portEvent.getNewValue()) {
             logger.debug("New DSMR port {} event", typeName);
-            dsmrPortListener.handlePortErrorEvent(DSMRPortEvent.READ_ERROR);
+            dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
         }
     }
 }

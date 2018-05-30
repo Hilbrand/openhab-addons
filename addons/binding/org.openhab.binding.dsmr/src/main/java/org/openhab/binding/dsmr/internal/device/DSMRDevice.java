@@ -13,8 +13,6 @@ package org.openhab.binding.dsmr.internal.device;
  */
 public interface DSMRDevice {
 
-    void dispose();
-
     void restart();
 
     void start();

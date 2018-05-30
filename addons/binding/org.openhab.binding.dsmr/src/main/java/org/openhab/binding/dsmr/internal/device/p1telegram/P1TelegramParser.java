@@ -109,12 +109,6 @@ public class P1TelegramParser {
     private P1TelegramListener telegramListener;
 
     /**
-     * Service for sending P1 telegrams asynchronous
-     */
-    // private ScheduledExecutorService p1TelegramService = ThreadPoolManager
-    // .getScheduledPool(DSMRBindingConstants.DSMR_SCHEDULED_THREAD_POOL_NAME);
-
-    /**
      * Creates a new P1TelegramParser
      *
      * @param lenientMode boolean specifying if parsing must be done lenient

@@ -9,21 +9,16 @@
 package org.openhab.binding.dsmr.internal.device.serial;
 
 /**
- * DSMR Port events
+ * DSMR Port error events
  *
  * @author M. Volaart - Initial contribution
+ * @author Hilbrand Bouwkamp - Reduced number of event to only relevant errors
  */
-public enum DSMRPortEvent {
-    // CLOSED("Serial port closed"),
-    // READ_OK("Read ok"),
+public enum DSMRPortErrorEvent {
     READ_ERROR("Read error"),
-    // LINE_BROKEN("Serial line is broken (cable problem?)"),
-    // CONFIGURATION_ERROR("Configuration error"),
     DONT_EXISTS("Serial port does not exist"),
     IN_USE("Serial port is already in use"),
     NOT_COMPATIBLE("Serial port is not compatible");
-    // WRONG_BAUDRATE("Wrong baudrate");
-    // ERROR("General error");
 
     /**
      * Details about the event
@@ -31,11 +26,11 @@ public enum DSMRPortEvent {
     private final String eventDetails;
 
     /**
-     * Constructor for a DSMRPortEvent
+     * Constructor
      *
      * @param eventDetails String containing the details about the event
      */
-    DSMRPortEvent(String eventDetails) {
+    DSMRPortErrorEvent(String eventDetails) {
         this.eventDetails = eventDetails;
     }
 

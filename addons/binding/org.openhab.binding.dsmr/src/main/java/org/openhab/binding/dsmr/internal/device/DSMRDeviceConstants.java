@@ -8,8 +8,6 @@
  */
 package org.openhab.binding.dsmr.internal.device;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * This class holds all the constants that are applicable for the DSMR Device
  *
@@ -26,12 +24,6 @@ public class DSMRDeviceConstants {
      * Timeout for detecting the correct serial port settings
      */
     public static final long SERIAL_PORT_AUTO_DETECT_TIMEOUT_SECONDS = SERIAL_PORT_READ_TIMEOUT_SECONDS * 2;
-
-    /**
-     * Timeout for recovery from offline mode
-     */
-    public static final long RECOVERY_TIMEOUT_NANOS = TimeUnit.SECONDS
-            .toNanos(SERIAL_PORT_AUTO_DETECT_TIMEOUT_SECONDS * 2);
 
     /**
      * Timeout for Discovery timeout

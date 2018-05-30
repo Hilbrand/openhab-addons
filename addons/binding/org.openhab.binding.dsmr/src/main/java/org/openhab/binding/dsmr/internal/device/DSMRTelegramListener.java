@@ -16,7 +16,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramParser;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortEvent;
+import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
 import org.openhab.binding.dsmr.internal.device.serial.DSMRPortHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +27,12 @@ import org.slf4j.LoggerFactory;
  *
  */
 @NonNullByDefault
-public class DSMRTelegramHandler implements P1TelegramListener, DSMRPortHandler {
+public class DSMRTelegramListener implements P1TelegramListener, DSMRPortHandler {
 
     private static final int _100 = 100;
 
-    private final Logger logger = LoggerFactory.getLogger(DSMRTelegramHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(DSMRTelegramListener.class);
     private final P1TelegramParser parser;
-    // private final Thread p1TelegramParserThread;
 
     /**
      * Whether or not the lenientMode is activated (less strict checking on valid data)
@@ -43,13 +42,8 @@ public class DSMRTelegramHandler implements P1TelegramListener, DSMRPortHandler 
     @Nullable
     private DSMRPortEventListener dsmrPortListener;
 
-    private DSMRTelegramQueue queue;
-
-    public DSMRTelegramHandler(String serialPort) {
+    public DSMRTelegramListener(String serialPort) {
         parser = new P1TelegramParser(true, this);
-        queue = new DSMRTelegramQueue(parser);
-        // p1TelegramParserThread = new Thread(queue);
-        // p1TelegramParserThread.start();
     }
 
     public void setDsmrPortListener(DSMRPortEventListener dsmrPortListener) {
@@ -57,22 +51,17 @@ public class DSMRTelegramHandler implements P1TelegramListener, DSMRPortHandler 
     }
 
     @Override
-    public void push(byte[] data) {
-        queue.push(data);
-    }
-
-    public void dispose() {
-        queue.dispose();
+    public void handleData(byte[] data) {
+        parser.parseData(data, 0, data.length);
     }
 
     @Override
-    public void handlePortErrorEvent(DSMRPortEvent portEvent) {
+    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
         dsmrPortListener.handlePortErrorEvent(portEvent);
         parser.reset();
     }
 
-    @Override
-    public void handleTelegramReceived(List<CosemObject> cosemObjects, String telegramDetails) {
+    private void handleTelegramReceived(List<CosemObject> cosemObjects, String telegramDetails) {
         dsmrPortListener.handleTelegramReceived(cosemObjects, telegramDetails);
     }
 

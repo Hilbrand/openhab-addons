@@ -17,14 +17,14 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.serial.DSMRPort;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortEvent;
+import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
 import org.openhab.binding.dsmr.internal.device.serial.DSMRPortSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author M. Volaart - Initial contribution
- * @author Hilbrand Bouwkamp - Refactored handling switching of baudrate in new class
+ * @author Hilbrand Bouwkamp - Simplified everything. Moved code around.
  */
 @NonNullByDefault
 public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
@@ -55,6 +55,9 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
          *
          */
         NORMAL,
+        /**
+         *
+         */
         ERROR
     }
 
@@ -97,9 +100,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
 
     private DSMRPortSettings portSettings;
 
-    private final DSMRTelegramHandler handler;
-
-    // private Semaphore discoveryLock = new Semaphore(0);
+    private final DSMRTelegramListener handler;
 
     /**
      * Creates a new DSMRBridgeDiscoveryHelper
@@ -109,7 +110,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
      * @param scheduler
      */
     public DSMRAutoConfigDevice(String serialPort, DSMRPortEventListener listener, ScheduledExecutorService scheduler) {
-        handler = new DSMRTelegramHandler(serialPort);
+        handler = new DSMRTelegramListener(serialPort);
         dsmrPort = new DSMRPort(serialPort, true, handler);
         portName = dsmrPort.getPortName();
         this.portEventListener = listener;
@@ -122,7 +123,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
      */
     @Override
     public void start() {
-        // portSettings = DEFAULT_PORT_SETTINGS;
+        portSettings = DEFAULT_PORT_SETTINGS;
         handler.setDsmrPortListener(this);
         logger.debug("[{}] Start detecting port settings.", portName);
         halfTimeTimer = scheduler.schedule(this::switchBaudrate,
@@ -133,31 +134,6 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
         // dsmrPort = new DSMRPort(portName, this, null, null, true);
         dsmrPort.open(portSettings);
         state = DetectorState.DETECTING_SETTINGS;
-    }
-
-    @Override
-    public void dispose() {
-        stop();
-        handler.dispose();
-    }
-
-    /**
-     *
-     */
-    private synchronized void switchBaudrate() {
-        if (state == DetectorState.DETECTING_SETTINGS) {
-            if (halfTimeTimer != null) {
-                halfTimeTimer.cancel(true);
-            }
-            state = DetectorState.SWITCHING_BAUDRATE;
-            logger.debug(
-                    "[{}] Detecting port settings is running for half time now and still nothing discovered, switching baudrate and retrying",
-                    portName);
-            portSettings = portSettings == DSMRPortSettings.HIGH_SPEED_SETTINGS ? DSMRPortSettings.LOW_SPEED_SETTINGS
-                    : DSMRPortSettings.HIGH_SPEED_SETTINGS;
-            dsmrPort.restart(portSettings);
-            state = DetectorState.DETECTING_SETTINGS;
-        }
     }
 
     @Override
@@ -219,15 +195,15 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
     /**
      * Event handler for DSMR Port events
      *
-     * @param portEvent {@link DSMRPortEvent} to handle
+     * @param portEvent {@link DSMRPortErrorEvent} to handle
      */
     @Override
-    public void handlePortErrorEvent(DSMRPortEvent portEvent) {
+    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
         if (state == DetectorState.SWITCHING_BAUDRATE) {
             logger.debug("[{}] Received portEvent during switching baudrate {}", portName, portEvent);
             return;
         }
-        logger.trace("[{}] Received portEvent {}", portName, portEvent);
+        logger.trace("[{}] Received portEvent {}", portName, portEvent.getEventDetails());
         switch (portEvent) {
             case DONT_EXISTS: // Port does not exists (unexpected, since it was there, so port is not usable)
             case IN_USE: // Port is in use
@@ -250,12 +226,31 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
      *
      * @param portEvent
      */
-    private synchronized void handleError(DSMRPortEvent portEvent) {
+    private synchronized void handleError(DSMRPortErrorEvent portEvent) {
         logger.debug("[{}] Error during detecting port settings: {}, current state:{}.", portName,
                 portEvent.getEventDetails(), state);
         if (state == DetectorState.DETECTING_SETTINGS) {
             stopDetecting(DetectorState.ERROR);
             portEventListener.handlePortErrorEvent(portEvent);
+        }
+    }
+
+    /**
+    *
+    */
+    private synchronized void switchBaudrate() {
+        if (state == DetectorState.DETECTING_SETTINGS) {
+            if (halfTimeTimer != null) {
+                halfTimeTimer.cancel(true);
+            }
+            state = DetectorState.SWITCHING_BAUDRATE;
+            logger.debug(
+                    "[{}] Detecting port settings is running for half time now and still nothing discovered, switching baudrate and retrying",
+                    portName);
+            portSettings = portSettings == DSMRPortSettings.HIGH_SPEED_SETTINGS ? DSMRPortSettings.LOW_SPEED_SETTINGS
+                    : DSMRPortSettings.HIGH_SPEED_SETTINGS;
+            dsmrPort.restart(portSettings);
+            state = DetectorState.DETECTING_SETTINGS;
         }
     }
 }

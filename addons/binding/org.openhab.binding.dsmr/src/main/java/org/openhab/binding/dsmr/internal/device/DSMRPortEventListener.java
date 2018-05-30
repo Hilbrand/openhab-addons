@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortEvent;
+import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
 
 /**
  * Interface for handling DSMRPortEvent events
@@ -24,9 +24,9 @@ public interface DSMRPortEventListener {
     /**
      * Callback for DSMRPortEvent events
      *
-     * @param portEvent {@link DSMRPortEvent} that has occurred
+     * @param portEvent {@link DSMRPortErrorEvent} that has occurred
      */
-    public void handlePortErrorEvent(DSMRPortEvent portEvent);
+    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent);
 
     /**
      * Callback for received P1 telegrams

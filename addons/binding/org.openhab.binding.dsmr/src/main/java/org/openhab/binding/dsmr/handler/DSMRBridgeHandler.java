@@ -25,11 +25,10 @@ import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConfiguration;
-import org.openhab.binding.dsmr.internal.device.DSMRDeviceConstants;
 import org.openhab.binding.dsmr.internal.device.DSMRFixedConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortEvent;
+import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
 import org.openhab.binding.dsmr.internal.device.serial.DSMRPortSettings;
 import org.openhab.binding.dsmr.internal.meter.DSMRMeterListener;
 import org.slf4j.Logger;
@@ -43,6 +42,8 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEventListener {
+
+    private static final int _3 = 10;
 
     private final Logger logger = LoggerFactory.getLogger(DSMRBridgeHandler.class);
 
@@ -149,14 +150,15 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
         long deltaLastReceived = System.nanoTime() - telegramReceivedTime;
 
         if (deltaLastReceived > receivedTimeout) {
-            logger.trace("No data received for {} seconds", TimeUnit.NANOSECONDS.toSeconds(deltaLastReceived));
-            if (getThing().getStatus() == ThingStatus.ONLINE) {
-                deviceOffline(ThingStatusDetail.COMMUNICATION_ERROR, "No data received for to long.");
-            } else if (deltaLastReceived > DSMRDeviceConstants.RECOVERY_TIMEOUT_NANOS) {
-                logger.debug("Restarting device after no data for {} seconds",
-                        TimeUnit.NANOSECONDS.toSeconds(deltaLastReceived));
+            logger.debug("No data received for {} seconds, restarting port if possible.",
+                    TimeUnit.NANOSECONDS.toSeconds(deltaLastReceived));
+            dsmrDevice.restart();
+            if (deltaLastReceived > receivedTimeout * _3) {
+                logger.trace("Setting device offline if not yet done, and reset last received time.");
+                if (getThing().getStatus() == ThingStatus.ONLINE) {
+                    deviceOffline(ThingStatusDetail.COMMUNICATION_ERROR, "Not receiving data from meter.");
+                }
                 resetLastReceivedState();
-                dsmrDevice.restart();
             }
         }
     }
@@ -178,16 +180,13 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     }
 
     @Override
-    public void handlePortErrorEvent(DSMRPortEvent portEvent) {
+    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
         handleDSMRErrorEvent(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
     }
 
     private synchronized void handleDSMRErrorEvent(ThingStatusDetail thingStatusDetail, String details) {
-        // if (!switchBaudrateWhenStarting()) {
         resetLastReceivedState();
-        // receivedCosemObjects.clear();
         deviceOffline(thingStatusDetail, details);
-        // }
     }
 
     public void meterValueReceived(List<CosemObject> lastMeterValues) {
@@ -213,10 +212,6 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
             watchdog.cancel(true);
             watchdog = null;
         }
-        // if (dsmrDevice != null) {
-        // dsmrDevice.stopDevice();
-        // dsmrDevice = null;
-        // }
         if (dsmrDevice != null) {
             dsmrDevice.stop();
         }

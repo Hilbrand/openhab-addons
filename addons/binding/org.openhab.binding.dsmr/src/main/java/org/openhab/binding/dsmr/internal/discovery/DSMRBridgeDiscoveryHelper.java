@@ -17,7 +17,7 @@ import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConstants;
 import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortEvent;
+import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,7 +160,7 @@ class DSMRBridgeDiscoveryHelper implements DSMRPortEventListener {
     // }
 
     @Override
-    public void handlePortErrorEvent(DSMRPortEvent portEvent) {
+    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
         stopScan();
         logger.debug("Error on port [{}] during discovery.", portName);
     }
@@ -171,7 +171,7 @@ class DSMRBridgeDiscoveryHelper implements DSMRPortEventListener {
     public synchronized void stopScan() {
         logger.trace("Stop discovery on port [{}].", portName);
         if (detector != null) {
-            detector.dispose();
+            detector.stop();
         }
         // if (halfTimeTimer != null) {
         // halfTimeTimer.cancel(true);

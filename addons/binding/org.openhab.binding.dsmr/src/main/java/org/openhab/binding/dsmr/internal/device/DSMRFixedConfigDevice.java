@@ -12,26 +12,23 @@ import org.openhab.binding.dsmr.internal.device.serial.DSMRPort;
 import org.openhab.binding.dsmr.internal.device.serial.DSMRPortSettings;
 
 /**
+ * Implementation of a DSMRDevice with fixed serial port settings. With fixed port settings the code is much simpler
+ * because no detecting of settings needs to be done and when things fail no redirecting is needed either.
+ *
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 public class DSMRFixedConfigDevice implements DSMRDevice {
 
-    private final DSMRTelegramHandler handler;
+    private final DSMRTelegramListener handler;
     private final DSMRPort dsmrPort;
     private final DSMRPortSettings fixedPortSettings;
 
     public DSMRFixedConfigDevice(String serialPort, DSMRPortSettings fixedPortSettings,
             DSMRPortEventListener listener) {
         this.fixedPortSettings = fixedPortSettings;
-        handler = new DSMRTelegramHandler(serialPort);
+        handler = new DSMRTelegramListener(serialPort);
         handler.setDsmrPortListener(listener);
         dsmrPort = new DSMRPort(serialPort, true, handler);
-    }
-
-    @Override
-    public void dispose() {
-        stop();
-        handler.dispose();
     }
 
     @Override

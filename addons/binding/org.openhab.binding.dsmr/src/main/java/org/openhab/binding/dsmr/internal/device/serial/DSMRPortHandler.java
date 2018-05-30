@@ -9,22 +9,24 @@
 package org.openhab.binding.dsmr.internal.device.serial;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
 
 /**
+ *
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-public interface DSMRPortHandler extends DSMRPortEventListener {
-
-    void push(byte[] buffer);
+public interface DSMRPortHandler {
 
     /**
      * Callback for DSMRPortEvent events
      *
-     * @param portEvent {@link DSMRPortEvent} that has occurred
+     * @param portEvent {@link DSMRPortErrorEvent} that has occurred
      */
-    @Override
-    public void handlePortErrorEvent(DSMRPortEvent portEvent);
+    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent);
 
+    /**
+     *
+     * @param buffer
+     */
+    void handleData(byte[] buffer);
 }
