@@ -109,7 +109,8 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
             DSMRPortSettings fixedPortSettings = DSMRPortSettings.getPortSettingsFromConfiguration(deviceConfig);
 
             if (fixedPortSettings == null) {
-                dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler);
+                dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler,
+                        deviceConfig.receivedTimeout);
             } else {
                 dsmrDevice = new DSMRFixedConfigDevice(deviceConfig.serialPort, fixedPortSettings, this);
             }

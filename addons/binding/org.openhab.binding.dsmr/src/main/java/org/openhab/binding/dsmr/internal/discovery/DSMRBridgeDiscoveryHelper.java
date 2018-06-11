@@ -132,7 +132,7 @@ class DSMRBridgeDiscoveryHelper implements DSMRPortEventListener {
         // TimeUnit.SECONDS);
 
         // dsmrPort = new DSMRPort(portName, true);
-        detector = new DSMRAutoConfigDevice(portName, this, scheduler);
+        detector = new DSMRAutoConfigDevice(portName, this, scheduler, 100);
         detector.start();
     }
 

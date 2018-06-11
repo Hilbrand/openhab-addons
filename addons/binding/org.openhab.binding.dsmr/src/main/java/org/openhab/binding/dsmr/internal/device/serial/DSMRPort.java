@@ -329,6 +329,11 @@ public class DSMRPort implements SerialPortEventListener {
         }
     }
 
+    /**
+     *
+     * @param typeName
+     * @param portEvent
+     */
     private void handleErrorEvent(String typeName, SerialPortEvent portEvent) {
         if (open && portEvent.getNewValue()) {
             logger.debug("New DSMR port {} event", typeName);
