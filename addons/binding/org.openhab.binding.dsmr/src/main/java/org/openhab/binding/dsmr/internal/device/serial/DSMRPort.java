@@ -291,6 +291,7 @@ public class DSMRPort implements SerialPortEventListener {
                     dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.NOT_COMPATIBLE);
                 }
             } else {
+                logger.info("Reopen port {} with settings: {}", this.portName, portSettings);
                 close();
                 open(portSettings);
             }

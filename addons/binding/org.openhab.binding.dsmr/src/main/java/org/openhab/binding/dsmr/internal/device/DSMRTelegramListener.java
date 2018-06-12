@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 @NonNullByDefault
-public class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
+class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
 
     private static final int _100 = 100;
 
@@ -57,12 +57,16 @@ public class DSMRTelegramListener implements P1TelegramListener, DSMRPortListene
 
     @Override
     public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
-        dsmrPortListener.handlePortErrorEvent(portEvent);
+        if (dsmrPortListener != null) {
+            dsmrPortListener.handlePortErrorEvent(portEvent);
+        }
         parser.reset();
     }
 
     private void handleTelegramReceived(List<CosemObject> cosemObjects, String telegramDetails) {
-        dsmrPortListener.handleTelegramReceived(cosemObjects, telegramDetails);
+        if (dsmrPortListener != null) {
+            dsmrPortListener.handleTelegramReceived(cosemObjects, telegramDetails);
+        }
     }
 
     /**

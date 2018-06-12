@@ -350,11 +350,15 @@ public class P1TelegramParser {
      * Store the current CosemObject in the list of received cosem Objects
      */
     private void storeCurrentCosemObject() {
-        CosemObject cosemObject = factory.getCosemObject(obisId.toString(), cosemObjectValuesString.toString());
+        String obisIdString = obisId.toString();
 
-        if (cosemObject != null) {
-            logger.trace("Adding {} to list of Cosem Objects", cosemObject);
-            cosemObjects.add(cosemObject);
+        if (!obisIdString.isEmpty()) {
+            CosemObject cosemObject = factory.getCosemObject(obisIdString, cosemObjectValuesString.toString());
+
+            if (cosemObject != null) {
+                logger.trace("Adding {} to list of Cosem Objects", cosemObject);
+                cosemObjects.add(cosemObject);
+            }
         }
     }
 

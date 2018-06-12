@@ -19,16 +19,16 @@ import org.openhab.binding.dsmr.internal.device.serial.DSMRPortSettings;
  */
 public class DSMRFixedConfigDevice implements DSMRDevice {
 
-    private final DSMRTelegramListener handler;
+    private final DSMRTelegramListener telegramListener;
     private final DSMRPort dsmrPort;
     private final DSMRPortSettings fixedPortSettings;
 
     public DSMRFixedConfigDevice(String serialPort, DSMRPortSettings fixedPortSettings,
             DSMRPortEventListener listener) {
         this.fixedPortSettings = fixedPortSettings;
-        handler = new DSMRTelegramListener(serialPort);
-        handler.setDsmrPortListener(listener);
-        dsmrPort = new DSMRPort(serialPort, true, handler);
+        telegramListener = new DSMRTelegramListener(serialPort);
+        telegramListener.setDsmrPortListener(listener);
+        dsmrPort = new DSMRPort(serialPort, true, telegramListener);
     }
 
     @Override

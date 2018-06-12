@@ -92,7 +92,6 @@ public class CosemObjectFactory {
             reducedObisId = obisId.getReducedOBISIdentifier();
         } catch (ParseException pe) {
             logger.warn("Received invalid OBIS identifier: {}", obisIdString);
-
             return null;
         }
 

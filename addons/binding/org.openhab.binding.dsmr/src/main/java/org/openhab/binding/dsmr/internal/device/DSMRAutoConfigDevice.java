@@ -28,16 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
-    private final Logger logger = LoggerFactory.getLogger(DSMRAutoConfigDevice.class);
-
-    /*
-     * Februari 2017
-     * Due to the Dutch Smart Meter program where every residence is provided
-     * a smart for free and the meters are DSMR V4 or higher
-     * we assume the majority of meters communicate with HIGH_SPEED_SETTINGS
-     * For older meters this means initializing is taking probably 1 minute
-     */
-    private final DSMRPortSettings DEFAULT_PORT_SETTINGS = DSMRPortSettings.HIGH_SPEED_SETTINGS;
+    private static final long SWITCHING_BAUDRATE_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(5);
 
     /**
      * Detector state
@@ -50,10 +41,6 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
         /**
          *
          */
-        SWITCHING_BAUDRATE,
-        /**
-         *
-         */
         NORMAL,
         /**
          *
@@ -61,25 +48,40 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
         ERROR
     }
 
+    /*
+     * Februari 2017
+     * Due to the Dutch Smart Meter program where every residence is provided
+     * a smart for free and the meters are DSMR V4 or higher
+     * we assume the majority of meters communicate with HIGH_SPEED_SETTINGS
+     * For older meters this means initializing is taking probably 1 minute
+     */
+    private static final DSMRPortSettings DEFAULT_PORT_SETTINGS = DSMRPortSettings.HIGH_SPEED_SETTINGS;
+
+    private final Logger logger = LoggerFactory.getLogger(DSMRAutoConfigDevice.class);
+
     /**
      * The port name
      */
     private final String portName;
 
     /**
-     * Listener for discovered devices
+     * DSMR Port instance
      */
-    private final DSMRPortEventListener portEventListener;
+    private final DSMRPort dsmrPort;
 
     /**
     *
     */
     private final ScheduledExecutorService scheduler;
 
+    private final int receivedTimeoutSeconds;
+
+    private DSMRPortSettings portSettings;
+
     /**
-     * DSMR Port instance
-     */
-    private final DSMRPort dsmrPort;
+    *
+    */
+    private DeviceConfigState state = DeviceConfigState.NORMAL;
 
     /**
      * Timer for handling discovery half time
@@ -93,109 +95,67 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
     @Nullable
     private ScheduledFuture<?> endTimeTimer;
 
-    /**
-    *
-    */
-    private DeviceConfigState state = DeviceConfigState.NORMAL;
+    private final DSMRTelegramListener telegramListener;
 
-    private DSMRPortSettings portSettings;
+    private DSMRPortEventListener parentListener;
 
-    private final DSMRTelegramListener parentlistener;
-
-    private int receivedTimeoutSeconds;
+    private long lastSwitchedBautrateNanos;
 
     /**
      * Creates a new {@link DSMRAutoConfigDevice}
      *
      * @param serialPort the port name (e.g. /dev/ttyUSB0 or COM1)
-     * @param parentlistener the {@link DSMRPortEventListener}
+     * @param telegramListener the {@link DSMRPortEventListener}
      * @param scheduler
      */
     public DSMRAutoConfigDevice(String serialPort, DSMRPortEventListener listener, ScheduledExecutorService scheduler,
             int receivedTimeoutSeconds) {
-        this.receivedTimeoutSeconds = receivedTimeoutSeconds;
-        parentlistener = new DSMRTelegramListener(serialPort);
-        dsmrPort = new DSMRPort(serialPort, true, parentlistener);
-        portName = dsmrPort.getPortName();
-        this.portEventListener = listener;
+        this.parentListener = listener;
         this.scheduler = scheduler;
+        this.receivedTimeoutSeconds = receivedTimeoutSeconds;
+        telegramListener = new DSMRTelegramListener(serialPort);
+        telegramListener.setDsmrPortListener(listener);
         portSettings = DEFAULT_PORT_SETTINGS;
+        dsmrPort = new DSMRPort(serialPort, true, telegramListener);
+        portName = dsmrPort.getPortName();
     }
 
-    /**
-     * Start the discovery process.
-     */
     @Override
     public void start() {
-        portSettings = DEFAULT_PORT_SETTINGS;
-        setDetectSetings();
         logger.debug("[{}] Start detecting port settings.", portName);
+        stopDetecting(DeviceConfigState.DETECTING_SETTINGS);
+        portSettings = DEFAULT_PORT_SETTINGS;
+        telegramListener.setDsmrPortListener(this);
         dsmrPort.open(portSettings);
         restartHalfTimer();
-        endTimeTimer = scheduler.schedule(this::stop,
+        endTimeTimer = scheduler.schedule(this::stopEndScheduler,
                 receivedTimeoutSeconds * 4 /* DSMRDeviceConstants.DSMR_DISCOVERY_TIMEOUT_SECONDS */, TimeUnit.SECONDS);
     }
 
     @Override
-    public synchronized void restart() {
-        logger.debug("Restart: state:{}", state);
-        if (endTimeTimer == null || endTimeTimer.isDone()) {
-            if (state == DeviceConfigState.ERROR) {
-                // did receive anything but was an error.
-                stop();
-                wait(10);
-                start();
-            } else {
-                setDetectSetings();
-                dsmrPort.restart(portSettings);
-            }
+    public void restart() {
+        if (inError()) {
+            // did receive anything but was an error.
+            stop();
+            start();
+        } else if (!isRunning()) {
+            dsmrPort.restart(portSettings);
         }
     }
 
-    private void setDetectSetings() {
-        state = DeviceConfigState.DETECTING_SETTINGS;
-        parentlistener.setDsmrPortListener(this);
-    }
-
-    private void wait(int waitInSeconds) {
-        try {
-            super.wait(TimeUnit.SECONDS.toMillis(waitInSeconds));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     *
-     */
     @Override
     public synchronized void stop() {
         dsmrPort.close();
-        if (state == DeviceConfigState.DETECTING_SETTINGS) {
-            state = DeviceConfigState.ERROR;
-        } else {
-            state = DeviceConfigState.NORMAL;
-        }
-        logger.trace("stopped with state:{}", state);
         stopDetecting(state);
+        logger.trace("stopped with state:{}", state);
     }
 
-    /**
-     *
-     * @param state
-     */
-    private void stopDetecting(DeviceConfigState state) {
-        logger.debug("[{}] Stop detecting port settings.", portName);
-        parentlistener.setDsmrPortListener(portEventListener);
-        if (halfTimeTimer != null) {
-            halfTimeTimer.cancel(true);
-            halfTimeTimer = null;
-        }
-        if (endTimeTimer != null) {
-            endTimeTimer.cancel(true);
-            endTimeTimer = null;
-        }
-        this.state = state;
+    private boolean isRunning() {
+        return state == DeviceConfigState.DETECTING_SETTINGS;
+    }
+
+    private boolean inError() {
+        return state == DeviceConfigState.ERROR;
     }
 
     /**
@@ -204,14 +164,14 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
      * If there are cosem objects received a new bridge will we discovered
      *
      * @param cosemObjects list of {@link CosemObject}
-     * @param stateDetails the details of the received telegram (this parameter is ignored)
+     * @param telegramDetails the details of the received telegram (this parameter is ignored)
      */
     @Override
-    public void handleTelegramReceived(List<CosemObject> cosemObjects, String stateDetails) {
+    public void handleTelegramReceived(List<CosemObject> cosemObjects, String telegramDetails) {
         logger.debug("[{}] Received {} cosemObjects, state:{}", portName, cosemObjects.size(), state);
         if (!cosemObjects.isEmpty()) {
             stopDetecting(DeviceConfigState.NORMAL);
-            portEventListener.handleTelegramReceived(cosemObjects, stateDetails);
+            parentListener.handleTelegramReceived(cosemObjects, telegramDetails);
         }
     }
 
@@ -222,16 +182,15 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
      */
     @Override
     public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
-        if (state == DeviceConfigState.SWITCHING_BAUDRATE) {
-            logger.debug("[{}] Received portEvent during switching baudrate {}", portName, portEvent);
-            return;
-        }
         logger.trace("[{}] Received portEvent {}", portName, portEvent.getEventDetails());
         switch (portEvent) {
             case DONT_EXISTS: // Port does not exists (unexpected, since it was there, so port is not usable)
             case IN_USE: // Port is in use
             case NOT_COMPATIBLE: // Port not compatible
-                handleError(portEvent);
+                logger.debug("[{}] Error during detecting port settings: {}, current state:{}.", portName,
+                        portEvent.getEventDetails(), state);
+                stopDetecting(DeviceConfigState.ERROR);
+                parentListener.handlePortErrorEvent(portEvent);
                 break;
             case READ_ERROR: // read error(try switching port speed)
                 switchBaudrate();
@@ -246,33 +205,45 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
     }
 
     /**
-     * Called when an event was triggered that could
-     *
-     * @param portEvent
-     */
-    private void handleError(DSMRPortErrorEvent portEvent) {
-        logger.debug("[{}] Error during detecting port settings: {}, current state:{}.", portName,
-                portEvent.getEventDetails(), state);
-        stopDetecting(DeviceConfigState.ERROR);
-        portEventListener.handlePortErrorEvent(portEvent);
-    }
-
-    /**
     *
     */
-    private synchronized void switchBaudrate() {
+    private void switchBaudrate() {
+        if (lastSwitchedBautrateNanos + SWITCHING_BAUDRATE_TIMEOUT_NANOS > System.nanoTime()) {
+            // Ignore switching baudrate if this is called within the timeout after a previous switch.
+            return;
+        }
+        lastSwitchedBautrateNanos = System.nanoTime();
         if (state == DeviceConfigState.DETECTING_SETTINGS) {
             restartHalfTimer();
-            state = DeviceConfigState.SWITCHING_BAUDRATE;
-            // wait(5);
             logger.debug(
                     "[{}] Detecting port settings is running for half time now and still nothing discovered, switching baudrate and retrying",
                     portName);
             portSettings = portSettings == DSMRPortSettings.HIGH_SPEED_SETTINGS ? DSMRPortSettings.LOW_SPEED_SETTINGS
                     : DSMRPortSettings.HIGH_SPEED_SETTINGS;
             dsmrPort.restart(portSettings);
-            state = DeviceConfigState.DETECTING_SETTINGS;
         }
+    }
+
+    private void stopEndScheduler() {
+        stopDetecting(state == DeviceConfigState.NORMAL ? DeviceConfigState.NORMAL : DeviceConfigState.ERROR);
+    }
+
+    /**
+     *
+     * @param state
+     */
+    private void stopDetecting(DeviceConfigState state) {
+        telegramListener.setDsmrPortListener(parentListener);
+        logger.debug("[{}] Stop detecting port settings.", portName);
+        if (halfTimeTimer != null) {
+            halfTimeTimer.cancel(true);
+            halfTimeTimer = null;
+        }
+        if (endTimeTimer != null) {
+            endTimeTimer.cancel(true);
+            endTimeTimer = null;
+        }
+        this.state = state;
     }
 
     private void restartHalfTimer() {
@@ -281,4 +252,5 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
         }
         halfTimeTimer = scheduler.schedule(this::switchBaudrate, receivedTimeoutSeconds, TimeUnit.SECONDS);
     }
+
 }

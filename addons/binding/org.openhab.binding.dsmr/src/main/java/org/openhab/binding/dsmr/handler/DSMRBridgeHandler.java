@@ -182,11 +182,22 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
 
     @Override
     public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
-        handleDSMRErrorEvent(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
+        switch (portEvent) {
+            case DONT_EXISTS: // Port does not exists (unexpected, since it was there, so port is not usable)
+            case IN_USE: // Port is in use
+            case NOT_COMPATIBLE: // Port not compatible
+                handleDSMRErrorEvent(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
+                break;
+            case READ_ERROR:
+                // Don't set offline on read error. It will go online via alive method in such a case.
+                break;
+            default:
+                break;
+        }
     }
 
     private synchronized void handleDSMRErrorEvent(ThingStatusDetail thingStatusDetail, String details) {
-        resetLastReceivedState();
+        // resetLastReceivedState();
         deviceOffline(thingStatusDetail, details);
     }
 
