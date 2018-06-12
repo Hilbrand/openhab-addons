@@ -134,11 +134,10 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
 
     @Override
     public void restart() {
-        if (inError()) {
-            // did receive anything but was an error.
+        if (state == DeviceConfigState.ERROR) {
             stop();
             start();
-        } else if (!isRunning()) {
+        } else if (state == DeviceConfigState.NORMAL) {
             dsmrPort.restart(portSettings);
         }
     }
@@ -148,14 +147,6 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
         dsmrPort.close();
         stopDetecting(state);
         logger.trace("stopped with state:{}", state);
-    }
-
-    private boolean isRunning() {
-        return state == DeviceConfigState.DETECTING_SETTINGS;
-    }
-
-    private boolean inError() {
-        return state == DeviceConfigState.ERROR;
     }
 
     /**
@@ -220,7 +211,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
                     portName);
             portSettings = portSettings == DSMRPortSettings.HIGH_SPEED_SETTINGS ? DSMRPortSettings.LOW_SPEED_SETTINGS
                     : DSMRPortSettings.HIGH_SPEED_SETTINGS;
-            dsmrPort.restart(portSettings);
+            dsmrPort.setSerialPortParams(portSettings);
         }
     }
 

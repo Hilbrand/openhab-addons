@@ -274,13 +274,10 @@ public class DSMRPort implements SerialPortEventListener {
         }
     }
 
-    /**
-     * Switch the Serial Port speed (LOW --> HIGH and vice versa).
-     */
-    public void restart(DSMRPortSettings portSettings) {
+    public void setSerialPortParams(DSMRPortSettings portSettings) {
         synchronized (portLock) {
             if (open) {
-                logger.info("Set port {} with settings: {}", this.portName, portSettings);
+                logger.info("Restart port {} with settings: {}", this.portName, portSettings);
                 try {
                     serialPort.setSerialPortParams(portSettings.getBaudrate(), portSettings.getDataBits(),
                             portSettings.getStopbits(), portSettings.getParity());
@@ -291,10 +288,20 @@ public class DSMRPort implements SerialPortEventListener {
                     dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.NOT_COMPATIBLE);
                 }
             } else {
-                logger.info("Reopen port {} with settings: {}", this.portName, portSettings);
-                close();
-                open(portSettings);
+                restart(portSettings);
             }
+        }
+    }
+
+    /**
+     * Switch the Serial Port speed (LOW --> HIGH and vice versa).
+     */
+
+    public void restart(DSMRPortSettings portSettings) {
+        synchronized (portLock) {
+            logger.info("Reopen port {} with settings: {}", this.portName, portSettings);
+            close();
+            open(portSettings);
         }
     }
 
@@ -341,4 +348,5 @@ public class DSMRPort implements SerialPortEventListener {
             dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
         }
     }
+
 }
