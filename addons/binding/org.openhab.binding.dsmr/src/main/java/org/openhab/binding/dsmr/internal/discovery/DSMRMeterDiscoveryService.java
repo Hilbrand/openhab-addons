@@ -46,11 +46,13 @@ public class DSMRMeterDiscoveryService extends DSMRDiscoveryService implements D
      */
     @Override
     protected void startScan() {
+        logger.info("Start discovery on existing DSMR bridge.");
         dsmrBridgeHandler.registerDSMRMeterListener(this);
     }
 
     @Override
     protected synchronized void stopScan() {
+        logger.info("Stop discovery on existing DSMR bridge.");
         super.stopScan();
         dsmrBridgeHandler.unregisterDSMRMeterListener(this);
     }

@@ -151,7 +151,7 @@ public class DSMRPort implements SerialPortEventListener {
 
                     dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
                 }
-                logger.info("DSMR Port opened successful with port settings: {}", portSettings);
+                logger.debug("DSMR Port opened successful with port settings: {}", portSettings);
 
                 try {
                     serialPort.addEventListener(this);
@@ -166,6 +166,8 @@ public class DSMRPort implements SerialPortEventListener {
                 serialPort.notifyOnOverrunError(true);
                 serialPort.notifyOnParityError(true);
 
+                // serialPort.disableReceiveTimeout();
+                serialPort.enableReceiveThreshold(_1000);
                 serialPort.enableReceiveTimeout(_1000);
                 // The binding is ready, let the meter know we want to receive values
                 serialPort.setRTS(true);

@@ -50,7 +50,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
      */
     @Override
     protected void startScan() {
-        logger.debug("Started discovery scan");
+        logger.info("Started discovery scan");
 
         @SuppressWarnings("unchecked")
         Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
@@ -63,14 +63,16 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
             logger.trace("Possible port to check:{}, owned:{} by:{}", portIdentifier.getName(),
                     portIdentifier.isCurrentlyOwned(), portIdentifier.getCurrentOwner());
             if (portIdentifier.getPortType() == CommPortIdentifier.PORT_SERIAL) {
-                if (!portIdentifier.isCurrentlyOwned()) {
+                if (portIdentifier.isCurrentlyOwned()) {
+                    if (DSMRBindingConstants.DSMR_PORT_NAME.equals(portIdentifier.getCurrentOwner())) {
+                        logger.info("The port {} is owned by this binding. If no devices have been found yet it "
+                                + "might indicate the port is locked by an older instance of this binding. "
+                                + "Restart the system to unlock the port.", portIdentifier.getName());
+                    }
+                } else {
                     logger.debug("Start discovery for serial port: {}", portIdentifier.getName());
                     discoveryHelper = new DSMRBridgeDiscoveryHelper(portIdentifier.getName(), this, scheduler);
                     discoveryHelper.startDiscovery();
-                } else if (DSMRBindingConstants.DSMR_PORT_NAME.equals(portIdentifier.getCurrentOwner())) {
-                    logger.info("The port {} is owned by this binding. If no devices have been found yet it "
-                            + "might indicate the port is locked by an older instance of this binding. "
-                            + "Restart the system to unlock the port.", portIdentifier.getName());
                 }
             }
         }
@@ -82,7 +84,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
         if (discoveryHelper != null) {
             discoveryHelper.stopScan();
         }
-        logger.debug("Finished discovery scan");
+        logger.info("Finished discovery scan");
     }
 
     /**
