@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<config-description:config-descriptions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<config-description:config-descriptions
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:config-description="http://eclipse.org/smarthome/schemas/config-description/v1.0.0"
 	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/config-description/v1.0.0 http://eclipse.org/smarthome/schemas/config-description-1.0.0.xsd">
 
@@ -13,13 +14,15 @@
 		<parameter name="serialPort" type="text">
 			<context>serial-port</context>
 			<label>Serial Port</label>
-			<description>The Serial Port where the P1 port of the Smart Meter is connected (e.g. Linux: /dev/ttyUSB0, Windows: COM1)</description>
+			<description>The Serial Port where the P1 port of the Smart Meter is connected (e.g. Linux: /dev/ttyUSB0, Windows:
+				COM1)</description>
 		</parameter>
-		<parameter name="serialPortEnableAutoDetection" type="boolean" required="true" groupName="serialPortAdvanced">
+		<parameter name="serialPortEnableAutoDetection" type="boolean" required="true"
+			groupName="serialPortAdvanced">
 			<default>true</default>
 			<label>Enable Serial Port auto detection</label>
-			<description>In case auto detection of the DSMR-device does not work it is possible 
-		              to disable auto detection and use the manual Serial port parameters.</description>
+			<description>In case auto detection of the DSMR-device does not work it is possible
+				to disable auto detection and use the manual Serial port parameters.</description>
 		</parameter>
 		<parameter name="receivedTimeout" type="integer" required="true" min="1">
 			<default>30</default>
@@ -73,10 +76,10 @@
 		<parameter name="lenientMode" type="boolean" required="true">
 			<default>false</default>
 			<label>Lenient Mode</label>
-			<description><![CDATA[ In lenient mode the binding will handle communication problems more silently. 
-                If your experiencing lots of errors in the log and receive no data setting lenient mode to true could help.<br><br>
-                Please note that receiving data is not steady (the communication problems are still there).<br><br>
-                This option could be needed for embedded platforms and should not be needed if the platform fast enough. ]]></description>
+			<description><![CDATA[ In lenient mode the binding will handle communication problems more silently.
+If your experiencing lots of errors in the log and receive no data setting lenient mode to true could help.<br><br>
+Please note that receiving data is not steady (the communication problems are still there).<br><br>
+This option could be needed for embedded platforms and should not be needed if the platform fast enough. ]]></description>
 			<advanced>true</advanced>
 		</parameter>
 	</config-description>

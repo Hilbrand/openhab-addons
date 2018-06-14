@@ -129,7 +129,7 @@ public class DSMRPort implements SerialPortEventListener {
     public void open(DSMRPortSettings portSettings) {
         synchronized (portLock) {
             try {
-                logger.debug("Opening port {}", portName);
+                logger.trace("Opening port {}", portName);
                 // Opening Operating System Serial Port
                 CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
                 CommPort commPort = portIdentifier.open(DSMRBindingConstants.DSMR_PORT_NAME,
@@ -137,13 +137,13 @@ public class DSMRPort implements SerialPortEventListener {
                 serialPort = (SerialPort) commPort;
 
                 // Configure Serial Port based on specified port speed
-                logger.debug("Configure serial port parameters: {}", portSettings);
+                logger.trace("Configure serial port parameters: {}", portSettings);
 
                 serialPort.setSerialPortParams(portSettings.getBaudrate(), portSettings.getDataBits(),
                         portSettings.getStopbits(), portSettings.getParity());
 
                 // SerialPort is ready, open the reader
-                logger.debug("SerialPort opened successful on {}", portName);
+                logger.trace("SerialPort opened successful on {}", portName);
                 try {
                     serialInputStream = new BufferedInputStream(serialPort.getInputStream());
                 } catch (IOException ioe) {
@@ -151,7 +151,6 @@ public class DSMRPort implements SerialPortEventListener {
 
                     dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
                 }
-                logger.debug("DSMR Port opened successful with port settings: {}", portSettings);
 
                 try {
                     serialPort.addEventListener(this);
@@ -173,6 +172,7 @@ public class DSMRPort implements SerialPortEventListener {
                 serialPort.setRTS(true);
 
                 open = true;
+                logger.info("Opened port {} with settings: {}", this.portName, portSettings);
             } catch (NoSuchPortException nspe) {
                 logger.debug("Port {} does not exists", portName, nspe);
 
@@ -240,7 +240,7 @@ public class DSMRPort implements SerialPortEventListener {
                 // open port if it is not open
                 if (serialPort == null) {
                     logger.warn("DSMRPort is not open, no values will be read");
-                    return;// DSMRPortEvent.CLOSED;
+                    return;
                 }
 
                 // Read without lock on purpose to permit fast closure
@@ -252,7 +252,6 @@ public class DSMRPort implements SerialPortEventListener {
                     int bytesAvailableRead = serialInputStream.read(buffer, 0, Math.min(bytesAvailable, buffer.length));
                     rb += bytesAvailableRead;
                     rc++;
-                    // logger.trace("Read #{} bytes.", bytesRead);
                     if (open && bytesAvailableRead > 0) {
                         dsmrPortListener.handleData(Arrays.copyOfRange(buffer, 0, bytesAvailableRead));
                     } else {
@@ -261,7 +260,6 @@ public class DSMRPort implements SerialPortEventListener {
                     }
                     bytesAvailable = serialInputStream.available();
                 }
-                // logger.trace("Read #{} bytes {} times in this message", rb, rc);
                 synchronized (portLock) {
                     readCount += rc;
                     this.bytesRead += rb;
@@ -279,7 +277,7 @@ public class DSMRPort implements SerialPortEventListener {
     public void setSerialPortParams(DSMRPortSettings portSettings) {
         synchronized (portLock) {
             if (open) {
-                logger.info("Restart port {} with settings: {}", this.portName, portSettings);
+                logger.info("Update port {} with settings: {}", this.portName, portSettings);
                 try {
                     serialPort.setSerialPortParams(portSettings.getBaudrate(), portSettings.getDataBits(),
                             portSettings.getStopbits(), portSettings.getParity());
@@ -298,10 +296,9 @@ public class DSMRPort implements SerialPortEventListener {
     /**
      * Switch the Serial Port speed (LOW --> HIGH and vice versa).
      */
-
     public void restart(DSMRPortSettings portSettings) {
         synchronized (portLock) {
-            logger.info("Reopen port {} with settings: {}", this.portName, portSettings);
+            logger.trace("Restart port {} with settings: {}", this.portName, portSettings);
             close();
             open(portSettings);
         }
@@ -312,7 +309,7 @@ public class DSMRPort implements SerialPortEventListener {
         if (seEvent == null) {
             return;
         }
-        if (SerialPortEvent.DATA_AVAILABLE != seEvent.getEventType()) {
+        if (logger.isTraceEnabled() && SerialPortEvent.DATA_AVAILABLE != seEvent.getEventType()) {
             logger.trace("Serial event: {}, new value:{}", seEvent.getEventType(), seEvent.getNewValue());
         }
         try {

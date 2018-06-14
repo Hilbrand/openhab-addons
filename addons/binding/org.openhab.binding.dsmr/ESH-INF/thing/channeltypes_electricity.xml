@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<thing:thing-descriptions bindingId="dsmr" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<thing:thing-descriptions bindingId="dsmr"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
 	<channel-type id="deliveryType">
-		<item-type>Number</item-type>
+		<item-type>Number:Energy</item-type>
 		<label>Delivery</label>
 		<description>The total amount of electricity used in kWh.</description>
-		<state pattern="%.1f kWh" readOnly="true"></state>
+		<state pattern="%.1f %unit%" readOnly="true"></state>
 	</channel-type>
 	<channel-type id="deliveryTariff0Type">
 		<item-type>Number</item-type>

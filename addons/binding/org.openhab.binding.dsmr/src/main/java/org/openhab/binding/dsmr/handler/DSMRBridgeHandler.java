@@ -25,6 +25,7 @@ import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConfiguration;
+import org.openhab.binding.dsmr.internal.device.DSMRDeviceThread;
 import org.openhab.binding.dsmr.internal.device.DSMRFixedConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
@@ -53,7 +54,10 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
      * DSMRDevice that belongs to this DSMRBridgeHandler
      */
     @Nullable
-    private DSMRDevice dsmrDevice;
+    private DSMRDeviceThread dsmrDeviceThread;
+
+    @Nullable
+    private Thread thread;
 
     /**
      * Watchdog
@@ -61,7 +65,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     @Nullable
     private ScheduledFuture<?> watchdog;
 
-    private long receivedTimeout = System.nanoTime();
+    private long receivedTimeoutNanos = System.nanoTime();
 
     /**
      * Timestamp of last P1 telegram received
@@ -105,8 +109,9 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
         } else {
             logger.debug("Starting DSMR device");
             updateStatus(ThingStatus.UNKNOWN);
-            receivedTimeout = TimeUnit.SECONDS.toNanos(deviceConfig.receivedTimeout);
+            receivedTimeoutNanos = TimeUnit.SECONDS.toNanos(deviceConfig.receivedTimeout);
             DSMRPortSettings fixedPortSettings = DSMRPortSettings.getPortSettingsFromConfiguration(deviceConfig);
+            DSMRDevice dsmrDevice;
 
             if (fixedPortSettings == null) {
                 dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler,
@@ -116,8 +121,10 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
             }
             // Give the system some slack to start counting from now.
             resetLastReceivedState();
-            dsmrDevice.start();
-            watchdog = scheduler.scheduleWithFixedDelay(this::alive, receivedTimeout, receivedTimeout,
+            dsmrDeviceThread = new DSMRDeviceThread(dsmrDevice);
+            thread = new Thread(dsmrDeviceThread);
+            thread.start();
+            watchdog = scheduler.scheduleWithFixedDelay(this::alive, receivedTimeoutNanos, receivedTimeoutNanos,
                     TimeUnit.NANOSECONDS);
         }
     }
@@ -150,11 +157,11 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
         logger.trace("Bridge alive check with #{} children.", getThing().getThings().size());
         long deltaLastReceived = System.nanoTime() - telegramReceivedTime;
 
-        if (deltaLastReceived > receivedTimeout) {
+        if (deltaLastReceived > receivedTimeoutNanos) {
             logger.debug("No data received for {} seconds, restarting port if possible.",
                     TimeUnit.NANOSECONDS.toSeconds(deltaLastReceived));
-            dsmrDevice.restart();
-            if (deltaLastReceived > receivedTimeout * _3) {
+            dsmrDeviceThread.restart();
+            if (deltaLastReceived > receivedTimeoutNanos * _3) {
                 logger.trace("Setting device offline if not yet done, and reset last received time.");
                 if (getThing().getStatus() == ThingStatus.ONLINE) {
                     deviceOffline(ThingStatusDetail.COMMUNICATION_ERROR, "Not receiving data from meter.");
@@ -224,8 +231,8 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
             watchdog.cancel(true);
             watchdog = null;
         }
-        if (dsmrDevice != null) {
-            dsmrDevice.stop();
+        if (dsmrDeviceThread != null) {
+            dsmrDeviceThread.stop();
         }
     }
 

@@ -23,7 +23,7 @@ public class DSMRDeviceConstants {
     /**
      * Timeout for detecting the correct serial port settings
      */
-    public static final long SERIAL_PORT_AUTO_DETECT_TIMEOUT_SECONDS = SERIAL_PORT_READ_TIMEOUT_SECONDS * 2;
+    // public static final long SERIAL_PORT_AUTO_DETECT_TIMEOUT_SECONDS = SERIAL_PORT_READ_TIMEOUT_SECONDS * 2;
 
     /**
      * Timeout for Discovery timeout

@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
-    private static final long SWITCHING_BAUDRATE_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(5);
 
     /**
      * Detector state
@@ -47,6 +46,8 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
          */
         ERROR
     }
+
+    private static final long SWITCHING_BAUDRATE_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(5);
 
     /*
      * Februari 2017
