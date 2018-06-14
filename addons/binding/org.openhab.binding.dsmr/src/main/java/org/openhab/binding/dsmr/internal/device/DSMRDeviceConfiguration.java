@@ -8,8 +8,6 @@
  */
 package org.openhab.binding.dsmr.internal.device;
 
-import java.util.Objects;
-
 /**
  * Class described the DSMRDeviceConfiguration.
  *
@@ -19,7 +17,7 @@ import java.util.Objects;
  */
 public class DSMRDeviceConfiguration {
     /**
-     * Portname
+     * Serial port name
      */
     public String serialPort;
 
@@ -46,49 +44,17 @@ public class DSMRDeviceConfiguration {
     /**
      * Serial port auto detection flag
      */
-    public Boolean serialPortEnableAutoDetection = true;
+    public boolean serialPortEnableAutoDetection = true;
 
     /**
-     * The DSMR Device can work in a lenient mode.
-     * This means the binding is less strict during communication errors and will ignore the CRC-check
-     * Data that is available will be communicated to the OpenHAB2 system and recoverable communication errors
-     * won't be logged.
-     * This can be needed for devices handling the serial port not fast enough (e.g. embedded devices)
+     * When no message was received after the configured number of seconds action will be taken.
      */
-    public Boolean lenientMode;
-
-    public Integer receivedTimeout;
+    public int receivedTimeout;
 
     @Override
     public String toString() {
         return "DSMRDeviceConfiguration(portName:" + serialPort + ", baudrate:" + serialPortBaudrate + ", data bits:"
                 + serialPortDatabits + ", parity:" + serialPortParity + ", stop bits:" + serialPortStopbits
-                + ", auto detection enabled:" + serialPortEnableAutoDetection + ", lenientMode:" + lenientMode + ")";
-    }
-
-    /**
-     * Returns if this DSMRDeviceConfiguration is equal to the other DSMRDeviceConfiguration.
-     * Evaluation is done based on all the parameters
-     *
-     * @param other the other DSMRDeviceConfiguration to check
-     * @return true if both are equal, false otherwise or if other == null
-     */
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof DSMRDeviceConfiguration)) {
-            return false;
-        }
-        DSMRDeviceConfiguration o = (DSMRDeviceConfiguration) other;
-
-        return serialPort.equals(o.serialPort) && serialPortBaudrate.equals(o.serialPortBaudrate)
-                && serialPortDatabits.equals(o.serialPortDatabits) && serialPortParity.equals(o.serialPortParity)
-                && serialPortStopbits.equals(o.serialPortStopbits) && lenientMode == o.lenientMode
-                && serialPortEnableAutoDetection == o.serialPortEnableAutoDetection;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(serialPort, serialPortBaudrate, serialPortDatabits, serialPortParity, serialPortStopbits,
-                lenientMode, serialPortEnableAutoDetection);
+                + ", auto detection enabled:" + serialPortEnableAutoDetection + ")";
     }
 }

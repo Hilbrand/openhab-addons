@@ -37,13 +37,13 @@ public class DSMRDeviceThread implements DSMRDevice, Runnable {
 
     @Override
     public void restart() {
-        semaphore.release();
+        releaseSemaphore();
     }
 
     @Override
     public void stop() {
         shutdown = true;
-        semaphore.release();
+        releaseSemaphore();
     }
 
     @Override
@@ -68,5 +68,13 @@ public class DSMRDeviceThread implements DSMRDevice, Runnable {
             device.stop();
         }
 
+    }
+
+    private void releaseSemaphore() {
+        synchronized (semaphore) {
+            if (semaphore.availablePermits() == 0) {
+                semaphore.release();
+            }
+        }
     }
 }

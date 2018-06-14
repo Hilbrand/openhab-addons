@@ -8,8 +8,8 @@
  */
 package org.openhab.binding.dsmr.internal.device;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -23,21 +23,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Hilbrand Bouwkamp - Initial contribution
- *
+ * @author M. Volaart - Initial contribution
+ * @author Hilbrand Bouwkamp - Moved this code out of the DSMRPort class, fixed some issues and reduced code
  */
 @NonNullByDefault
 class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
 
-    private static final int _100 = 100;
-
     private final Logger logger = LoggerFactory.getLogger(DSMRTelegramListener.class);
     private final P1TelegramParser parser;
-
-    /**
-     * Whether or not the lenientMode is activated (less strict checking on valid data)
-     */
-    private boolean lenientMode = true;
 
     @Nullable
     private DSMRPortEventListener dsmrPortListener;
@@ -81,20 +74,9 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
         if (telegramState == TelegramState.OK) {
             handleTelegramReceived(cosemObjects, telegramState.stateDetails);
         } else {
-            if (lenientMode) {
-                // In lenient mode, still send Cosem Objects
-                if (cosemObjects.isEmpty()) {
-                    logger.warn("Did not receive anything at all in lenient mode");
-                    // dsmrPortListener.p1TelegramReceived(cosemObjects, telegramState.stateDetails);
-                } else {
-                    logger.debug("Still handling CosemObjects in lenient mode");
-                    // dsmrPortListener.p1TelegramReceived(cosemObjects, telegramState.stateDetails);
-                }
-            } else {
-                // Parsing was incomplete, don't send CosemObjects
-                logger.warn("Dropping {} CosemObjects due {}", cosemObjects.size(), telegramState.stateDetails);
-                cosemObjects = Collections.EMPTY_LIST;
-                // dsmrPortListener.p1TelegramReceived(Collections.EMPTY_LIST, telegramState.stateDetails);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Telegram received with error state '{}': {}", telegramState,
+                        cosemObjects.stream().map(CosemObject::toString).collect(Collectors.joining(",")));
             }
         }
     }

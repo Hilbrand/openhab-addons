@@ -100,7 +100,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
 
     private DSMRPortEventListener parentListener;
 
-    private long lastSwitchedBautrateNanos;
+    private long lastSwitchedBaudrateNanos;
 
     /**
      * Creates a new {@link DSMRAutoConfigDevice}
@@ -117,7 +117,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
         telegramListener = new DSMRTelegramListener(serialPort);
         telegramListener.setDsmrPortListener(listener);
         portSettings = DEFAULT_PORT_SETTINGS;
-        dsmrPort = new DSMRPort(serialPort, true, telegramListener);
+        dsmrPort = new DSMRPort(serialPort, telegramListener);
         portName = dsmrPort.getPortName();
     }
 
@@ -193,18 +193,17 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
                 break;
 
         }
-        // }
     }
 
     /**
     *
     */
     private void switchBaudrate() {
-        if (lastSwitchedBautrateNanos + SWITCHING_BAUDRATE_TIMEOUT_NANOS > System.nanoTime()) {
+        if (lastSwitchedBaudrateNanos + SWITCHING_BAUDRATE_TIMEOUT_NANOS > System.nanoTime()) {
             // Ignore switching baudrate if this is called within the timeout after a previous switch.
             return;
         }
-        lastSwitchedBautrateNanos = System.nanoTime();
+        lastSwitchedBaudrateNanos = System.nanoTime();
         if (state == DeviceConfigState.DETECTING_SETTINGS) {
             restartHalfTimer();
             logger.debug(

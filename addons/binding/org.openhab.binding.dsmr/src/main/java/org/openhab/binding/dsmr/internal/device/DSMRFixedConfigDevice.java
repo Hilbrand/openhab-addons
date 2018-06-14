@@ -28,7 +28,7 @@ public class DSMRFixedConfigDevice implements DSMRDevice {
         this.fixedPortSettings = fixedPortSettings;
         telegramListener = new DSMRTelegramListener(serialPort);
         telegramListener.setDsmrPortListener(listener);
-        dsmrPort = new DSMRPort(serialPort, true, telegramListener);
+        dsmrPort = new DSMRPort(serialPort, telegramListener);
     }
 
     @Override

@@ -21,7 +21,6 @@ import org.openhab.binding.dsmr.internal.device.DSMRDeviceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
 import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
@@ -99,7 +98,7 @@ public class DSMRPort implements SerialPortEventListener {
      *            Device identifier of the post (e.g. /dev/ttyUSB0)
      *
      */
-    public DSMRPort(String portName, boolean lenientMode, DSMRPortListener dsmrPortListener) {
+    public DSMRPort(String portName, DSMRPortListener dsmrPortListener) {
         this.portName = portName;
         this.dsmrPortListener = dsmrPortListener;
     }
@@ -113,32 +112,26 @@ public class DSMRPort implements SerialPortEventListener {
      * <p>
      * This method opens the port and set Serial Port parameters according to
      * the DSMR specification. Since the specification is clear about these
-     * parameters there are not configurable.
+     * parameters they're are not configurable.
      * <p>
      * If there are problem while opening the port, it is the responsibility of
      * the calling method to handle this situation (and for example close the
      * port again).
-     * <p>
-     * Opening an already open port is harmless. The method will return
-     * immediately
      *
-     * @param portSettings
-     *
-     * @return {@link DeviceStateDetail} containing the details about the DeviceState
+     * @param portSettings The serial port settings to open the port with
      */
     public void open(DSMRPortSettings portSettings) {
         synchronized (portLock) {
             try {
+                open = false;
                 logger.trace("Opening port {}", portName);
                 // Opening Operating System Serial Port
                 CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
-                CommPort commPort = portIdentifier.open(DSMRBindingConstants.DSMR_PORT_NAME,
+                serialPort = portIdentifier.open(DSMRBindingConstants.DSMR_PORT_NAME,
                         (int) TimeUnit.SECONDS.toMillis(DSMRDeviceConstants.SERIAL_PORT_READ_TIMEOUT_SECONDS));
-                serialPort = (SerialPort) commPort;
 
                 // Configure Serial Port based on specified port speed
                 logger.trace("Configure serial port parameters: {}", portSettings);
-
                 serialPort.setSerialPortParams(portSettings.getBaudrate(), portSettings.getDataBits(),
                         portSettings.getStopbits(), portSettings.getParity());
 
@@ -148,14 +141,15 @@ public class DSMRPort implements SerialPortEventListener {
                     serialInputStream = new BufferedInputStream(serialPort.getInputStream());
                 } catch (IOException ioe) {
                     logger.debug("Failed to get inputstream for serialPort. Closing port", ioe);
-
                     dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
+                    return;
                 }
 
                 try {
                     serialPort.addEventListener(this);
                 } catch (TooManyListenersException tmle) {
                     logger.warn("DSMR binding will not be operational.", tmle);
+                    return;
                 }
 
                 // Start listening for events
@@ -191,10 +185,7 @@ public class DSMRPort implements SerialPortEventListener {
     }
 
     /**
-     * Closes the DSMRPort and release OS resources
-     *
-     * The listener will be notified of the closed event. This event is sent while holding
-     * the portLock ensuring correct order of handling events
+     * Closes the DSMRPort and release OS resources.
      */
     public void close() {
         synchronized (portLock) {
@@ -270,7 +261,7 @@ public class DSMRPort implements SerialPortEventListener {
             dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
             logger.debug("Exception on read port", e);
         } catch (NullPointerException e) {
-            logger.trace("Port closed during read.");
+            logger.trace("Port closed during read.", e);
         }
     }
 
