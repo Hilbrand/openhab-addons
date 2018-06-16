@@ -28,9 +28,9 @@ import org.openhab.binding.dsmr.internal.device.DSMRDeviceConfiguration;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceThread;
 import org.openhab.binding.dsmr.internal.device.DSMRFixedConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortSettings;
 import org.openhab.binding.dsmr.internal.meter.DSMRMeterListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,15 +110,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
             logger.debug("Starting DSMR device");
             updateStatus(ThingStatus.UNKNOWN);
             receivedTimeoutNanos = TimeUnit.SECONDS.toNanos(deviceConfig.receivedTimeout);
-            DSMRPortSettings fixedPortSettings = DSMRPortSettings.getPortSettingsFromConfiguration(deviceConfig);
-            DSMRDevice dsmrDevice;
-
-            if (fixedPortSettings == null) {
-                dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler,
-                        deviceConfig.receivedTimeout);
-            } else {
-                dsmrDevice = new DSMRFixedConfigDevice(deviceConfig.serialPort, fixedPortSettings, this);
-            }
+            DSMRDevice dsmrDevice = createDevice(deviceConfig);
             // Give the system some slack to start counting from now.
             resetLastReceivedState();
             dsmrDeviceThread = new DSMRDeviceThread(dsmrDevice);
@@ -127,6 +119,24 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
             watchdog = scheduler.scheduleWithFixedDelay(this::alive, receivedTimeoutNanos, receivedTimeoutNanos,
                     TimeUnit.NANOSECONDS);
         }
+    }
+
+    /**
+     *
+     * @param deviceConfig
+     * @return
+     */
+    private DSMRDevice createDevice(DSMRDeviceConfiguration deviceConfig) {
+        DSMRSerialSettings fixedPortSettings = DSMRSerialSettings.getPortSettingsFromConfiguration(deviceConfig);
+        DSMRDevice dsmrDevice;
+
+        if (fixedPortSettings == null) {
+            dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler,
+                    deviceConfig.receivedTimeout);
+        } else {
+            dsmrDevice = new DSMRFixedConfigDevice(deviceConfig.serialPort, fixedPortSettings, this);
+        }
+        return dsmrDevice;
     }
 
     /**

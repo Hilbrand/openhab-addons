@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.dsmr.internal.device.serial;
+package org.openhab.binding.dsmr.internal.device.connector;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -25,17 +25,17 @@ import gnu.io.SerialPort;
  * @author M. Volaart - Initial contribution
  */
 @NonNullByDefault
-public class DSMRPortSettings {
+public class DSMRSerialSettings {
     /**
      * Fixed settings for high speed communication (DSMR V4 and up)
      */
-    public static final DSMRPortSettings HIGH_SPEED_SETTINGS = new DSMRPortSettings(115200, SerialPort.DATABITS_8,
+    public static final DSMRSerialSettings HIGH_SPEED_SETTINGS = new DSMRSerialSettings(115200, SerialPort.DATABITS_8,
             SerialPort.PARITY_NONE, SerialPort.STOPBITS_1);
 
     /**
      * Fixed settings for low speed communication (DSMR V3 and down)
      */
-    public static final DSMRPortSettings LOW_SPEED_SETTINGS = new DSMRPortSettings(9600, SerialPort.DATABITS_7,
+    public static final DSMRSerialSettings LOW_SPEED_SETTINGS = new DSMRSerialSettings(9600, SerialPort.DATABITS_7,
             SerialPort.PARITY_EVEN, SerialPort.STOPBITS_1);
 
     /**
@@ -70,7 +70,7 @@ public class DSMRPortSettings {
      * @param stopbits
      *            no stopbits to use (use SerialPort.STOPBITS_* constant)
      */
-    public DSMRPortSettings(int baudrate, int databits, int parity, int stopbits) {
+    public DSMRSerialSettings(int baudrate, int databits, int parity, int stopbits) {
         this.baudrate = baudrate;
         this.databits = databits;
         this.parity = parity;
@@ -162,7 +162,7 @@ public class DSMRPortSettings {
      * @return configuration or null if auto detection enabled or any configuration field is null or not recognized.
      */
     @Nullable
-    public static DSMRPortSettings getPortSettingsFromConfiguration(DSMRDeviceConfiguration deviceConfiguration) {
+    public static DSMRSerialSettings getPortSettingsFromConfiguration(DSMRDeviceConfiguration deviceConfiguration) {
         if (deviceConfiguration.serialPortEnableAutoDetection || deviceConfiguration.serialPortBaudrate == null
                 || deviceConfiguration.serialPortDatabits == null || deviceConfiguration.serialPortParity == null
                 || deviceConfiguration.serialPortStopbits == null) {
@@ -170,28 +170,36 @@ public class DSMRPortSettings {
         }
         int baudrate = deviceConfiguration.serialPortBaudrate;
         int databits = deviceConfiguration.serialPortDatabits;
+
         int parity;
+        switch (deviceConfiguration.serialPortParity) {
+            case "E":
+                parity = SerialPort.PARITY_EVEN;
+                break;
+            case "O":
+                parity = SerialPort.PARITY_ODD;
+                break;
+            case "N":
+                parity = SerialPort.PARITY_NONE;
+                break;
+            default:
+                return null;
+        }
+
         int stopbits;
-
-        if (deviceConfiguration.serialPortParity.equals("E")) {
-            parity = SerialPort.PARITY_EVEN;
-        } else if (deviceConfiguration.serialPortParity.equals("O")) {
-            parity = SerialPort.PARITY_ODD;
-        } else if (deviceConfiguration.serialPortParity.equals("N")) {
-            parity = SerialPort.PARITY_NONE;
-        } else {
-            return null;
+        switch (deviceConfiguration.serialPortStopbits) {
+            case "1":
+                stopbits = SerialPort.STOPBITS_1;
+                break;
+            case "1.5":
+                stopbits = SerialPort.STOPBITS_1_5;
+                break;
+            case "2":
+                stopbits = SerialPort.STOPBITS_2;
+                break;
+            default:
+                return null;
         }
-
-        if (deviceConfiguration.serialPortStopbits.equals("1")) {
-            stopbits = SerialPort.STOPBITS_1;
-        } else if (deviceConfiguration.serialPortStopbits.equals("1.5")) {
-            stopbits = SerialPort.STOPBITS_1_5;
-        } else if (deviceConfiguration.serialPortStopbits.equals("2")) {
-            stopbits = SerialPort.STOPBITS_2;
-        } else {
-            return null;
-        }
-        return new DSMRPortSettings(baudrate, databits, parity, stopbits);
+        return new DSMRSerialSettings(baudrate, databits, parity, stopbits);
     }
 }

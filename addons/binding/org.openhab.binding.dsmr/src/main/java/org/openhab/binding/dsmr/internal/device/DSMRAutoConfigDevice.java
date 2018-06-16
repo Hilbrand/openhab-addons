@@ -15,10 +15,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialConnector;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPort;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
      * we assume the majority of meters communicate with HIGH_SPEED_SETTINGS
      * For older meters this means initializing is taking probably 1 minute
      */
-    private static final DSMRPortSettings DEFAULT_PORT_SETTINGS = DSMRPortSettings.HIGH_SPEED_SETTINGS;
+    private static final DSMRSerialSettings DEFAULT_PORT_SETTINGS = DSMRSerialSettings.HIGH_SPEED_SETTINGS;
 
     private final Logger logger = LoggerFactory.getLogger(DSMRAutoConfigDevice.class);
 
@@ -68,7 +68,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
     /**
      * DSMR Port instance
      */
-    private final DSMRPort dsmrPort;
+    private final DSMRSerialConnector dsmrPort;
 
     /**
     *
@@ -77,7 +77,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
 
     private final int receivedTimeoutSeconds;
 
-    private DSMRPortSettings portSettings;
+    private DSMRSerialSettings portSettings;
 
     /**
     *
@@ -114,10 +114,10 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
         this.parentListener = listener;
         this.scheduler = scheduler;
         this.receivedTimeoutSeconds = receivedTimeoutSeconds;
-        telegramListener = new DSMRTelegramListener(serialPort);
+        telegramListener = new DSMRTelegramListener();
         telegramListener.setDsmrPortListener(listener);
         portSettings = DEFAULT_PORT_SETTINGS;
-        dsmrPort = new DSMRPort(serialPort, telegramListener);
+        dsmrPort = new DSMRSerialConnector(serialPort, telegramListener);
         portName = dsmrPort.getPortName();
     }
 
@@ -209,8 +209,8 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
             logger.debug(
                     "[{}] Detecting port settings is running for half time now and still nothing discovered, switching baudrate and retrying",
                     portName);
-            portSettings = portSettings == DSMRPortSettings.HIGH_SPEED_SETTINGS ? DSMRPortSettings.LOW_SPEED_SETTINGS
-                    : DSMRPortSettings.HIGH_SPEED_SETTINGS;
+            portSettings = portSettings == DSMRSerialSettings.HIGH_SPEED_SETTINGS ? DSMRSerialSettings.LOW_SPEED_SETTINGS
+                    : DSMRSerialSettings.HIGH_SPEED_SETTINGS;
             dsmrPort.setSerialPortParams(portSettings);
         }
     }

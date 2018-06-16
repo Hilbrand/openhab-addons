@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.dsmr.internal.device.serial;
+package org.openhab.binding.dsmr.internal.device.connector;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
@@ -27,6 +27,7 @@ public interface DSMRPortListener {
     /**
      *
      * @param buffer
+     * @param length
      */
-    void handleData(byte[] buffer);
+    void handleData(byte[] buffer, int length);
 }

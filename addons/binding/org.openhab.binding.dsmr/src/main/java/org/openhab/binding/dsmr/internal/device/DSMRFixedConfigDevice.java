@@ -8,8 +8,8 @@
  */
 package org.openhab.binding.dsmr.internal.device;
 
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPort;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortSettings;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialConnector;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
 
 /**
  * Implementation of a DSMRDevice with fixed serial port settings. With fixed port settings the code is much simpler
@@ -20,15 +20,15 @@ import org.openhab.binding.dsmr.internal.device.serial.DSMRPortSettings;
 public class DSMRFixedConfigDevice implements DSMRDevice {
 
     private final DSMRTelegramListener telegramListener;
-    private final DSMRPort dsmrPort;
-    private final DSMRPortSettings fixedPortSettings;
+    private final DSMRSerialConnector dsmrPort;
+    private final DSMRSerialSettings fixedPortSettings;
 
-    public DSMRFixedConfigDevice(String serialPort, DSMRPortSettings fixedPortSettings,
+    public DSMRFixedConfigDevice(String serialPort, DSMRSerialSettings fixedPortSettings,
             DSMRPortEventListener listener) {
         this.fixedPortSettings = fixedPortSettings;
-        telegramListener = new DSMRTelegramListener(serialPort);
+        telegramListener = new DSMRTelegramListener();
         telegramListener.setDsmrPortListener(listener);
-        dsmrPort = new DSMRPort(serialPort, telegramListener);
+        dsmrPort = new DSMRSerialConnector(serialPort, telegramListener);
     }
 
     @Override

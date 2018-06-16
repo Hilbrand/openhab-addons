@@ -47,6 +47,16 @@ public class DSMRDeviceConfiguration {
     public boolean serialPortEnableAutoDetection = true;
 
     /**
+     *
+     */
+    public String ipAddress;
+
+    /**
+     *
+     */
+    public int ipPort;
+
+    /**
      * When no message was received after the configured number of seconds action will be taken.
      */
     public int receivedTimeout;

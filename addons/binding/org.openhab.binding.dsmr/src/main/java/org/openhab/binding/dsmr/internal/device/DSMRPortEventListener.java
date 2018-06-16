@@ -11,8 +11,8 @@ package org.openhab.binding.dsmr.internal.device;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
 
 /**
  * Interface for handling DSMRPortEvent events

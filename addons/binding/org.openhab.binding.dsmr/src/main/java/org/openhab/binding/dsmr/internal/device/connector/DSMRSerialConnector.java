@@ -6,11 +6,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.dsmr.internal.device.serial;
+package org.openhab.binding.dsmr.internal.device.connector;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.TooManyListenersException;
 import java.util.concurrent.TimeUnit;
 
@@ -44,10 +42,10 @@ import gnu.io.UnsupportedCommOperationException;
  * @author M. Volaart - Initial contribution
  */
 @NonNullByDefault
-public class DSMRPort implements SerialPortEventListener {
+public class DSMRSerialConnector extends DSMRBaseConnector implements SerialPortEventListener {
     private static final int _1000 = 1000;
 
-    private final Logger logger = LoggerFactory.getLogger(DSMRPort.class);
+    private final Logger logger = LoggerFactory.getLogger(DSMRSerialConnector.class);
 
     /**
      * private object variables
@@ -61,17 +59,6 @@ public class DSMRPort implements SerialPortEventListener {
     private SerialPort serialPort;
 
     /**
-     * Input stream reading the Serial port
-     */
-    @Nullable
-    private BufferedInputStream serialInputStream;
-
-    /**
-     * 1Kbyte buffer for storing data
-     */
-    private final byte[] buffer = new byte[1024]; // 1K
-
-    /**
      * DSMR Port listener
      */
     private final DSMRPortListener dsmrPortListener;
@@ -82,24 +69,19 @@ public class DSMRPort implements SerialPortEventListener {
      * SerialPort, BufferedReader
      */
     private final Object portLock = new Object();
-    private final Object readLock = new Object();
-
-    private boolean open;
-    private int bytesRead;
-    private int msgCount;
-    private int readCount;
 
     /**
      * Creates a new DSMRPort. This is only a reference to a port. The port will
      * not be opened nor it is checked if the DSMR Port can successfully be
      * opened.
      *
-     * @param portName
+     * @param serialPortName
      *            Device identifier of the post (e.g. /dev/ttyUSB0)
      *
      */
-    public DSMRPort(String portName, DSMRPortListener dsmrPortListener) {
-        this.portName = portName;
+    public DSMRSerialConnector(String serialPortName, DSMRPortListener dsmrPortListener) {
+        super(dsmrPortListener);
+        this.portName = serialPortName;
         this.dsmrPortListener = dsmrPortListener;
     }
 
@@ -120,10 +102,9 @@ public class DSMRPort implements SerialPortEventListener {
      *
      * @param portSettings The serial port settings to open the port with
      */
-    public void open(DSMRPortSettings portSettings) {
+    public void open(DSMRSerialSettings portSettings) {
         synchronized (portLock) {
             try {
-                open = false;
                 logger.trace("Opening port {}", portName);
                 // Opening Operating System Serial Port
                 CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
@@ -138,7 +119,7 @@ public class DSMRPort implements SerialPortEventListener {
                 // SerialPort is ready, open the reader
                 logger.trace("SerialPort opened successful on {}", portName);
                 try {
-                    serialInputStream = new BufferedInputStream(serialPort.getInputStream());
+                    open(serialPort.getInputStream());
                 } catch (IOException ioe) {
                     logger.debug("Failed to get inputstream for serialPort. Closing port", ioe);
                     dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
@@ -165,7 +146,6 @@ public class DSMRPort implements SerialPortEventListener {
                 // The binding is ready, let the meter know we want to receive values
                 serialPort.setRTS(true);
 
-                open = true;
                 logger.info("Opened port {} with settings: {}", this.portName, portSettings);
             } catch (NoSuchPortException nspe) {
                 logger.debug("Port {} does not exists", portName, nspe);
@@ -187,12 +167,10 @@ public class DSMRPort implements SerialPortEventListener {
     /**
      * Closes the DSMRPort and release OS resources.
      */
+    @Override
     public void close() {
         synchronized (portLock) {
-            open = false;
-            logger.trace("Total read {} messages with {} bytes in {} times ", msgCount, bytesRead, readCount);
-            msgCount = bytesRead = readCount = 0;
-            logger.debug("Closing DSMR port");
+            logger.debug("Closing DSMR serial port");
 
             // Stop listening for serial port events
             if (serialPort != null) {
@@ -206,68 +184,14 @@ public class DSMRPort implements SerialPortEventListener {
                 }
                 serialPort.close();
             }
-            if (serialInputStream != null) {
-                try {
-                    serialInputStream.close();
-                } catch (IOException ioe) {
-                    logger.debug("Failed to close reader", ioe);
-                }
-            }
-
-            // Release resources
-            serialInputStream = null;
+            super.close();
             serialPort = null;
         }
     }
 
-    /**
-     * Start reading from the DSMR port.
-     *
-     * @return {@link DeviceStateDetail} containing the details about the DeviceState
-     */
-    private void handleDataAvailable() {
-        try {
-            synchronized (readLock) {
-                // open port if it is not open
-                if (serialPort == null) {
-                    logger.warn("DSMRPort is not open, no values will be read");
-                    return;
-                }
-
-                // Read without lock on purpose to permit fast closure
-                // This could lead to a NPE on variable serialInputStream so we will catch the NPE
-                int bytesAvailable = serialInputStream.available();
-                int rb = 0;
-                int rc = 0;
-                while (bytesAvailable > 0) {
-                    int bytesAvailableRead = serialInputStream.read(buffer, 0, Math.min(bytesAvailable, buffer.length));
-                    rb += bytesAvailableRead;
-                    rc++;
-                    if (open && bytesAvailableRead > 0) {
-                        dsmrPortListener.handleData(Arrays.copyOfRange(buffer, 0, bytesAvailableRead));
-                    } else {
-                        logger.debug("Expected bytes {} to read, but {} bytes were read", bytesAvailable,
-                                bytesAvailableRead);
-                    }
-                    bytesAvailable = serialInputStream.available();
-                }
-                synchronized (portLock) {
-                    readCount += rc;
-                    this.bytesRead += rb;
-                    msgCount++;
-                }
-            }
-        } catch (IOException e) {
-            dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
-            logger.debug("Exception on read port", e);
-        } catch (NullPointerException e) {
-            logger.trace("Port closed during read.", e);
-        }
-    }
-
-    public void setSerialPortParams(DSMRPortSettings portSettings) {
+    public void setSerialPortParams(DSMRSerialSettings portSettings) {
         synchronized (portLock) {
-            if (open) {
+            if (isOpen()) {
                 logger.info("Update port {} with settings: {}", this.portName, portSettings);
                 try {
                     serialPort.setSerialPortParams(portSettings.getBaudrate(), portSettings.getDataBits(),
@@ -287,7 +211,7 @@ public class DSMRPort implements SerialPortEventListener {
     /**
      * Switch the Serial Port speed (LOW --> HIGH and vice versa).
      */
-    public void restart(DSMRPortSettings portSettings) {
+    public void restart(DSMRSerialSettings portSettings) {
         synchronized (portLock) {
             logger.trace("Restart port {} with settings: {}", this.portName, portSettings);
             close();
@@ -333,10 +257,19 @@ public class DSMRPort implements SerialPortEventListener {
      * @param portEvent
      */
     private void handleErrorEvent(String typeName, SerialPortEvent portEvent) {
-        if (open && portEvent.getNewValue()) {
+        if (isOpen() && portEvent.getNewValue()) {
             logger.debug("New DSMR port {} event", typeName);
             dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
         }
     }
 
+    @Override
+    protected void handleDataAvailable() {
+        // open port if it is not open
+        if (serialPort == null) {
+            logger.warn("DSMRPort is not open, no values will be read");
+            return;
+        }
+        super.handleDataAvailable();
+    }
 }

@@ -13,11 +13,11 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRPortListener;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramParser;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortErrorEvent;
-import org.openhab.binding.dsmr.internal.device.serial.DSMRPortListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
     @Nullable
     private DSMRPortEventListener dsmrPortListener;
 
-    public DSMRTelegramListener(String serialPort) {
+    public DSMRTelegramListener() {
         parser = new P1TelegramParser(true, this);
     }
 
@@ -44,8 +44,8 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
     }
 
     @Override
-    public void handleData(byte[] data) {
-        parser.parseData(data, 0, data.length);
+    public void handleData(byte[] data, int length) {
+        parser.parseData(data, 0, length);
     }
 
     @Override
