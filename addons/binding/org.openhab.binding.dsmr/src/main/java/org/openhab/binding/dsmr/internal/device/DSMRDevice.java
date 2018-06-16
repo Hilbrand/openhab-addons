@@ -13,9 +13,18 @@ package org.openhab.binding.dsmr.internal.device;
  */
 public interface DSMRDevice {
 
+    /**
+     *
+     */
     void restart();
 
+    /**
+     *
+     */
     void start();
 
+    /**
+     *
+     */
     void stop();
 }

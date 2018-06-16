@@ -13,7 +13,7 @@ package org.openhab.binding.dsmr.internal.device;
  *
  * @author M. Volaart - Initial contribution
  */
-public class DSMRDeviceConstants {
+public final class DSMRDeviceConstants {
 
     /**
      * Serial port read time out (15 seconds)
@@ -21,13 +21,11 @@ public class DSMRDeviceConstants {
     public static final long SERIAL_PORT_READ_TIMEOUT_SECONDS = 15;
 
     /**
-     * Timeout for detecting the correct serial port settings
-     */
-    // public static final long SERIAL_PORT_AUTO_DETECT_TIMEOUT_SECONDS = SERIAL_PORT_READ_TIMEOUT_SECONDS * 2;
-
-    /**
      * Timeout for Discovery timeout
      */
     public final static int DSMR_DISCOVERY_TIMEOUT_SECONDS = 120;
 
+    private DSMRDeviceConstants() {
+        // Constants class
+    }
 }

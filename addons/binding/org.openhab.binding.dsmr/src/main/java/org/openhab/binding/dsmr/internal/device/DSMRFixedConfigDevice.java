@@ -8,6 +8,7 @@
  */
 package org.openhab.binding.dsmr.internal.device;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialConnector;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
 
@@ -17,16 +18,16 @@ import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
  *
  * @author Hilbrand Bouwkamp - Initial contribution
  */
+@NonNullByDefault
 public class DSMRFixedConfigDevice implements DSMRDevice {
 
-    private final DSMRTelegramListener telegramListener;
     private final DSMRSerialConnector dsmrPort;
     private final DSMRSerialSettings fixedPortSettings;
 
     public DSMRFixedConfigDevice(String serialPort, DSMRSerialSettings fixedPortSettings,
             DSMRPortEventListener listener) {
         this.fixedPortSettings = fixedPortSettings;
-        telegramListener = new DSMRTelegramListener();
+        DSMRTelegramListener telegramListener = new DSMRTelegramListener();
         telegramListener.setDsmrPortListener(listener);
         dsmrPort = new DSMRSerialConnector(serialPort, telegramListener);
     }

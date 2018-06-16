@@ -10,6 +10,9 @@ package org.openhab.binding.dsmr.internal.meter;
 
 import java.util.Objects;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
  * The DSMRMeterDescriptor describes a meter.
  *
@@ -20,6 +23,7 @@ import java.util.Objects;
  *
  * @author M. Volaart - Initial contribution
  */
+@NonNullByDefault
 public class DSMRMeterDescriptor {
     /**
      * Meter type
@@ -67,7 +71,7 @@ public class DSMRMeterDescriptor {
      * @return true if both objects are equal, false otherwise
      */
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(@Nullable Object other) {
         if (!(other instanceof DSMRMeterDescriptor)) {
             return false;
         }

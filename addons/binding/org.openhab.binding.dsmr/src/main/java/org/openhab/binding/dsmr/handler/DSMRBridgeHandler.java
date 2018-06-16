@@ -8,12 +8,12 @@
  */
 package org.openhab.binding.dsmr.handler;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -28,6 +28,7 @@ import org.openhab.binding.dsmr.internal.device.DSMRDeviceConfiguration;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceThread;
 import org.openhab.binding.dsmr.internal.device.DSMRFixedConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
+import org.openhab.binding.dsmr.internal.device.DSMRTcpDevice;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
@@ -102,18 +103,18 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     public void initialize() {
         DSMRDeviceConfiguration deviceConfig = getConfigAs(DSMRDeviceConfiguration.class);
 
-        logger.debug("Using configuration {}", deviceConfig);
-        if (StringUtils.isBlank(deviceConfig.serialPort)) {
+        logger.trace("Using configuration {}", deviceConfig);
+        updateStatus(ThingStatus.UNKNOWN);
+        receivedTimeoutNanos = TimeUnit.SECONDS.toNanos(deviceConfig.receivedTimeout);
+        DSMRDevice dsmrDevice = createDevice(deviceConfig);
+        // Give the system some slack to start counting from now.
+        resetLastReceivedState();
+        if (dsmrDevice == null) {
             logger.debug("portName is not configured, not starting device");
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Serial Port name is not set");
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "");
         } else {
-            logger.debug("Starting DSMR device");
-            updateStatus(ThingStatus.UNKNOWN);
-            receivedTimeoutNanos = TimeUnit.SECONDS.toNanos(deviceConfig.receivedTimeout);
-            DSMRDevice dsmrDevice = createDevice(deviceConfig);
-            // Give the system some slack to start counting from now.
-            resetLastReceivedState();
-            dsmrDeviceThread = new DSMRDeviceThread(dsmrDevice);
+            dsmrDeviceThread = new DSMRDeviceThread(dsmrDevice, this);
             thread = new Thread(dsmrDeviceThread);
             thread.start();
             watchdog = scheduler.scheduleWithFixedDelay(this::alive, receivedTimeoutNanos, receivedTimeoutNanos,
@@ -126,15 +127,24 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
      * @param deviceConfig
      * @return
      */
+    @Nullable
     private DSMRDevice createDevice(DSMRDeviceConfiguration deviceConfig) {
-        DSMRSerialSettings fixedPortSettings = DSMRSerialSettings.getPortSettingsFromConfiguration(deviceConfig);
         DSMRDevice dsmrDevice;
 
-        if (fixedPortSettings == null) {
+        if (deviceConfig.isSerialAutoDetection()) {
             dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler,
                     deviceConfig.receivedTimeout);
+        } else if (deviceConfig.isSerialFixedSettings()) {
+            dsmrDevice = new DSMRFixedConfigDevice(deviceConfig.serialPort,
+                    DSMRSerialSettings.getPortSettingsFromConfiguration(deviceConfig), this);
+        } else if (deviceConfig.isTcpSettings()) {
+            try {
+                dsmrDevice = new DSMRTcpDevice(deviceConfig.ipAddress, deviceConfig.ipPort, scheduler, this);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } else {
-            dsmrDevice = new DSMRFixedConfigDevice(deviceConfig.serialPort, fixedPortSettings, this);
+            dsmrDevice = null;
         }
         return dsmrDevice;
     }
@@ -163,6 +173,9 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
         return meterDiscoveryListeners.remove(meterDiscoveryListener);
     }
 
+    /**
+     *
+     */
     private void alive() {
         logger.trace("Bridge alive check with #{} children.", getThing().getThings().size());
         long deltaLastReceived = System.nanoTime() - telegramReceivedTime;
@@ -181,6 +194,9 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
         }
     }
 
+    /**
+     *
+     */
     private void resetLastReceivedState() {
         telegramReceivedTime = System.nanoTime();
         logger.trace("Telegram received time set: {}", telegramReceivedTime);
@@ -199,17 +215,8 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
 
     @Override
     public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
-        switch (portEvent) {
-            case DONT_EXISTS: // Port does not exists (unexpected, since it was there, so port is not usable)
-            case IN_USE: // Port is in use
-            case NOT_COMPATIBLE: // Port not compatible
-                handleDSMRErrorEvent(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
-                break;
-            case READ_ERROR:
-                // Don't set offline on read error. It will go online via alive method in such a case.
-                break;
-            default:
-                break;
+        if (portEvent != DSMRPortErrorEvent.READ_ERROR) {
+            handleDSMRErrorEvent(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
         }
     }
 
@@ -218,7 +225,11 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
         deviceOffline(thingStatusDetail, details);
     }
 
-    public void meterValueReceived(List<CosemObject> lastMeterValues) {
+    /**
+     *
+     * @param lastMeterValues
+     */
+    private void meterValueReceived(List<CosemObject> lastMeterValues) {
         updateStatus(ThingStatus.ONLINE);
         getThing().getThings().forEach(child -> {
             if (logger.isTraceEnabled()) {

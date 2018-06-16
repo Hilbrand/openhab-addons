@@ -9,7 +9,6 @@
 package org.openhab.binding.dsmr.internal.device.connector;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConfiguration;
 
 import gnu.io.SerialPort;
@@ -161,13 +160,7 @@ public class DSMRSerialSettings {
      * @param portSettings manual entered device configuration
      * @return configuration or null if auto detection enabled or any configuration field is null or not recognized.
      */
-    @Nullable
     public static DSMRSerialSettings getPortSettingsFromConfiguration(DSMRDeviceConfiguration deviceConfiguration) {
-        if (deviceConfiguration.serialPortEnableAutoDetection || deviceConfiguration.serialPortBaudrate == null
-                || deviceConfiguration.serialPortDatabits == null || deviceConfiguration.serialPortParity == null
-                || deviceConfiguration.serialPortStopbits == null) {
-            return null;
-        }
         int baudrate = deviceConfiguration.serialPortBaudrate;
         int databits = deviceConfiguration.serialPortDatabits;
 
@@ -183,7 +176,8 @@ public class DSMRSerialSettings {
                 parity = SerialPort.PARITY_NONE;
                 break;
             default:
-                return null;
+                parity = -1;
+                break;
         }
 
         int stopbits;
@@ -198,7 +192,8 @@ public class DSMRSerialSettings {
                 stopbits = SerialPort.STOPBITS_2;
                 break;
             default:
-                return null;
+                stopbits = -1;
+                break;
         }
         return new DSMRSerialSettings(baudrate, databits, parity, stopbits);
     }

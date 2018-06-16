@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObjectFactory;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener.TelegramState;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author M. Volaart - Initial contribution
  */
+@NonNullByDefault
 public class P1TelegramParser {
 
     /**

@@ -96,7 +96,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
                 } else {
                     logger.debug("Start discovery on serial port: {}", currentScannedPortName);
                     currentScannedDevice = new DSMRDeviceThread(
-                            new DSMRAutoConfigDevice(portIdentifier.getName(), this, scheduler, _100));
+                            new DSMRAutoConfigDevice(portIdentifier.getName(), this, scheduler, _100), this);
                     currentScannedDevice.run();
                 }
             }

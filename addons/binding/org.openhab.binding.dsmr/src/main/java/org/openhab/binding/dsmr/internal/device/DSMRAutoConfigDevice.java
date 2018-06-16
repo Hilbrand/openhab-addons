@@ -175,23 +175,13 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
     @Override
     public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
         logger.trace("[{}] Received portEvent {}", portName, portEvent.getEventDetails());
-        switch (portEvent) {
-            case DONT_EXISTS: // Port does not exists (unexpected, since it was there, so port is not usable)
-            case IN_USE: // Port is in use
-            case NOT_COMPATIBLE: // Port not compatible
-                logger.debug("[{}] Error during detecting port settings: {}, current state:{}.", portName,
-                        portEvent.getEventDetails(), state);
-                stopDetecting(DeviceConfigState.ERROR);
-                parentListener.handlePortErrorEvent(portEvent);
-                break;
-            case READ_ERROR: // read error(try switching port speed)
-                switchBaudrate();
-                break;
-            default:
-                // Unknown event, log and do nothing
-                logger.warn("Unknown event {}", portEvent);
-                break;
-
+        if (portEvent == DSMRPortErrorEvent.READ_ERROR) {
+            switchBaudrate();
+        } else {
+            logger.debug("[{}] Error during detecting port settings: {}, current state:{}.", portName,
+                    portEvent.getEventDetails(), state);
+            stopDetecting(DeviceConfigState.ERROR);
+            parentListener.handlePortErrorEvent(portEvent);
         }
     }
 
@@ -209,7 +199,8 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
             logger.debug(
                     "[{}] Detecting port settings is running for half time now and still nothing discovered, switching baudrate and retrying",
                     portName);
-            portSettings = portSettings == DSMRSerialSettings.HIGH_SPEED_SETTINGS ? DSMRSerialSettings.LOW_SPEED_SETTINGS
+            portSettings = portSettings == DSMRSerialSettings.HIGH_SPEED_SETTINGS
+                    ? DSMRSerialSettings.LOW_SPEED_SETTINGS
                     : DSMRSerialSettings.HIGH_SPEED_SETTINGS;
             dsmrPort.setSerialPortParams(portSettings);
         }

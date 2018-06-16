@@ -20,7 +20,7 @@ import org.openhab.binding.dsmr.internal.meter.DSMRMeterType;
  *
  * @author M. Volaart - Initial contribution
  */
-public class DSMRBindingConstants {
+public final class DSMRBindingConstants {
     /**
      * Binding constant
      */
@@ -42,5 +42,9 @@ public class DSMRBindingConstants {
 
     static {
         ALL_THING_TYPES.add(THING_TYPE_DSMR_BRIDGE);
+    }
+
+    private DSMRBindingConstants() {
+        // Constants class
     }
 }

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.config.discovery.DiscoveryService;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author M. Volaart - Initial contribution
  */
+@NonNullByDefault
 @Component(service = ThingHandlerFactory.class, configurationPid = "binding.dsmr")
 public class DSMRHandlerFactory extends BaseThingHandlerFactory {
 
@@ -79,7 +81,7 @@ public class DSMRHandlerFactory extends BaseThingHandlerFactory {
      * @return ThingHandler for the given Thing or null if the Thing is not supported
      */
     @Override
-    protected ThingHandler createHandler(Thing thing) {
+    protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         logger.debug("Searching for thingTypeUID {}", thingTypeUID);
         if (DSMRBindingConstants.THING_TYPE_DSMR_BRIDGE.equals(thingTypeUID)) {

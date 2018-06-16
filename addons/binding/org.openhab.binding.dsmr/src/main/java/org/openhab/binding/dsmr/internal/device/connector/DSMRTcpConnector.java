@@ -12,50 +12,92 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author hilbrand
+ * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
 public class DSMRTcpConnector extends DSMRBaseConnector {
+    private static final long WAIT_FOR_DATA_MILLIS = 500;
 
+    private final Logger logger = LoggerFactory.getLogger(DSMRTcpConnector.class);
     private final Socket socket;
 
-    @Nullable
-    protected InputStream in;
+    /**
+     *
+     */
+    // private Thread thread;
 
-    public DSMRTcpConnector(String address, int port, DSMRPortListener portListener)
+    @Nullable
+    private final ScheduledExecutorService scheduler;
+
+    /**
+     *
+     */
+    @Nullable
+    private InputStream tcpInputStream;
+
+    /**
+     *
+     */
+    private boolean running;
+
+    @Nullable
+    private ScheduledFuture<?> scheduleTask;
+
+    public DSMRTcpConnector(String address, int port, ScheduledExecutorService scheduler, DSMRPortListener portListener)
             throws UnknownHostException, IOException {
         super(portListener);
+        this.scheduler = scheduler;
         socket = new Socket(address, port);
     }
 
+    /**
+     *
+     */
     public void open() {
-        if (in != null) {
+        if (tcpInputStream != null) {
             close();
         }
         try {
-            in = socket.getInputStream();
+            tcpInputStream = socket.getInputStream();
+
+            synchronized (socket) {
+                scheduleTask = scheduler.scheduleWithFixedDelay(this::handleDataAvailable, 0, WAIT_FOR_DATA_MILLIS,
+                        TimeUnit.MILLISECONDS);
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IOException during open", e);
+            dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
         }
     }
 
     @Override
     public void close() {
         try {
-            if (in != null) {
-                in.close();
+            if (tcpInputStream != null) {
+                tcpInputStream.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IOException during close", e);
         } finally {
+            synchronized (socket) {
+                running = false;
+                scheduleTask.cancel(true);
+                scheduleTask = null;
+            }
             super.close();
-            in = null;
+            tcpInputStream = null;
         }
+
     }
 }

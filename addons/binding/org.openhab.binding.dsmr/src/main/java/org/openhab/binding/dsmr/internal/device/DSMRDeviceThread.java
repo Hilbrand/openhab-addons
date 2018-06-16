@@ -11,6 +11,7 @@ package org.openhab.binding.dsmr.internal.device;
 import java.util.concurrent.Semaphore;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,11 +24,13 @@ public class DSMRDeviceThread implements DSMRDevice, Runnable {
     private final Logger logger = LoggerFactory.getLogger(DSMRDeviceThread.class);
     private final Semaphore semaphore = new Semaphore(0);
     private final DSMRDevice device;
+    private final DSMRPortEventListener portEventListener;
 
-    private boolean shutdown;
+    private boolean running = true;
 
-    public DSMRDeviceThread(DSMRDevice device) {
+    public DSMRDeviceThread(DSMRDevice device, DSMRPortEventListener portEventListener) {
         this.device = device;
+        this.portEventListener = portEventListener;
     }
 
     @Override
@@ -42,7 +45,7 @@ public class DSMRDeviceThread implements DSMRDevice, Runnable {
 
     @Override
     public void stop() {
-        shutdown = true;
+        running = false;
         releaseSemaphore();
     }
 
@@ -50,18 +53,19 @@ public class DSMRDeviceThread implements DSMRDevice, Runnable {
     public void run() {
         try {
             device.start();
-            while (!shutdown && !Thread.interrupted()) {
+            while (running && !Thread.interrupted()) {
                 semaphore.acquire();
                 // Just drain all other permits to make sure it's not called twice
                 semaphore.drainPermits();
-                if (!shutdown) {
+                if (running) {
                     logger.trace("Restarting device");
                     device.restart();
                 }
-                logger.trace("Device shutdown");
             }
+            logger.trace("Device shutdown");
         } catch (RuntimeException e) {
             logger.warn("DSMRDeviceThread stopped with a RuntimeException", e);
+            portEventListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {

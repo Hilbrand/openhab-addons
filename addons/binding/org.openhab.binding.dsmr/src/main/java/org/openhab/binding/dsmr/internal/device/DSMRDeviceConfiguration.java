@@ -8,6 +8,8 @@
  */
 package org.openhab.binding.dsmr.internal.device;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Class described the DSMRDeviceConfiguration.
  *
@@ -24,12 +26,12 @@ public class DSMRDeviceConfiguration {
     /**
      * Serial port baud rate
      */
-    public Integer serialPortBaudrate;
+    public int serialPortBaudrate;
 
     /**
      * Serial port data bits
      */
-    public Integer serialPortDatabits;
+    public int serialPortDatabits;
 
     /**
      * Serial port parity
@@ -61,10 +63,36 @@ public class DSMRDeviceConfiguration {
      */
     public int receivedTimeout;
 
+    /**
+     *
+     * @return
+     */
+    public boolean isSerialAutoDetection() {
+        return serialPortEnableAutoDetection;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isSerialFixedSettings() {
+        return !isSerialAutoDetection() && serialPortBaudrate > 0 && serialPortDatabits > 0
+                && !StringUtils.isBlank(serialPortParity) && !StringUtils.isBlank(serialPortStopbits);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isTcpSettings() {
+        return ipAddress != null && ipPort > 0;
+    }
+
     @Override
     public String toString() {
         return "DSMRDeviceConfiguration(portName:" + serialPort + ", baudrate:" + serialPortBaudrate + ", data bits:"
                 + serialPortDatabits + ", parity:" + serialPortParity + ", stop bits:" + serialPortStopbits
                 + ", auto detection enabled:" + serialPortEnableAutoDetection + ")";
     }
+
 }

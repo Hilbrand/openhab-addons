@@ -12,6 +12,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +21,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author hilbrand
  */
+@NonNullByDefault
 class DSMRBaseConnector {
 
     private final Logger logger = LoggerFactory.getLogger(DSMRBaseConnector.class);
+
+    protected final DSMRPortListener dsmrPortListener;
 
     /**
      * 1Kbyte buffer for storing data
@@ -30,8 +34,6 @@ class DSMRBaseConnector {
     private final byte[] buffer = new byte[1024]; // 1K
 
     private final Object readLock = new Object();
-
-    private final DSMRPortListener dsmrPortListener;
 
     private boolean open;
     private int bytesRead;
