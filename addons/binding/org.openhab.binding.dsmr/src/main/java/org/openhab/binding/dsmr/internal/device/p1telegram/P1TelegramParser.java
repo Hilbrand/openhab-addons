@@ -8,8 +8,8 @@
  */
 package org.openhab.binding.dsmr.internal.device.p1telegram;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -61,17 +61,17 @@ public class P1TelegramParser {
     /**
      * current obisId buffer
      */
-    private StringBuffer obisId = new StringBuffer();
+    private StringBuilder obisId = new StringBuilder();
 
     /**
      * Current cosem object values buffer
      */
-    private StringBuffer cosemObjectValuesString = new StringBuffer();
+    private StringBuilder cosemObjectValuesString = new StringBuilder();
 
     /**
      * Current crc value read
      */
-    private StringBuffer crcValue = new StringBuffer();
+    private StringBuilder crcValue = new StringBuilder();
 
     /**
      * CRC calculation helper
@@ -138,7 +138,7 @@ public class P1TelegramParser {
      */
     public void parseData(byte[] data, int offset, int length) {
         if (logger.isTraceEnabled()) {
-            logger.trace("Data: {}, state before parsing: {}", new String(Arrays.copyOfRange(data, offset, length)),
+            logger.trace("Data: {}, state before parsing: {}", new String(data, offset, length, StandardCharsets.UTF_8),
                     state);
         }
         for (int i = offset; i < (offset + length); i++) {

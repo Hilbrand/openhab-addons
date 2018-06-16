@@ -50,7 +50,7 @@ public class DSMRDeviceThread implements DSMRDevice, Runnable {
     public void run() {
         try {
             device.start();
-            while (!shutdown) {
+            while (!shutdown && !Thread.interrupted()) {
                 semaphore.acquire();
                 // Just drain all other permits to make sure it's not called twice
                 semaphore.drainPermits();
