@@ -14,7 +14,7 @@ package org.openhab.binding.dsmr.internal.device.connector;
  * @author M. Volaart - Initial contribution
  * @author Hilbrand Bouwkamp - Reduced number of event to only relevant errors
  */
-public enum DSMRPortErrorEvent {
+public enum DSMRConnectorErrorEvent {
     READ_ERROR("Read error"),
     DONT_EXISTS("Serial port does not exist"),
     IN_USE("Serial port is already in use"),
@@ -30,7 +30,7 @@ public enum DSMRPortErrorEvent {
      *
      * @param eventDetails String containing the details about the event
      */
-    DSMRPortErrorEvent(String eventDetails) {
+    DSMRConnectorErrorEvent(String eventDetails) {
         this.eventDetails = eventDetails;
     }
 

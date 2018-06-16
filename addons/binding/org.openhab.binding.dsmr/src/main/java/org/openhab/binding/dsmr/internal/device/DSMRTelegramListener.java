@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
-import org.openhab.binding.dsmr.internal.device.connector.DSMRPortListener;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorListener;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramParser;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * @author Hilbrand Bouwkamp - Moved this code out of the DSMRPort class, fixed some issues and reduced code
  */
 @NonNullByDefault
-class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
+class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener {
 
     private final Logger logger = LoggerFactory.getLogger(DSMRTelegramListener.class);
     private final P1TelegramParser parser;
@@ -49,17 +49,11 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
     }
 
     @Override
-    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
+    public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent) {
         if (dsmrPortListener != null) {
             dsmrPortListener.handlePortErrorEvent(portEvent);
         }
         parser.reset();
-    }
-
-    private void handleTelegramReceived(List<CosemObject> cosemObjects, String telegramDetails) {
-        if (dsmrPortListener != null) {
-            dsmrPortListener.handleTelegramReceived(cosemObjects, telegramDetails);
-        }
     }
 
     /**
@@ -72,7 +66,9 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRPortListener {
     public void telegramReceived(List<CosemObject> cosemObjects, TelegramState telegramState) {
         logger.debug("Received {} Cosem Objects, telegramState: {}", cosemObjects.size(), telegramState);
         if (telegramState == TelegramState.OK) {
-            handleTelegramReceived(cosemObjects, telegramState.stateDetails);
+            if (dsmrPortListener != null) {
+                dsmrPortListener.handleTelegramReceived(cosemObjects, telegramState.stateDetails);
+            }
         } else {
             if (logger.isDebugEnabled()) {
                 logger.debug("Telegram received with error state '{}': {}", telegramState,

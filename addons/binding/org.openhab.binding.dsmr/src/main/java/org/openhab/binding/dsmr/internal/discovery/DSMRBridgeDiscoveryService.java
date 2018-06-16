@@ -24,7 +24,7 @@ import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConstants;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceThread;
 import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
-import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
@@ -166,7 +166,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
     }
 
     @Override
-    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
+    public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent) {
         logger.debug("Error on port [{}] during discovery.", currentScannedPortName);
         stopSerialPortScan();
     }

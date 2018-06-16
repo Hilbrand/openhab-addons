@@ -54,7 +54,7 @@ public class DSMRTcpConnector extends DSMRBaseConnector {
     @Nullable
     private ScheduledFuture<?> scheduleTask;
 
-    public DSMRTcpConnector(String address, int port, ScheduledExecutorService scheduler, DSMRPortListener portListener)
+    public DSMRTcpConnector(String address, int port, ScheduledExecutorService scheduler, DSMRConnectorListener portListener)
             throws UnknownHostException, IOException {
         super(portListener);
         this.scheduler = scheduler;
@@ -77,7 +77,7 @@ public class DSMRTcpConnector extends DSMRBaseConnector {
             }
         } catch (IOException e) {
             logger.debug("IOException during open", e);
-            dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
+            dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
         }
     }
 

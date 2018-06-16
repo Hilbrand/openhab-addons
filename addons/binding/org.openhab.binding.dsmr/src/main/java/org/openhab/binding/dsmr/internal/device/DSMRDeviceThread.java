@@ -11,7 +11,7 @@ package org.openhab.binding.dsmr.internal.device;
 import java.util.concurrent.Semaphore;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +65,7 @@ public class DSMRDeviceThread implements DSMRDevice, Runnable {
             logger.trace("Device shutdown");
         } catch (RuntimeException e) {
             logger.warn("DSMRDeviceThread stopped with a RuntimeException", e);
-            portEventListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
+            portEventListener.handlePortErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {

@@ -26,7 +26,7 @@ class DSMRBaseConnector {
 
     private final Logger logger = LoggerFactory.getLogger(DSMRBaseConnector.class);
 
-    protected final DSMRPortListener dsmrPortListener;
+    protected final DSMRConnectorListener dsmrPortListener;
 
     /**
      * 1Kbyte buffer for storing data
@@ -40,7 +40,7 @@ class DSMRBaseConnector {
     private int msgCount;
     private int readCount;
 
-    public DSMRBaseConnector(DSMRPortListener dsmrPortListener) {
+    public DSMRBaseConnector(DSMRConnectorListener dsmrPortListener) {
         this.dsmrPortListener = dsmrPortListener;
     }
 
@@ -106,7 +106,7 @@ class DSMRBaseConnector {
                 msgCount++;
             }
         } catch (IOException e) {
-            dsmrPortListener.handlePortErrorEvent(DSMRPortErrorEvent.READ_ERROR);
+            dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
             logger.debug("Exception on read port", e);
         } catch (NullPointerException e) {
             logger.trace("Port closed during read.", e);

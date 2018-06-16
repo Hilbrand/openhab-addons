@@ -29,7 +29,7 @@ import org.openhab.binding.dsmr.internal.device.DSMRDeviceThread;
 import org.openhab.binding.dsmr.internal.device.DSMRFixedConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
 import org.openhab.binding.dsmr.internal.device.DSMRTcpDevice;
-import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.meter.DSMRMeterListener;
@@ -45,10 +45,16 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEventListener {
 
+    /**
+     *
+     */
     private static final int _3 = 10;
 
     private final Logger logger = LoggerFactory.getLogger(DSMRBridgeHandler.class);
 
+    /**
+     *
+     */
     private final List<DSMRMeterListener> meterDiscoveryListeners = new ArrayList<>();
 
     /**
@@ -57,6 +63,9 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     @Nullable
     private DSMRDeviceThread dsmrDeviceThread;
 
+    /**
+     *
+     */
     @Nullable
     private Thread thread;
 
@@ -66,6 +75,9 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     @Nullable
     private ScheduledFuture<?> watchdog;
 
+    /**
+     *
+     */
     private long receivedTimeoutNanos = System.nanoTime();
 
     /**
@@ -214,8 +226,8 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     }
 
     @Override
-    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
-        if (portEvent != DSMRPortErrorEvent.READ_ERROR) {
+    public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent) {
+        if (portEvent != DSMRConnectorErrorEvent.READ_ERROR) {
             handleDSMRErrorEvent(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
         }
     }

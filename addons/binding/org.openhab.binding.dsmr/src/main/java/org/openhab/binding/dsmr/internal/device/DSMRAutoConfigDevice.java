@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialConnector;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
@@ -170,12 +170,12 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
     /**
      * Event handler for DSMR Port events
      *
-     * @param portEvent {@link DSMRPortErrorEvent} to handle
+     * @param portEvent {@link DSMRConnectorErrorEvent} to handle
      */
     @Override
-    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent) {
+    public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent) {
         logger.trace("[{}] Received portEvent {}", portName, portEvent.getEventDetails());
-        if (portEvent == DSMRPortErrorEvent.READ_ERROR) {
+        if (portEvent == DSMRConnectorErrorEvent.READ_ERROR) {
             switchBaudrate();
         } else {
             logger.debug("[{}] Error during detecting port settings: {}, current state:{}.", portName,

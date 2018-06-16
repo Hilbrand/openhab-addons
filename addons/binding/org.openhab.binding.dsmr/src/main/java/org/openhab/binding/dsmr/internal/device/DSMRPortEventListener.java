@@ -11,7 +11,7 @@ package org.openhab.binding.dsmr.internal.device;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.dsmr.internal.device.connector.DSMRPortErrorEvent;
+import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 
 /**
@@ -24,9 +24,9 @@ public interface DSMRPortEventListener {
     /**
      * Callback for DSMRPortEvent events
      *
-     * @param portEvent {@link DSMRPortErrorEvent} that has occurred
+     * @param portEvent {@link DSMRConnectorErrorEvent} that has occurred
      */
-    public void handlePortErrorEvent(DSMRPortErrorEvent portEvent);
+    public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent);
 
     /**
      * Callback for received P1 telegrams
