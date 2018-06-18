@@ -185,8 +185,14 @@ public class DSMRMeterHandler extends BaseThingHandler implements DSMRMeterListe
         }
     }
 
-    private void setDeviceOffline(ThingStatusDetail thingStatusDetail, @Nullable String statusDetail) {
-        updateStatus(ThingStatus.OFFLINE, thingStatusDetail, statusDetail);
+    /**
+     * Convenience method to set the meter off line.
+     *
+     * @param status off line status
+     * @param details off line detailed message
+     */
+    private void setDeviceOffline(ThingStatusDetail status, @Nullable String details) {
+        updateStatus(ThingStatus.OFFLINE, status, details);
         getThing().getChannels().forEach(c -> updateState(c.getUID(), UnDefType.NULL));
     }
 }

@@ -20,7 +20,7 @@ import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
  * @author M. Volaart - Initial contribution
  */
 @NonNullByDefault
-public interface DSMRPortEventListener {
+public interface DSMREventListener {
     /**
      * Callback for DSMRPortEvent events
      *

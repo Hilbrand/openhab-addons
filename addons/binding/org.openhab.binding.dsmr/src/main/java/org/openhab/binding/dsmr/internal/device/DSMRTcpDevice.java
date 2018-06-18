@@ -25,7 +25,7 @@ public class DSMRTcpDevice implements DSMRDevice {
     private final DSMRTcpConnector connector;
 
     public DSMRTcpDevice(String ipAddress, int ipPort, ScheduledExecutorService scheduler,
-            DSMRPortEventListener portListener) throws UnknownHostException, IOException {
+            DSMREventListener portListener) throws UnknownHostException, IOException {
         DSMRTelegramListener telegramListener = new DSMRTelegramListener();
         telegramListener.setDsmrPortListener(portListener);
         connector = new DSMRTcpConnector(ipAddress, ipPort, scheduler, telegramListener);

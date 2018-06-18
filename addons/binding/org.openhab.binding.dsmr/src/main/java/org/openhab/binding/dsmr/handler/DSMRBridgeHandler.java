@@ -25,9 +25,9 @@ import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConfiguration;
-import org.openhab.binding.dsmr.internal.device.DSMRDeviceThread;
+import org.openhab.binding.dsmr.internal.device.DSMRDeviceRunnable;
+import org.openhab.binding.dsmr.internal.device.DSMREventListener;
 import org.openhab.binding.dsmr.internal.device.DSMRFixedConfigDevice;
-import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
 import org.openhab.binding.dsmr.internal.device.DSMRTcpDevice;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
@@ -41,62 +41,60 @@ import org.slf4j.LoggerFactory;
  * sent to one of the channels.
  *
  * @author M. Volaart - Initial contribution
+ * @author Hilbrand Bouwkamp - Refactored way messages are forwarded to meters. Removed availableMeters dependency.
  */
 @NonNullByDefault
-public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEventListener {
+public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMREventListener {
 
     /**
-     *
+     * Factor that will be multiplied with {@link #receivedTimeoutNanos} to get the timeout factor after which the
+     * device is set off line.
      */
-    private static final int _3 = 10;
+    private static final int OFFLINE_TIMEOUT_FACTOR = 10;
 
     private final Logger logger = LoggerFactory.getLogger(DSMRBridgeHandler.class);
 
     /**
-     *
+     * Additional meter listeners to get received meter values.
      */
-    private final List<DSMRMeterListener> meterDiscoveryListeners = new ArrayList<>();
-
+    private final List<DSMRMeterListener> meterListeners = new ArrayList<>();
     /**
-     * DSMRDevice that belongs to this DSMRBridgeHandler
-     */
-    @Nullable
-    private DSMRDeviceThread dsmrDeviceThread;
-
-    /**
-     *
+     * Long running process that controls the DSMR device connection.
      */
     @Nullable
-    private Thread thread;
-
+    private DSMRDeviceRunnable dsmrDeviceRunnable;
     /**
-     * Watchdog
+     * Thread for {@link DSMRDeviceRunnable}. A thread is used because the {@link DSMRDeviceRunnable} is a blocking
+     * process that runs as long as the thing is not disposed.
+     */
+    @Nullable
+    private Thread dsmrDeviceThread;
+    /**
+     * Watchdog to check if messages received and restart if necessary.
      */
     @Nullable
     private ScheduledFuture<?> watchdog;
+    /**
+     * Number of nanoseconds after which a timeout is triggered when no messages received.
+     */
+    private long receivedTimeoutNanos;
 
     /**
-     *
+     * Timestamp in nanoseconds of last P1 telegram received
      */
-    private long receivedTimeoutNanos = System.nanoTime();
-
-    /**
-     * Timestamp of last P1 telegram received
-     */
-    private long telegramReceivedTime;
+    private long telegramReceivedTimeNanos;
 
     /**
      * Constructor
      *
      * @param bridge the Bridge ThingType
-     * @param discoveryService the DSMRMeterDiscoveryService to use for new DSMR meters
      */
     public DSMRBridgeHandler(Bridge bridge) {
         super(bridge);
     }
 
     /**
-     * The DSMRBridgeHandler does not support handling commands
+     * The DSMRBridgeHandler does not support handling commands.
      *
      * @param channelUID
      * @param command
@@ -109,7 +107,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     /**
      * Initializes this DSMRBridgeHandler
      *
-     * This method will get the corresponding configuration and initialize and start the corresponding DSMRDevice
+     * This method will get the corresponding configuration and initialize and start the corresponding DSMRDevice.
      */
     @Override
     public void initialize() {
@@ -119,42 +117,43 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
         updateStatus(ThingStatus.UNKNOWN);
         receivedTimeoutNanos = TimeUnit.SECONDS.toNanos(deviceConfig.receivedTimeout);
         DSMRDevice dsmrDevice = createDevice(deviceConfig);
-        // Give the system some slack to start counting from now.
-        resetLastReceivedState();
         if (dsmrDevice == null) {
-            logger.debug("portName is not configured, not starting device");
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Serial Port name is not set");
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "");
+            logger.debug("Incomplete configuration: {}", deviceConfig);
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                    "Incomplete configuration. Not all required configuration settings are set.");
         } else {
-            dsmrDeviceThread = new DSMRDeviceThread(dsmrDevice, this);
-            thread = new Thread(dsmrDeviceThread);
-            thread.start();
+            // Start time monitoring from now.
+            resetLastReceivedState();
+            dsmrDeviceRunnable = new DSMRDeviceRunnable(dsmrDevice, this);
+            dsmrDeviceThread = new Thread(dsmrDeviceRunnable);
+            dsmrDeviceThread.start();
             watchdog = scheduler.scheduleWithFixedDelay(this::alive, receivedTimeoutNanos, receivedTimeoutNanos,
                     TimeUnit.NANOSECONDS);
         }
     }
 
     /**
+     * Creates the {@link DSMRDevice} that corresponds with the user specified configuration.
      *
-     * @param deviceConfig
-     * @return
+     * @param deviceConfig device configuration
+     * @return Specific {@link DSMRDevice} instance or null if no valid configuration was set.
      */
     @Nullable
     private DSMRDevice createDevice(DSMRDeviceConfiguration deviceConfig) {
         DSMRDevice dsmrDevice;
 
-        if (deviceConfig.isSerialAutoDetection()) {
-            dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler,
-                    deviceConfig.receivedTimeout);
-        } else if (deviceConfig.isSerialFixedSettings()) {
-            dsmrDevice = new DSMRFixedConfigDevice(deviceConfig.serialPort,
-                    DSMRSerialSettings.getPortSettingsFromConfiguration(deviceConfig), this);
-        } else if (deviceConfig.isTcpSettings()) {
+        if (deviceConfig.isTcpSettings()) {
             try {
                 dsmrDevice = new DSMRTcpDevice(deviceConfig.ipAddress, deviceConfig.ipPort, scheduler, this);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        } else if (deviceConfig.isSerialAutoDetection()) {
+            dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler,
+                    deviceConfig.receivedTimeout);
+        } else if (deviceConfig.isSerialFixedSettings()) {
+            dsmrDevice = new DSMRFixedConfigDevice(deviceConfig.serialPort,
+                    DSMRSerialSettings.getPortSettingsFromConfiguration(deviceConfig), this);
         } else {
             dsmrDevice = null;
         }
@@ -164,39 +163,44 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     /**
      * Adds a meter discovery listener
      *
-     * @param meterDiscoveryListener the meter discovery listener to add
+     * @param meterListener the meter discovery listener to add
      *
      * @return true if listener is added, false otherwise
      */
-    public boolean registerDSMRMeterListener(DSMRMeterListener meterDiscoveryListener) {
+    public boolean registerDSMRMeterListener(DSMRMeterListener meterListener) {
         logger.debug("Register DSMRMeterListener");
-        return meterDiscoveryListeners.add(meterDiscoveryListener);
+        return meterListeners.add(meterListener);
     }
 
     /**
      * Removes a meter discovery listener
      *
-     * @param meterDiscoveryListener the meter discovery listener to remove
+     * @param meterListener the meter discovery listener to remove
      *
      * @return true is listener is removed, false otherwise
      */
-    public boolean unregisterDSMRMeterListener(DSMRMeterListener meterDiscoveryListener) {
+    public boolean unregisterDSMRMeterListener(DSMRMeterListener meterListener) {
         logger.debug("Unregister DSMRMeterListener");
-        return meterDiscoveryListeners.remove(meterDiscoveryListener);
+        return meterListeners.remove(meterListener);
     }
 
     /**
-     *
+     * Watchdog method that is run with the scheduler and checks if meter values were received. If the timeout is
+     * exceeded the device is restarted. If the off line timeout factor is exceeded the device is set off line. By not
+     * setting the device on first exceed off line their is some slack in the system and it won't flip on and offline in
+     * case of an unstable system.
      */
     private void alive() {
         logger.trace("Bridge alive check with #{} children.", getThing().getThings().size());
-        long deltaLastReceived = System.nanoTime() - telegramReceivedTime;
+        long deltaLastReceived = System.nanoTime() - telegramReceivedTimeNanos;
 
         if (deltaLastReceived > receivedTimeoutNanos) {
             logger.debug("No data received for {} seconds, restarting port if possible.",
                     TimeUnit.NANOSECONDS.toSeconds(deltaLastReceived));
-            dsmrDeviceThread.restart();
-            if (deltaLastReceived > receivedTimeoutNanos * _3) {
+            if (dsmrDeviceRunnable != null) {
+                dsmrDeviceRunnable.restart();
+            }
+            if (deltaLastReceived > receivedTimeoutNanos * OFFLINE_TIMEOUT_FACTOR) {
                 logger.trace("Setting device offline if not yet done, and reset last received time.");
                 if (getThing().getStatus() == ThingStatus.ONLINE) {
                     deviceOffline(ThingStatusDetail.COMMUNICATION_ERROR, "Not receiving data from meter.");
@@ -207,18 +211,18 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     }
 
     /**
-     *
+     * Sets the last received time of messages to the current time.
      */
     private void resetLastReceivedState() {
-        telegramReceivedTime = System.nanoTime();
-        logger.trace("Telegram received time set: {}", telegramReceivedTime);
+        telegramReceivedTimeNanos = System.nanoTime();
+        logger.trace("Telegram received time set: {}", telegramReceivedTimeNanos);
     }
 
     @Override
     public synchronized void handleTelegramReceived(List<CosemObject> cosemObjects, String telegramDetails) {
         if (cosemObjects.isEmpty()) {
             logger.debug("Parsing worked but something went wrong, so there were no CosemObjects:{}", telegramDetails);
-            handleDSMRErrorEvent(ThingStatusDetail.COMMUNICATION_ERROR, telegramDetails);
+            deviceOffline(ThingStatusDetail.COMMUNICATION_ERROR, telegramDetails);
         } else {
             resetLastReceivedState();
             meterValueReceived(new ArrayList<>(cosemObjects));
@@ -228,18 +232,14 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
     @Override
     public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent) {
         if (portEvent != DSMRConnectorErrorEvent.READ_ERROR) {
-            handleDSMRErrorEvent(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
+            deviceOffline(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
         }
     }
 
-    private synchronized void handleDSMRErrorEvent(ThingStatusDetail thingStatusDetail, String details) {
-        // resetLastReceivedState();
-        deviceOffline(thingStatusDetail, details);
-    }
-
     /**
+     * Method to forward the last received messages to the bound meters and to the meterListeners.
      *
-     * @param lastMeterValues
+     * @param lastMeterValues received meter values.
      */
     private void meterValueReceived(List<CosemObject> lastMeterValues) {
         updateStatus(ThingStatus.ONLINE);
@@ -252,7 +252,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
                 ((DSMRMeterHandler) child.getHandler()).meterValueReceived(lastMeterValues);
             }
         });
-        meterDiscoveryListeners.forEach(m -> m.meterValueReceived(lastMeterValues));
+        meterListeners.forEach(m -> m.meterValueReceived(lastMeterValues));
     }
 
     /**
@@ -264,12 +264,18 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMRPortEven
             watchdog.cancel(true);
             watchdog = null;
         }
-        if (dsmrDeviceThread != null) {
-            dsmrDeviceThread.stop();
+        if (dsmrDeviceRunnable != null) {
+            dsmrDeviceRunnable.stop();
         }
     }
 
-    public void deviceOffline(ThingStatusDetail thingStatusDetail, String details) {
-        updateStatus(ThingStatus.OFFLINE, thingStatusDetail, details);
+    /**
+     * Convenience method to set device off line.
+     *
+     * @param status off line status
+     * @param details off line detailed message
+     */
+    private void deviceOffline(ThingStatusDetail status, String details) {
+        updateStatus(ThingStatus.OFFLINE, status, details);
     }
 }

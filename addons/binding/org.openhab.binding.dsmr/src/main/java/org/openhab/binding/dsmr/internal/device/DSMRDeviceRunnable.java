@@ -16,42 +16,58 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Hilbrand Bouwkamp - Initial contribution
+ * The {@link DSMRDeviceRunnable} runs a {@link DSMRDevice} and blocks until it is restarted or shutdown. If it is
+ * restarted it will restart the {@link DSMRDevice}. If it is shutdown the run will end. By using a semaphore to restart
+ * and shutdown this class handles the actual {@link DSMRDevice}, while threads calling restart and shutdown can finish
+ * fast.
  *
+ * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-public class DSMRDeviceThread implements DSMRDevice, Runnable {
-    private final Logger logger = LoggerFactory.getLogger(DSMRDeviceThread.class);
+public class DSMRDeviceRunnable implements Runnable {
+    private final Logger logger = LoggerFactory.getLogger(DSMRDeviceRunnable.class);
     private final Semaphore semaphore = new Semaphore(0);
     private final DSMRDevice device;
-    private final DSMRPortEventListener portEventListener;
+    private final DSMREventListener portEventListener;
 
-    private boolean running = true;
+    /**
+     * Keeps state of running. If false run will stop.
+     */
+    private boolean running;
 
-    public DSMRDeviceThread(DSMRDevice device, DSMRPortEventListener portEventListener) {
+    /**
+     * Constructor
+     *
+     * @param device to control
+     * @param eventListener listener to report errors.
+     */
+    public DSMRDeviceRunnable(DSMRDevice device, DSMREventListener eventListener) {
         this.device = device;
-        this.portEventListener = portEventListener;
+        this.portEventListener = eventListener;
     }
 
-    @Override
-    public void start() {
-        // no-op
-    }
-
-    @Override
+    /**
+     * Sets state to restart the dsmr device.
+     */
     public void restart() {
         releaseSemaphore();
     }
 
-    @Override
+    /**
+     * Sets state to shutdown the dsmr device.
+     */
     public void stop() {
         running = false;
         releaseSemaphore();
     }
 
+    /**
+     * Controls the dsmr device. Runs until shutdown.
+     */
     @Override
     public void run() {
         try {
+            running = true;
             device.start();
             while (running && !Thread.interrupted()) {
                 semaphore.acquire();
@@ -74,6 +90,9 @@ public class DSMRDeviceThread implements DSMRDevice, Runnable {
 
     }
 
+    /**
+     * Wrapper around semaphore to only release when no permits available.
+     */
     private void releaseSemaphore() {
         synchronized (semaphore) {
             if (semaphore.availablePermits() == 0) {

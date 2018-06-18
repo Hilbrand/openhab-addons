@@ -22,8 +22,8 @@ import org.eclipse.smarthome.core.thing.ThingUID;
 import org.openhab.binding.dsmr.DSMRBindingConstants;
 import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConstants;
-import org.openhab.binding.dsmr.internal.device.DSMRDeviceThread;
-import org.openhab.binding.dsmr.internal.device.DSMRPortEventListener;
+import org.openhab.binding.dsmr.internal.device.DSMRDeviceRunnable;
+import org.openhab.binding.dsmr.internal.device.DSMREventListener;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.osgi.service.component.annotations.Component;
@@ -52,7 +52,7 @@ import gnu.io.CommPortIdentifier;
  */
 @NonNullByDefault
 @Component(service = DiscoveryService.class, configurationPid = "discovery.dsmr")
-public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements DSMRPortEventListener {
+public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements DSMREventListener {
 
     private static final int _100 = 100;
 
@@ -61,7 +61,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
     private final DSMRMeterDetector meterDetector = new DSMRMeterDetector();
 
     @Nullable
-    private DSMRDeviceThread currentScannedDevice;
+    private DSMRDeviceRunnable currentScannedDevice;
 
     private String currentScannedPortName = "";
 
@@ -95,7 +95,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
                     }
                 } else {
                     logger.debug("Start discovery on serial port: {}", currentScannedPortName);
-                    currentScannedDevice = new DSMRDeviceThread(
+                    currentScannedDevice = new DSMRDeviceRunnable(
                             new DSMRAutoConfigDevice(portIdentifier.getName(), this, scheduler, _100), this);
                     currentScannedDevice.run();
                 }

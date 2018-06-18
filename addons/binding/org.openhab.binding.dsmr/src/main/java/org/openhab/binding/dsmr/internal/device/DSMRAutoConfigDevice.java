@@ -24,10 +24,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author M. Volaart - Initial contribution
- * @author Hilbrand Bouwkamp - Simplified everything. Moved code around.
+ * @author Hilbrand Bouwkamp - New class. contains code specific to detecting serial configuration.
  */
 @NonNullByDefault
-public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
+public class DSMRAutoConfigDevice implements DSMRDevice, DSMREventListener {
 
     /**
      * Detector state
@@ -98,7 +98,7 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
 
     private final DSMRTelegramListener telegramListener;
 
-    private DSMRPortEventListener parentListener;
+    private DSMREventListener parentListener;
 
     private long lastSwitchedBaudrateNanos;
 
@@ -106,10 +106,10 @@ public class DSMRAutoConfigDevice implements DSMRDevice, DSMRPortEventListener {
      * Creates a new {@link DSMRAutoConfigDevice}
      *
      * @param serialPort the port name (e.g. /dev/ttyUSB0 or COM1)
-     * @param telegramListener the {@link DSMRPortEventListener}
+     * @param telegramListener the {@link DSMREventListener}
      * @param scheduler
      */
-    public DSMRAutoConfigDevice(String serialPort, DSMRPortEventListener listener, ScheduledExecutorService scheduler,
+    public DSMRAutoConfigDevice(String serialPort, DSMREventListener listener, ScheduledExecutorService scheduler,
             int receivedTimeoutSeconds) {
         this.parentListener = listener;
         this.scheduler = scheduler;

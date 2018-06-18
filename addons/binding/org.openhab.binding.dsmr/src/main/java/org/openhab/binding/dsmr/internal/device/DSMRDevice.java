@@ -9,6 +9,7 @@
 package org.openhab.binding.dsmr.internal.device;
 
 /**
+ *
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 public interface DSMRDevice {

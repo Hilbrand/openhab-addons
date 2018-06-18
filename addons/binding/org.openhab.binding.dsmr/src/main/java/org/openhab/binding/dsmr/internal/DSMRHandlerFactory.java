@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * handlers.
  *
  * @author M. Volaart - Initial contribution
+ * @author Hilbrand Bouwkamp -
  */
 @NonNullByDefault
 @Component(service = ThingHandlerFactory.class, configurationPid = "binding.dsmr")
@@ -62,6 +63,7 @@ public class DSMRHandlerFactory extends BaseThingHandlerFactory {
             return true;
         } else {
             boolean thingTypeUIDIsMeter = DSMRMeterType.METER_THING_TYPES.contains(thingTypeUID);
+
             if (thingTypeUIDIsMeter) {
                 logger.trace("{} is a supported DSMR Meter thing", thingTypeUID);
             }
@@ -86,7 +88,7 @@ public class DSMRHandlerFactory extends BaseThingHandlerFactory {
         logger.debug("Searching for thingTypeUID {}", thingTypeUID);
         if (DSMRBindingConstants.THING_TYPE_DSMR_BRIDGE.equals(thingTypeUID)) {
             DSMRBridgeHandler handler = new DSMRBridgeHandler((Bridge) thing);
-            registerLightDiscoveryService(handler);
+            registerDiscoveryService(handler);
             return handler;
         } else if (DSMRMeterType.METER_THING_TYPES.contains(thingTypeUID)) {
             return new DSMRMeterHandler(thing);
@@ -95,7 +97,7 @@ public class DSMRHandlerFactory extends BaseThingHandlerFactory {
         return null;
     }
 
-    private synchronized void registerLightDiscoveryService(DSMRBridgeHandler bridgeHandler) {
+    private synchronized void registerDiscoveryService(DSMRBridgeHandler bridgeHandler) {
         DSMRMeterDiscoveryService discoveryService = new DSMRMeterDiscoveryService(bridgeHandler);
 
         this.discoveryServiceRegs.put(bridgeHandler.getThing().getUID(), bundleContext

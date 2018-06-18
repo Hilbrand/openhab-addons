@@ -33,13 +33,13 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener 
     private final P1TelegramParser parser;
 
     @Nullable
-    private DSMRPortEventListener dsmrPortListener;
+    private DSMREventListener dsmrPortListener;
 
     public DSMRTelegramListener() {
         parser = new P1TelegramParser(true, this);
     }
 
-    public void setDsmrPortListener(DSMRPortEventListener dsmrPortListener) {
+    public void setDsmrPortListener(DSMREventListener dsmrPortListener) {
         this.dsmrPortListener = dsmrPortListener;
     }
 
