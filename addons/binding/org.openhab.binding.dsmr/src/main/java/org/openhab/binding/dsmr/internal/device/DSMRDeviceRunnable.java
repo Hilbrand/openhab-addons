@@ -81,7 +81,7 @@ public class DSMRDeviceRunnable implements Runnable {
             logger.trace("Device shutdown");
         } catch (RuntimeException e) {
             logger.warn("DSMRDeviceThread stopped with a RuntimeException", e);
-            portEventListener.handlePortErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
+            portEventListener.handleErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {

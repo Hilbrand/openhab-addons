@@ -15,10 +15,11 @@ package org.openhab.binding.dsmr.internal.device.connector;
  * @author Hilbrand Bouwkamp - Reduced number of event to only relevant errors
  */
 public enum DSMRConnectorErrorEvent {
-    READ_ERROR("Read error"),
     DONT_EXISTS("Serial port does not exist"),
     IN_USE("Serial port is already in use"),
-    NOT_COMPATIBLE("Serial port is not compatible");
+    NOT_COMPATIBLE("Serial port is not compatible"),
+    UNABLE_TO_CONNECT("Could"),
+    READ_ERROR("Read error");
 
     /**
      * Details about the event

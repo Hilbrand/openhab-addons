@@ -17,7 +17,7 @@ import org.openhab.binding.dsmr.internal.device.connector.DSMRTcpConnector;
 
 /**
  *
- * @author hilbrand
+ * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
 public class DSMRTcpDevice implements DSMRDevice {
@@ -27,7 +27,7 @@ public class DSMRTcpDevice implements DSMRDevice {
     public DSMRTcpDevice(String ipAddress, int ipPort, ScheduledExecutorService scheduler,
             DSMREventListener portListener) throws UnknownHostException, IOException {
         DSMRTelegramListener telegramListener = new DSMRTelegramListener();
-        telegramListener.setDsmrPortListener(portListener);
+        telegramListener.setDsmrEventListener(portListener);
         connector = new DSMRTcpConnector(ipAddress, ipPort, scheduler, telegramListener);
     }
 

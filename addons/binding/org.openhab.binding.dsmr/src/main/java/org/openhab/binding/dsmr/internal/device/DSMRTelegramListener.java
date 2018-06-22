@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Helper listener to receive telegram data from the connector, send it to the parser and forward data or errors from
+ * the parser to the DSMR Device.
  *
  * @author M. Volaart - Initial contribution
  * @author Hilbrand Bouwkamp - Moved this code out of the DSMRPort class, fixed some issues and reduced code
@@ -33,14 +35,22 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener 
     private final P1TelegramParser parser;
 
     @Nullable
-    private DSMREventListener dsmrPortListener;
+    private DSMREventListener dsmrEventListener;
 
+    /**
+     * Constructor.
+     */
     public DSMRTelegramListener() {
         parser = new P1TelegramParser(true, this);
     }
 
-    public void setDsmrPortListener(DSMREventListener dsmrPortListener) {
-        this.dsmrPortListener = dsmrPortListener;
+    /**
+     * Set the DSMR event listener.
+     *
+     * @param eventListener the listener to set
+     */
+    public void setDsmrEventListener(DSMREventListener eventListener) {
+        this.dsmrEventListener = eventListener;
     }
 
     @Override
@@ -49,9 +59,9 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener 
     }
 
     @Override
-    public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent) {
-        if (dsmrPortListener != null) {
-            dsmrPortListener.handlePortErrorEvent(portEvent);
+    public void handleErrorEvent(DSMRConnectorErrorEvent portEvent) {
+        if (dsmrEventListener != null) {
+            dsmrEventListener.handleErrorEvent(portEvent);
         }
         parser.reset();
     }
@@ -66,8 +76,8 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener 
     public void telegramReceived(List<CosemObject> cosemObjects, TelegramState telegramState) {
         logger.debug("Received {} Cosem Objects, telegramState: {}", cosemObjects.size(), telegramState);
         if (telegramState == TelegramState.OK) {
-            if (dsmrPortListener != null) {
-                dsmrPortListener.handleTelegramReceived(cosemObjects, telegramState.stateDetails);
+            if (dsmrEventListener != null) {
+                dsmrEventListener.handleTelegramReceived(cosemObjects, telegramState.stateDetails);
             }
         } else {
             if (logger.isDebugEnabled()) {

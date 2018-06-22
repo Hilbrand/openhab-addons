@@ -9,23 +9,24 @@
 package org.openhab.binding.dsmr.internal.device;
 
 /**
+ * Interface for controlling DSMR devices.
  *
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 public interface DSMRDevice {
 
     /**
-     *
+     * Restart the DSMR device.
      */
     void restart();
 
     /**
-     *
+     * Start the DSMR device.
      */
     void start();
 
     /**
-     *
+     * Stop the DSMR device.
      */
     void stop();
 }

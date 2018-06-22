@@ -6,31 +6,25 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.dsmr.internal.device.cosem2;
+package org.openhab.binding.dsmr.internal.device.cosem3;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.measure.Unit;
 import javax.measure.quantity.Dimensionless;
 import javax.measure.quantity.ElectricCurrent;
 import javax.measure.quantity.ElectricPotential;
 import javax.measure.quantity.Energy;
 import javax.measure.quantity.Power;
+import javax.measure.quantity.Time;
 import javax.measure.quantity.Volume;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.unit.MetricPrefix;
 import org.eclipse.smarthome.core.library.unit.SIUnits;
 import org.eclipse.smarthome.core.library.unit.SmartHomeUnits;
-import org.openhab.binding.dsmr.internal.device.cosem.CosemDate;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemDouble;
-import org.openhab.binding.dsmr.internal.device.cosem.CosemHexString;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemInteger;
-import org.openhab.binding.dsmr.internal.device.cosem.CosemString;
-import org.openhab.binding.dsmr.internal.device.cosem.OBISIdentifier;
 import org.openhab.binding.dsmr.internal.meter.DSMRMeterConstants;
 
 /**
@@ -47,14 +41,13 @@ import org.openhab.binding.dsmr.internal.meter.DSMRMeterConstants;
  *
  * @author M. Volaart - Initial contribution
  */
-@NonNullByDefault
 public enum CosemObjectType {
     UNKNOWN(new OBISIdentifier(null, DSMRMeterConstants.UNKNOWN_CHANNEL, -1, -1, null, null),
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
     /* General messages */
     P1_VERSION_OUTPUT(new OBISIdentifier(1, 3, 0, 2, 8, null),
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
-    P1_TIMESTAMP(new OBISIdentifier(0, 0, 1, 0, 0, null), new CosemValueDescriptor<Dimensionless>(CosemDate.class, "")),
+    P1_TIMESTAMP(new OBISIdentifier(0, 0, 1, 0, 0, null), new CosemValueDescriptor<Dimensionless>(CosemDate.class)),
     P1_TEXT_CODE(new OBISIdentifier(0, 0, 96, 13, 1, null),
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
     P1_TEXT_STRING(new OBISIdentifier(0, 0, 96, 13, 0, null),
@@ -62,19 +55,19 @@ public enum CosemObjectType {
 
     /* Generic Meter Cosem Object types */
     METER_EQUIPMENT_IDENTIFIER(new OBISIdentifier(0, null, 96, 1, 0, null),
-            new CosemValueDescriptor(CosemHexString.class, "")),
+            new CosemValueDescriptor(CosemHexString.class)),
     METER_DEVICE_TYPE(new OBISIdentifier(0, null, 24, 1, 0, null),
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
     METER_VALVE_SWITCH_POSITION(new OBISIdentifier(0, null, 24, 4, 0, null),
-            new CosemValueDescriptor<Dimensionless>(IntegerQuantity)),
+            new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
 
     /* Electricity Meter */
     EMETER_EQUIPMENT_IDENTIFIER_V2_X(new OBISIdentifier(0, 0, 42, 0, 0, null),
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
     EMETER_EQUIPMENT_IDENTIFIER(new OBISIdentifier(0, null, 96, 1, 1, null),
-            new CosemValueDescriptor(CosemHexString.class, "")),
-    EMETER_VALUE(new OBISIdentifier(0, null, 24, 2, 1, null),
-            new CosemValueDescriptor<Unit<Time>>(CosemDate.class, "", "timestamp"),
+            new CosemValueDescriptor(CosemHexString.class)),
+    EMETER_VALUE(new OBISIdentifier(0, null, 24, 2, 1, null), new CosemValueDescriptor<Time>(SmartHomeUnits.SECOND),
+            // ,"timestamp"),
             new CosemValueDescriptor<Energy>(SmartHomeUnits.KILOWATT_HOUR)),
     EMETER_DELIVERY_TARIFF0(new OBISIdentifier(1, null, 1, 8, 0, null),
             new CosemValueDescriptor<Energy>(SmartHomeUnits.KILOWATT_HOUR)),
@@ -109,26 +102,22 @@ public enum CosemObjectType {
     EMETER_TRESHOLD_KWH(new OBISIdentifier(0, 0, 17, 0, 0, null),
             new CosemValueDescriptor<Power>(MetricPrefix.KILO(SmartHomeUnits.WATT))),
     EMETER_SWITCH_POSITION_V2_1(new OBISIdentifier(1, 0, 96, 3, 10, null),
-            new CosemValueDescriptor(CosemInteger.class, "")),
-    EMETER_SWITCH_POSITION(new OBISIdentifier(0, 0, 96, 3, 10, null), new CosemValueDescriptor(CosemInteger.class, "")),
-    EMETER_POWER_FAILURES(new OBISIdentifier(0, 0, 96, 7, 21, null), new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_LONG_POWER_FAILURES(new OBISIdentifier(0, 0, 96, 7, 9, null),
-            new CosemValueDescriptor(CosemDouble.class, "")),
+            new CosemValueDescriptor(CosemInteger.class)),
+    EMETER_SWITCH_POSITION(new OBISIdentifier(0, 0, 96, 3, 10, null), new CosemValueDescriptor(CosemInteger.class)),
+    EMETER_POWER_FAILURES(new OBISIdentifier(0, 0, 96, 7, 21, null), new CosemValueDescriptor(CosemDouble.class)),
+    EMETER_LONG_POWER_FAILURES(new OBISIdentifier(0, 0, 96, 7, 9, null), new CosemValueDescriptor(CosemDouble.class)),
     EMETER_POWER_FAILURE_LOG(new OBISIdentifier(1, 0, 99, 97, 0, null), 2,
-            new CosemValueDescriptor(CosemInteger.class, "", "entries"),
-            new CosemValueDescriptor(CosemString.class, "", "obisId"),
+            new CosemValueDescriptor(CosemInteger.class, "entries"),
+            new CosemValueDescriptor(CosemString.class, "obisId"),
             /* Next 2 descriptors are repeating */
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp"),
-            new CosemValueDescriptor(CosemInteger.class, "s", "duration")),
-    EMETER_VOLTAGE_SAGS_L1(new OBISIdentifier(1, 0, 32, 32, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_VOLTAGE_SAGS_L2(new OBISIdentifier(1, 0, 52, 32, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_VOLTAGE_SAGS_L3(new OBISIdentifier(1, 0, 72, 32, 0, null), new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_VOLTAGE_SWELLS_L1(new OBISIdentifier(1, 0, 32, 36, 0, null),
-            new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_VOLTAGE_SWELLS_L2(new OBISIdentifier(1, 0, 52, 36, 0, null),
-            new CosemValueDescriptor(CosemDouble.class, "")),
-    EMETER_VOLTAGE_SWELLS_L3(new OBISIdentifier(1, 0, 72, 36, 0, null),
-            new CosemValueDescriptor(CosemDouble.class, "")),
+            new CosemValueDescriptor(CosemDate.class, "timestamp"),
+            new CosemValueDescriptor<Time>(SmartHomeUnits.SECOND)), // "duration")),
+    EMETER_VOLTAGE_SAGS_L1(new OBISIdentifier(1, 0, 32, 32, 0, null), new CosemValueDescriptor(CosemDouble.class)),
+    EMETER_VOLTAGE_SAGS_L2(new OBISIdentifier(1, 0, 52, 32, 0, null), new CosemValueDescriptor(CosemDouble.class)),
+    EMETER_VOLTAGE_SAGS_L3(new OBISIdentifier(1, 0, 72, 32, 0, null), new CosemValueDescriptor(CosemDouble.class)),
+    EMETER_VOLTAGE_SWELLS_L1(new OBISIdentifier(1, 0, 32, 36, 0, null), new CosemValueDescriptor(CosemDouble.class)),
+    EMETER_VOLTAGE_SWELLS_L2(new OBISIdentifier(1, 0, 52, 36, 0, null), new CosemValueDescriptor(CosemDouble.class)),
+    EMETER_VOLTAGE_SWELLS_L3(new OBISIdentifier(1, 0, 72, 36, 0, null), new CosemValueDescriptor(CosemDouble.class)),
     EMETER_INSTANT_CURRENT_L1(new OBISIdentifier(1, 0, 31, 7, 0, null),
             new CosemValueDescriptor<ElectricCurrent>(SmartHomeUnits.AMPERE)),
     EMETER_INSTANT_CURRENT_L2(new OBISIdentifier(1, 0, 51, 7, 0, null),
@@ -159,62 +148,54 @@ public enum CosemObjectType {
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
     GMETER_24H_DELIVERY_V2(new OBISIdentifier(7, 0, 23, 1, 0, null),
             new CosemValueDescriptor<Volume>(SIUnits.CUBIC_METRE),
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp")),
+            new CosemValueDescriptor(CosemDate.class, "timestamp")),
     GMETER_24H_DELIVERY_COMPENSATED_V2(new OBISIdentifier(7, 0, 23, 2, 0, null),
             new CosemValueDescriptor<Volume>(SIUnits.CUBIC_METRE),
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp")),
-    GMETER_VALUE_V3(new OBISIdentifier(0, null, 24, 3, 0, null),
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp"), // Time
-                                                                        // stamp
-                                                                        // off
-                                                                        // the
-                                                                        // reading
-            new CosemValueDescriptor(CosemString.class, "", "val1"), // Specification is not clear what this value is
-            new CosemValueDescriptor(CosemInteger.class, "", "val2"), // Specification is not clear what this value is
-            new CosemValueDescriptor(CosemInteger.class, "", "val3"), // Specification is not clear what this value is
-            new CosemValueDescriptor(CosemString.class, "", "obisId"), // String containing a OBIS Identifier
-            new CosemValueDescriptor(CosemString.class, "", "unit"), // String containing the type (m3)
-            new CosemValueDescriptor(CosemDouble.class, "")),
-    GMETER_VALVE_POSITION_V2_1(new OBISIdentifier(7, 0, 96, 3, 10, null),
-            new CosemValueDescriptor(CosemInteger.class, "")),
-    GMETER_VALVE_POSITION_V2_2(new OBISIdentifier(7, 0, 24, 4, 0, null),
-            new CosemValueDescriptor(CosemInteger.class, "")),
+            new CosemValueDescriptor(CosemDate.class, "timestamp")),
+    GMETER_VALUE_V3(new OBISIdentifier(0, null, 24, 3, 0, null), new CosemValueDescriptor(CosemDate.class, "timestamp"), // Time
+            new CosemValueDescriptor(CosemString.class, "val1"), // Specification is not clear what this value is
+            new CosemValueDescriptor(CosemInteger.class, "val2"), // Specification is not clear what this value is
+            new CosemValueDescriptor(CosemInteger.class, "val3"), // Specification is not clear what this value is
+            new CosemValueDescriptor(CosemString.class, "obisId"), // String containing a OBIS Identifier
+            new CosemValueDescriptor(CosemString.class, "unit"), // String containing the type (m3)
+            new CosemValueDescriptor(CosemDouble.class)),
+    GMETER_VALVE_POSITION_V2_1(new OBISIdentifier(7, 0, 96, 3, 10, null), new CosemValueDescriptor(CosemInteger.class)),
+    GMETER_VALVE_POSITION_V2_2(new OBISIdentifier(7, 0, 24, 4, 0, null), new CosemValueDescriptor(CosemInteger.class)),
 
     /* Heating Meter */
     HMETER_EQUIPMENT_IDENTIFIER_V2_2(new OBISIdentifier(5, 0, 0, 0, 0, null),
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
     HMETER_VALUE_V2(new OBISIdentifier(5, 0, 1, 0, 0, null),
             new CosemValueDescriptor<Energy>(MetricPrefix.GIGA(SmartHomeUnits.JOULE)),
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp")),
+            new CosemValueDescriptor(CosemDate.class, "timestamp")),
 
     /* Cooling Meter */
     CMETER_EQUIPMENT_IDENTIFIER_V2_2(new OBISIdentifier(6, 0, 0, 0, 0, null),
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
     CMETER_VALUE_V2(new OBISIdentifier(6, 0, 1, 0, 0, null),
             new CosemValueDescriptor<Energy>(MetricPrefix.GIGA(SmartHomeUnits.JOULE)),
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp")),
+            new CosemValueDescriptor(CosemDate.class, "timestamp")),
 
     /* Water Meter */
     WMETER_EQUIPMENT_IDENTIFIER_V2_2(new OBISIdentifier(8, 0, 0, 0, 0, null),
             new CosemValueDescriptor<Dimensionless>(SmartHomeUnits.ONE)),
     WMETER_VALUE_V2(new OBISIdentifier(8, 0, 1, 0, 0, null), new CosemValueDescriptor<Volume>(SIUnits.CUBIC_METRE),
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp")),
+            new CosemValueDescriptor(CosemDate.class, "timestamp")),
     WMETER_VALUE_V3(new OBISIdentifier(0, null, 24, 3, 0, null), new CosemValueDescriptor<Volume>(SIUnits.CUBIC_METRE)),
 
     /* M3 Meter (Gas, Water) */
-    M3METER_VALUE(new OBISIdentifier(0, null, 24, 2, 1, null),
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp"),
+    M3METER_VALUE(new OBISIdentifier(0, null, 24, 2, 1, null), new CosemValueDescriptor(CosemDate.class, "timestamp"),
             new CosemValueDescriptor<Volume>(SIUnits.CUBIC_METRE)),
 
     /* GJ Meter (Heating, Cooling) */
     GJMETER_VALUE_V3(new OBISIdentifier(0, null, 24, 3, 0, null),
             new CosemValueDescriptor<Energy>(MetricPrefix.GIGA(SmartHomeUnits.JOULE))),
     GJMETER_VALUE_V4(new OBISIdentifier(0, null, 24, 2, 1, null),
-            new CosemValueDescriptor(CosemDate.class, "", "timestamp"),
+            new CosemValueDescriptor(CosemDate.class, "timestamp"),
             new CosemValueDescriptor<Energy>(MetricPrefix.GIGA(SmartHomeUnits.JOULE))),
 
     /* Generic Meter (DSMR v3 only) */
-    GENMETER_VALUE_V3(new OBISIdentifier(0, null, 24, 3, 0, null), new CosemValueDescriptor(CosemDouble.class, ""));
+    GENMETER_VALUE_V3(new OBISIdentifier(0, null, 24, 3, 0, null), new CosemValueDescriptor(CosemDouble.class));
 
     /** OBIS reduced identifier */
     public final OBISIdentifier obisId;
@@ -229,7 +210,7 @@ public enum CosemObjectType {
      * @param obisId {@link OBISIdentifier} containing the obisIdentifier for CosemObjectType
      * @param descriptors variable parameter list of {@link CosemValueDescriptor}
      */
-    CosemObjectType(OBISIdentifier obisId, CosemValueDescriptor<Units<?>>... descriptors) {
+    CosemObjectType(OBISIdentifier obisId, CosemValueDescriptor... descriptors) {
         this(obisId, 0, descriptors);
     }
 
@@ -270,7 +251,6 @@ public enum CosemObjectType {
      * @param idx the CosemValueDescriptor to return
      * @return the CosemValueDescriptor or null if not found.
      */
-    @Nullable
     public CosemValueDescriptor getDescriptor(int idx) {
         if (idx >= descriptors.size() && !repeatingDescriptors.isEmpty()) {
             /* We have a repeating list, find the correct repeating descriptor */
@@ -281,7 +261,8 @@ public enum CosemObjectType {
             /* The repeating descriptor must have a specific channel */
             int repeatCount = (idx - descriptors.size()) / repeatingDescriptors.size();
 
-            return new CosemValueDescriptor(descriptor.getUnit(), descriptor.getChannelId() + "_" + repeatCount);
+            return new CosemValueDescriptor(descriptor.getCosemValueClass(), descriptor.getUnit(),
+                    descriptor.getChannelId() + "_" + repeatCount);
         } else if (idx < descriptors.size()) {
             return descriptors.get(idx);
         } else {

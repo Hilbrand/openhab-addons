@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.dsmr.internal.device.cosem;
+package org.openhab.binding.dsmr.internal.device.cosem3;
 
 import java.text.ParseException;
 import java.time.LocalDateTime;

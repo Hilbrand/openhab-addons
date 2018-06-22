@@ -16,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
  * This class is supporting the Configuration.as functionality from {@link Configuration}
  *
  * @author M. Volaart - Initial contribution
+ * @author Hilbrand Bouwkamp - added refresh and serial-over-ip configuration
  */
 public class DSMRDeviceConfiguration {
     /**
@@ -49,12 +50,12 @@ public class DSMRDeviceConfiguration {
     public boolean serialPortEnableAutoDetection = true;
 
     /**
-     *
+     * IP address for serial-over-ip communication. (No rfc2217, but streaming of serial data over ip).
      */
     public String ipAddress;
 
     /**
-     *
+     * IP port for serial-over-ip communication. (No rfc2217, but streaming of serial data over ip).
      */
     public int ipPort;
 
@@ -64,16 +65,14 @@ public class DSMRDeviceConfiguration {
     public int receivedTimeout;
 
     /**
-     *
-     * @return
+     * @return true is serial port speed should be detected automatically.
      */
     public boolean isSerialAutoDetection() {
         return serialPortEnableAutoDetection;
     }
 
     /**
-     *
-     * @return
+     * @return true if serial port settings are all set and no auto detecting is enabled.
      */
     public boolean isSerialFixedSettings() {
         return !isSerialAutoDetection() && serialPortBaudrate > 0 && serialPortDatabits > 0
@@ -81,8 +80,7 @@ public class DSMRDeviceConfiguration {
     }
 
     /**
-     *
-     * @return
+     * @return true if ip address and port are set by the user.
      */
     public boolean isTcpSettings() {
         return ipAddress != null && ipPort > 0;
@@ -90,9 +88,10 @@ public class DSMRDeviceConfiguration {
 
     @Override
     public String toString() {
-        return "DSMRDeviceConfiguration(portName:" + serialPort + ", baudrate:" + serialPortBaudrate + ", data bits:"
-                + serialPortDatabits + ", parity:" + serialPortParity + ", stop bits:" + serialPortStopbits
-                + ", auto detection enabled:" + serialPortEnableAutoDetection + ")";
+        return "DSMRDeviceConfiguration [serialPort=" + serialPort + ", serialPortBaudrate=" + serialPortBaudrate
+                + ", serialPortDatabits=" + serialPortDatabits + ", serialPortParity=" + serialPortParity
+                + ", serialPortStopbits=" + serialPortStopbits + ", serialPortEnableAutoDetection="
+                + serialPortEnableAutoDetection + ", ipAddress=" + ipAddress + ", ipPort=" + ipPort
+                + ", receivedTimeout=" + receivedTimeout + "]";
     }
-
 }

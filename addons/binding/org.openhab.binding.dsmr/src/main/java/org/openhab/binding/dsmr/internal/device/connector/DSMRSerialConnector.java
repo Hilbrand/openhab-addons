@@ -122,7 +122,7 @@ public class DSMRSerialConnector extends DSMRBaseConnector implements SerialPort
                     open(serialPort.getInputStream());
                 } catch (IOException ioe) {
                     logger.debug("Failed to get inputstream for serialPort. Closing port", ioe);
-                    dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
+                    dsmrPortListener.handleErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
                     return;
                 }
 
@@ -150,16 +150,16 @@ public class DSMRSerialConnector extends DSMRBaseConnector implements SerialPort
             } catch (NoSuchPortException nspe) {
                 logger.debug("Port {} does not exists", portName, nspe);
 
-                dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.DONT_EXISTS);
+                dsmrPortListener.handleErrorEvent(DSMRConnectorErrorEvent.DONT_EXISTS);
             } catch (PortInUseException piue) {
                 logger.debug("Port already in use: {}", portName, piue);
 
-                dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.IN_USE);
+                dsmrPortListener.handleErrorEvent(DSMRConnectorErrorEvent.IN_USE);
             } catch (UnsupportedCommOperationException ucoe) {
                 logger.debug("Port does not support requested port settings (invalid dsmr:portsettings parameter?): {}",
                         portName, ucoe);
 
-                dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.NOT_COMPATIBLE);
+                dsmrPortListener.handleErrorEvent(DSMRConnectorErrorEvent.NOT_COMPATIBLE);
             }
         }
     }
@@ -200,7 +200,7 @@ public class DSMRSerialConnector extends DSMRBaseConnector implements SerialPort
                     logger.debug(
                             "Port does not support requested port settings (invalid dsmr:portsettings parameter?): {}",
                             portName, portSettings);
-                    dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.NOT_COMPATIBLE);
+                    dsmrPortListener.handleErrorEvent(DSMRConnectorErrorEvent.NOT_COMPATIBLE);
                 }
             } else {
                 restart(portSettings);
@@ -259,7 +259,7 @@ public class DSMRSerialConnector extends DSMRBaseConnector implements SerialPort
     private void handleErrorEvent(String typeName, SerialPortEvent portEvent) {
         if (isOpen() && portEvent.getNewValue()) {
             logger.debug("New DSMR port {} event", typeName);
-            dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
+            dsmrPortListener.handleErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
         }
     }
 

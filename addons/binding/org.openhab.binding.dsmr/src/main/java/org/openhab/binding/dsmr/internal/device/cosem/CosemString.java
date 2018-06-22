@@ -18,15 +18,6 @@ import org.eclipse.smarthome.core.library.types.StringType;
  * @author M. Volaart - Initial contribution
  */
 public class CosemString extends CosemValue<String> {
-    /**
-     * Creates a new CosemString
-     *
-     * @param unit
-     *            the unit of the value
-     */
-    public CosemString(String unit) {
-        super(unit);
-    }
 
     /**
      * Creates a new CosemString with the specified value
@@ -34,8 +25,7 @@ public class CosemString extends CosemValue<String> {
      * @param unit the unit of the value
      * @param value the value
      */
-    public CosemString(String unit, String value) {
-        super(unit);
+    public CosemString(String value) {
         this.value = value;
     }
 

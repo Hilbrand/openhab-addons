@@ -20,16 +20,6 @@ import org.eclipse.smarthome.core.library.types.DecimalType;
 public class CosemDouble extends CosemValue<Double> {
 
     /**
-     * Creates a new {@link CosemDouble}.
-     *
-     * @param unit
-     *            the unit of the value
-     */
-    public CosemDouble(String unit) {
-        super(unit);
-    }
-
-    /**
      * Parses a String value (that represents a double) to a Double object
      *
      * @param cosemValue

@@ -30,15 +30,16 @@ public class DSMRTcpConnector extends DSMRBaseConnector {
     private static final long WAIT_FOR_DATA_MILLIS = 500;
 
     private final Logger logger = LoggerFactory.getLogger(DSMRTcpConnector.class);
-    private final Socket socket;
 
     /**
      *
      */
-    // private Thread thread;
-
-    @Nullable
     private final ScheduledExecutorService scheduler;
+
+    /**
+     *
+     */
+    private final Socket socket;
 
     /**
      *
@@ -46,16 +47,11 @@ public class DSMRTcpConnector extends DSMRBaseConnector {
     @Nullable
     private InputStream tcpInputStream;
 
-    /**
-     *
-     */
-    private boolean running;
-
     @Nullable
     private ScheduledFuture<?> scheduleTask;
 
-    public DSMRTcpConnector(String address, int port, ScheduledExecutorService scheduler, DSMRConnectorListener portListener)
-            throws UnknownHostException, IOException {
+    public DSMRTcpConnector(String address, int port, ScheduledExecutorService scheduler,
+            DSMRConnectorListener portListener) throws UnknownHostException, IOException {
         super(portListener);
         this.scheduler = scheduler;
         socket = new Socket(address, port);
@@ -77,7 +73,7 @@ public class DSMRTcpConnector extends DSMRBaseConnector {
             }
         } catch (IOException e) {
             logger.debug("IOException during open", e);
-            dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
+            dsmrPortListener.handleErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
         }
     }
 
@@ -91,9 +87,10 @@ public class DSMRTcpConnector extends DSMRBaseConnector {
             logger.debug("IOException during close", e);
         } finally {
             synchronized (socket) {
-                running = false;
-                scheduleTask.cancel(true);
-                scheduleTask = null;
+                if (scheduleTask != null) {
+                    scheduleTask.cancel(true);
+                    scheduleTask = null;
+                }
             }
             super.close();
             tcpInputStream = null;

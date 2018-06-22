@@ -22,7 +22,7 @@ import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
-import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
+import org.openhab.binding.dsmr.internal.device.DSMRSerialAutoDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConfiguration;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceRunnable;
@@ -149,7 +149,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMREventLis
                 throw new RuntimeException(e);
             }
         } else if (deviceConfig.isSerialAutoDetection()) {
-            dsmrDevice = new DSMRAutoConfigDevice(deviceConfig.serialPort, this, scheduler,
+            dsmrDevice = new DSMRSerialAutoDevice(deviceConfig.serialPort, this, scheduler,
                     deviceConfig.receivedTimeout);
         } else if (deviceConfig.isSerialFixedSettings()) {
             dsmrDevice = new DSMRFixedConfigDevice(deviceConfig.serialPort,
@@ -230,7 +230,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMREventLis
     }
 
     @Override
-    public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent) {
+    public void handleErrorEvent(DSMRConnectorErrorEvent portEvent) {
         if (portEvent != DSMRConnectorErrorEvent.READ_ERROR) {
             deviceOffline(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
         }

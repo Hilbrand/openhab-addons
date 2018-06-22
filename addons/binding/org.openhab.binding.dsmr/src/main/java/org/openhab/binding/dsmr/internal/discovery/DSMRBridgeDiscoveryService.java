@@ -20,10 +20,10 @@ import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.config.discovery.DiscoveryService;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.openhab.binding.dsmr.DSMRBindingConstants;
-import org.openhab.binding.dsmr.internal.device.DSMRAutoConfigDevice;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceConstants;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceRunnable;
 import org.openhab.binding.dsmr.internal.device.DSMREventListener;
+import org.openhab.binding.dsmr.internal.device.DSMRSerialAutoDevice;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.osgi.service.component.annotations.Component;
@@ -54,7 +54,7 @@ import gnu.io.CommPortIdentifier;
 @Component(service = DiscoveryService.class, configurationPid = "discovery.dsmr")
 public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements DSMREventListener {
 
-    private static final int _100 = 100;
+    private static final int _100 = 25;
 
     private final Logger logger = LoggerFactory.getLogger(DSMRBridgeDiscoveryService.class);
 
@@ -96,7 +96,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
                 } else {
                     logger.debug("Start discovery on serial port: {}", currentScannedPortName);
                     currentScannedDevice = new DSMRDeviceRunnable(
-                            new DSMRAutoConfigDevice(portIdentifier.getName(), this, scheduler, _100), this);
+                            new DSMRSerialAutoDevice(portIdentifier.getName(), this, scheduler, _100), this);
                     currentScannedDevice.run();
                 }
             }
@@ -166,7 +166,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
     }
 
     @Override
-    public void handlePortErrorEvent(DSMRConnectorErrorEvent portEvent) {
+    public void handleErrorEvent(DSMRConnectorErrorEvent portEvent) {
         logger.debug("Error on port [{}] during discovery.", currentScannedPortName);
         stopSerialPortScan();
     }

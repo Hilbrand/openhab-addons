@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.dsmr.internal.device.cosem;
+package org.openhab.binding.dsmr.internal.device.cosem3;
 
 import java.lang.reflect.Constructor;
 import java.text.ParseException;
@@ -169,6 +169,7 @@ public class CosemObject {
             String cosemValueString) throws ParseException {
         Class<? extends CosemValue<? extends Object>> cosemValueClass = cosemValueDescriptor.getCosemValueClass();
 
+        // String unit = cosemValueDescriptor.getUnit();
         String value = matchValue(cosemValueDescriptor, cosemValueString);
 
         if (value == null) {

@@ -20,16 +20,6 @@ import org.eclipse.smarthome.core.library.types.DecimalType;
 public class CosemInteger extends CosemValue<Integer> {
 
     /**
-     * Creates a new CosemInteger
-     *
-     * @param unit
-     *            the unit of the value
-     */
-    public CosemInteger(String unit) {
-        super(unit);
-    }
-
-    /**
      * Parses a String value (that represents an integer) to an Integer object
      *
      * @param cosemValue

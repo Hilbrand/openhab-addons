@@ -6,41 +6,41 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.dsmr.internal.device.cosem;
+package org.openhab.binding.dsmr.internal.device.cosem3;
 
 import java.text.ParseException;
 
 import org.eclipse.smarthome.core.library.types.StringType;
 
 /**
- * CosemHexString represents a string value stored as Hexadecimal values.
- *
- * So the value 'Test' is stored as 54657374
+ * CosemString represents a string value
  *
  * @author M. Volaart - Initial contribution
  */
-public class CosemHexString extends CosemValue<String> {
+public class CosemString extends CosemValue<String> {
+
+    /**
+     * Creates a new CosemString with the specified value
+     *
+     * @param unit the unit of the value
+     * @param value the value
+     */
+    public CosemString(String value) {
+        this.value = value;
+    }
 
     /**
      * Parses a String value to a CosemString (does nothing in fact)
      *
      * @param cosemValue
      *            the value to parse
-     * @return {@link String} on success
+     * @return Parsed string representation of the cosemValue
      * @throws ParseException
      *             if parsing failed
      */
     @Override
-    protected String parse(String cosemHexValue) throws ParseException {
-        if (cosemHexValue.length() % 2 != 0) {
-            throw new ParseException(cosemHexValue + " is not a valid hexadecimal string", 0);
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < cosemHexValue.length(); i += 2) {
-                sb.append((char) Integer.parseInt(cosemHexValue.substring(i, i + 2), 16));
-            }
-            return sb.toString();
-        }
+    protected String parse(String cosemValue) throws ParseException {
+        return cosemValue;
     }
 
     /**

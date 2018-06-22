@@ -40,8 +40,8 @@ class DSMRBaseConnector {
     private int msgCount;
     private int readCount;
 
-    public DSMRBaseConnector(DSMRConnectorListener dsmrPortListener) {
-        this.dsmrPortListener = dsmrPortListener;
+    public DSMRBaseConnector(DSMRConnectorListener connectorListener) {
+        this.dsmrPortListener = connectorListener;
     }
 
     /**
@@ -106,7 +106,7 @@ class DSMRBaseConnector {
                 msgCount++;
             }
         } catch (IOException e) {
-            dsmrPortListener.handlePortErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
+            dsmrPortListener.handleErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
             logger.debug("Exception on read port", e);
         } catch (NullPointerException e) {
             logger.trace("Port closed during read.", e);
