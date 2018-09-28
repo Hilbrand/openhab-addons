@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorListener;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
@@ -19,6 +20,7 @@ import org.openhab.binding.dsmr.internal.device.p1telegram.P1Telegram;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1Telegram.TelegramState;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramParser;
+import org.openhab.binding.dsmr.internal.device.p1telegram.TelegramParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,7 @@ import org.slf4j.LoggerFactory;
 class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener {
 
     private final Logger logger = LoggerFactory.getLogger(DSMRTelegramListener.class);
-    private final P1TelegramParser parser;
+    private final TelegramParser parser;
 
     private DSMREventListener dsmrEventListener;
 
@@ -43,8 +45,24 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener 
      * @param eventListener listener to send received errors or messages to
      */
     public DSMRTelegramListener(DSMREventListener eventListener) {
+        this(eventListener, null);
+    }
+
+    /**
+     * Constructs {@link DSMRTelegramListener}. If a decryption key is passed the SmartyDecoder with the key will used
+     * to first decrypt incoming messages.
+     *
+     * @param eventListener listener to send received errors or messages to
+     * @param decryptionKey Optional Smarty decryption key
+     */
+    public DSMRTelegramListener(DSMREventListener eventListener, @Nullable String decryptionKey) {
         dsmrEventListener = eventListener;
-        parser = new P1TelegramParser(this);
+        P1TelegramParser p1Parser = new P1TelegramParser(this);
+        if (decryptionKey == null || decryptionKey.isEmpty()) {
+            parser = p1Parser;
+        } else {
+            parser = new SmartyDecrypter(p1Parser, decryptionKey);
+        }
     }
 
     /**
@@ -58,7 +76,7 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener 
 
     @Override
     public void handleData(byte[] data, int length) {
-        parser.parseData(data, 0, length);
+        parser.parse(data, length);
     }
 
     @Override
@@ -86,7 +104,7 @@ class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorListener 
         } else {
             if (logger.isDebugEnabled()) {
                 logger.debug("Telegram received with error state '{}': {}", telegramState,
-                        cosemObjects.stream().map(CosemObject::toString).collect(Collectors.joining(",")));
+                    cosemObjects.stream().map(CosemObject::toString).collect(Collectors.joining(",")));
             }
         }
     }

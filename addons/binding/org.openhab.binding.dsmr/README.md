@@ -23,23 +23,35 @@ A generic meter and the electricity meter. Each meter is bound to the DSMR proto
 For each meter it is possible to set a refresh rate at which the status is updated.
 The physical meter might update with a high frequency per second, while it's desired to have only values per minute.
 
+`smartyBridge`: This is the device
+
 ## Discovery
 
-Both bridges and meters can be discovered via the discovery process.
+The dsmrBridge and meters can be discovered via the discovery process.
+The `smartyBridge` can't be discovered because it requires the decryption key to determine if there are messages.  
 If a bridge is manually configured it is possible to auto detect available meters.
 
 ### Configuration
 
-The configuration for the Bridge consists of the following parameters:
+The configuration for the `dsmrBridge` consists of the following parameters:
 
 | Parameter           | Description                                                                                                 |
 |---------------------|-------------------------------------------------------------------------------------------------------------|
 | serialPort          | The serial port where the P1-port is connected to (e.g. Linux: `/dev/ttyUSB1`, Windows: `COM2`) (mandatory) |
-| receivedTimeout     | The time out period in which messages are expected to arrive, default is 120 seconds.                       |
+| receivedTimeout     | The time out period in which messages are expected to arrive, default is 120 seconds                        |
 | baudrate            | Baudrate when no auto detect. valid values: 4800, 9600, 19200, 38400, 57600, 115200                         |
 | databits            | Data bits when no auto detect. valid values: 5, 6, 7, 8                                                     |
 | parity              | Parity when no auto detect. valid values: E(ven), N(one), O(dd)                                             |
 | stopbits            | Stop bits when no auto detect. valid values: 1, 1.5, 2                                                      |
+
+The configuration for the `smartyBridge` consists of the following parameters:
+
+| Parameter           | Description                                                                                                 |
+|---------------------|-------------------------------------------------------------------------------------------------------------|
+| serialPort          | The serial port where the P1-port is connected to (e.g. Linux: `/dev/ttyUSB1`, Windows: `COM2`) (mandatory) |
+| decryptionKey       | The meter specific decryption key (mandatory)                                                               |
+| receivedTimeout     | The time out period in which messages are expected to arrive, default is 120 seconds                        |
+
 
 **Note:** *The manual configuration is only needed if the DSMR-device requires non DSMR-standard Serial Port parameters (i.e. something different then `115200 8N1` or `9600 7E1`)*
 

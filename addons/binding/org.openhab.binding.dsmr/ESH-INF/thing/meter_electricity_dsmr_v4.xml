@@ -6,6 +6,7 @@
 	<thing-type id="electricity_v4_0" listed="false">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="dsmrBridge" />
+            <bridge-type-ref id="smartyBridge" />
 		</supported-bridge-type-refs>
 
 		<label>Electricity Meter (DSMR V4.0)</label>

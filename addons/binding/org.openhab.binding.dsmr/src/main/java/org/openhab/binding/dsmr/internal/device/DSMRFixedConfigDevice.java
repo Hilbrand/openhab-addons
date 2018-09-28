@@ -9,6 +9,7 @@
 package org.openhab.binding.dsmr.internal.device;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.io.transport.serial.SerialPortManager;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialConnector;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRSerialSettings;
@@ -27,17 +28,18 @@ public class DSMRFixedConfigDevice implements DSMRDevice {
     private final DSMRTelegramListener telegramListener;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param serialPortManager the manager to get a new serial port connecting from
      * @param serialPortName the port name (e.g. /dev/ttyUSB0 or COM1)
      * @param fixedPortSettings The serial port connection settings
      * @param listener the parent {@link DSMREventListener}
+     * @param decryptionKey Optional Smarty decryption key
      */
     public DSMRFixedConfigDevice(SerialPortManager serialPortManager, String serialPortName,
-            DSMRSerialSettings fixedPortSettings, DSMREventListener listener) {
+            DSMRSerialSettings fixedPortSettings, DSMREventListener listener, @Nullable String decryptionKey) {
         this.fixedPortSettings = fixedPortSettings;
-        telegramListener = new DSMRTelegramListener(listener);
+        telegramListener = new DSMRTelegramListener(listener, decryptionKey);
         dsmrPort = new DSMRSerialConnector(serialPortManager, serialPortName, telegramListener);
     }
 

@@ -57,7 +57,7 @@ public final class TelegramReaderUtil {
         byte[] telegram = readRawTelegram(telegramName);
         P1TelegramParser parser = new P1TelegramParser(p1Telegram::set);
 
-        parser.parseData(telegram, 0, telegram.length);
+        parser.parse(telegram, telegram.length);
         assertEquals("Expected TelegramState should be as expected", expectedTelegramState,
                 p1Telegram.get().getTelegramState());
         return p1Telegram.get();

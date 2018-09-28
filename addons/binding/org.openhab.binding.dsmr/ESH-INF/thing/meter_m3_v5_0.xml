@@ -4,6 +4,11 @@
 	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
 	<thing-type id="m3_v5_0" listed="false">
+        <supported-bridge-type-refs>
+            <bridge-type-ref id="dsmrBridge" />
+            <bridge-type-ref id="smartyBridge" />
+        </supported-bridge-type-refs>
+
 		<label>M3 Meter (DSMR V5.0)</label>
 		<description>This is a m3 meter that complies to the DSMR V5.0 specification.</description>
 

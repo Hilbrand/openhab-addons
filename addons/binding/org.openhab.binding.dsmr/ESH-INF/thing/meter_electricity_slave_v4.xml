@@ -6,6 +6,7 @@
 	<thing-type id="slave_electricity_v4" listed="false">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="dsmrBridge" />
+            <bridge-type-ref id="smartyBridge" />
 		</supported-bridge-type-refs>
 
 		<label>Slave Electricity Meter (DSMR V4.x)</label>

@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author Hilbrand Bouwkamp - Removed asynchronous call and some clean up
  */
 @NonNullByDefault
-public class P1TelegramParser {
+public class P1TelegramParser implements TelegramParser {
 
     /**
      * State of the parser
@@ -131,17 +131,15 @@ public class P1TelegramParser {
     }
 
     /**
-     * Parses data. If parsing is not ready yet nothing will be returned. If
-     * parsing fails completely nothing will be returned. If parsing succeeds
-     * (partial) the received OBIS messages will be returned.
+     * Parses data. If a complete message is received the message will be passed to the telegramListener.
      *
-     * @param data byte data
-     * @param offset offset tot start in the data buffer
+     * @param data byte data to parse
      * @param length number of bytes to parse
      */
-    public void parseData(byte[] data, int offset, int length) {
+    @Override
+    public void parse(byte[] data, int length) {
         if (lenientMode || logger.isTraceEnabled()) {
-            String rawBlock = new String(data, offset, length, StandardCharsets.UTF_8);
+            String rawBlock = new String(data, 0, length, StandardCharsets.UTF_8);
 
             if (lenientMode) {
                 rawData.append(rawBlock);
@@ -150,7 +148,7 @@ public class P1TelegramParser {
                 logger.trace("Raw data: {}, Parser state entering parseData: {}", rawBlock, state);
             }
         }
-        for (int i = offset; i < (offset + length); i++) {
+        for (int i = 0; i < length; i++) {
             char c = (char) data[i];
 
             switch (state) {
@@ -254,7 +252,7 @@ public class P1TelegramParser {
                         }
                         telegramListener.telegramReceived(
                             new P1Telegram(new ArrayList<>(cosemObjects), telegramState, rawData.toString()));
-                        setState(State.WAIT_FOR_START);
+                        reset();
                         if (c == '/') {
                             /*
                              * Immediately proceed to the next state (robust implementation for meter that do not follow
@@ -271,9 +269,7 @@ public class P1TelegramParser {
         logger.trace("State after parsing: {}", state);
     }
 
-    /**
-     * Reset the current telegram state
-     */
+    @Override
     public void reset() {
         setState(State.WAIT_FOR_START);
     }
@@ -402,9 +398,7 @@ public class P1TelegramParser {
         }
     }
 
-    /**
-     * @param lenientMode the lenientMode to set
-     */
+    @Override
     public void setLenientMode(boolean lenientMode) {
         this.lenientMode = lenientMode;
     }

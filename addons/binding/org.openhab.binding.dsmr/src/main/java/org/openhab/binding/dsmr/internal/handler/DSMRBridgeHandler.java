@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -124,25 +125,23 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMREventLis
      */
     @Override
     public void initialize() {
-        DSMRDeviceConfiguration deviceConfig = getConfigAs(DSMRDeviceConfiguration.class);
+        final DSMRDeviceConfiguration deviceConfig = getConfigAs(DSMRDeviceConfiguration.class);
 
         logger.trace("Using configuration {}", deviceConfig);
         updateStatus(ThingStatus.UNKNOWN);
         receivedTimeoutNanos = TimeUnit.SECONDS.toNanos(deviceConfig.receivedTimeout);
-        try {
-            DSMRDevice dsmrDevice = createDevice(deviceConfig);
-            resetLastReceivedState();
-            this.dsmrDevice = dsmrDevice; // otherwise Eclipse will give a null pointer error on the next line :-(
-            dsmrDeviceRunnable = new DSMRDeviceRunnable(dsmrDevice, this);
-            dsmrDeviceThread = new Thread(dsmrDeviceRunnable);
-            dsmrDeviceThread.start();
-            watchdog = scheduler.scheduleWithFixedDelay(this::alive, receivedTimeoutNanos, receivedTimeoutNanos,
-                TimeUnit.NANOSECONDS);
-        } catch (IllegalArgumentException e) {
-            logger.debug("Incomplete configuration: {}", deviceConfig);
-
+        final DSMRDevice dsmrDevice = createDevice(deviceConfig);
+        resetLastReceivedState();
+        this.dsmrDevice = dsmrDevice; // otherwise Eclipse will give a null pointer error on the next line :-(
+        dsmrDeviceRunnable = new DSMRDeviceRunnable(dsmrDevice, this);
+        dsmrDeviceThread = new Thread(dsmrDeviceRunnable);
+        dsmrDeviceThread.start();
+        watchdog = scheduler.scheduleWithFixedDelay(this::alive, receivedTimeoutNanos, receivedTimeoutNanos,
+            TimeUnit.NANOSECONDS);
+        if (deviceConfig.decryptionKey != null && deviceConfig.decryptionKey.length() != 32) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-                "@text/error.configuration.incomplete");
+                "@text/error.configuration.invalidsmartykey");
+            return;
         }
     }
 
@@ -150,15 +149,17 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMREventLis
      * Creates the {@link DSMRDevice} that corresponds with the user specified configuration.
      *
      * @param deviceConfig device configuration
-     * @return Specific {@link DSMRDevice} instance or throws an {@link IllegalArgumentException} if no valid
-     *         configuration was set.
+     * @return Specific {@link DSMRDevice} instance
      */
     private DSMRDevice createDevice(DSMRDeviceConfiguration deviceConfig) {
         DSMRDevice dsmrDevice;
 
         if (deviceConfig.isSerialFixedSettings()) {
             dsmrDevice = new DSMRFixedConfigDevice(serialPortManager, deviceConfig.serialPort,
-                DSMRSerialSettings.getPortSettingsFromConfiguration(deviceConfig), this);
+                DSMRSerialSettings.getPortSettingsFromConfiguration(deviceConfig), this, deviceConfig.decryptionKey);
+        } else if (!StringUtils.isBlank(deviceConfig.decryptionKey)) {
+            dsmrDevice = new DSMRFixedConfigDevice(serialPortManager, deviceConfig.serialPort,
+                DSMRSerialSettings.HIGH_SPEED_SETTINGS, this, deviceConfig.decryptionKey);
         } else {
             dsmrDevice = new DSMRSerialAutoDevice(serialPortManager, deviceConfig.serialPort, this, scheduler,
                 deviceConfig.receivedTimeout);

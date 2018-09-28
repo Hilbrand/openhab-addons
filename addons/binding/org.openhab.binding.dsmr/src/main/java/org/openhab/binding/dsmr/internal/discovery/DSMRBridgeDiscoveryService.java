@@ -8,6 +8,8 @@
  */
 package org.openhab.binding.dsmr.internal.discovery;
 
+import static org.openhab.binding.dsmr.internal.DSMRBindingConstants.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,16 +22,17 @@ import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.config.discovery.DiscoveryService;
 import org.eclipse.smarthome.core.i18n.LocaleProvider;
 import org.eclipse.smarthome.core.i18n.TranslationProvider;
+import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.io.transport.serial.SerialPortIdentifier;
 import org.eclipse.smarthome.io.transport.serial.SerialPortManager;
-import org.openhab.binding.dsmr.internal.DSMRBindingConstants;
 import org.openhab.binding.dsmr.internal.device.DSMRDeviceRunnable;
 import org.openhab.binding.dsmr.internal.device.DSMREventListener;
 import org.openhab.binding.dsmr.internal.device.DSMRSerialAutoDevice;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
 import org.openhab.binding.dsmr.internal.device.cosem.CosemObject;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1Telegram;
+import org.openhab.binding.dsmr.internal.device.p1telegram.TelegramParser;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -54,7 +57,7 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 @Component(service = DiscoveryService.class, configurationPid = "discovery.dsmr")
-public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements DSMREventListener {
+public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements DSMREventListener, TelegramParser {
 
     /**
      * The timeout used to switch baudrate if no valid data is received within that time frame.
@@ -100,16 +103,16 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
                 currentScannedPortName = portIdentifier.getName();
                 if (portIdentifier.isCurrentlyOwned()) {
                     logger.trace("Possible port to check:{}, owned:{} by:{}", currentScannedPortName,
-                            portIdentifier.isCurrentlyOwned(), portIdentifier.getCurrentOwner());
-                    if (DSMRBindingConstants.DSMR_PORT_NAME.equals(portIdentifier.getCurrentOwner())) {
+                        portIdentifier.isCurrentlyOwned(), portIdentifier.getCurrentOwner());
+                    if (DSMR_PORT_NAME.equals(portIdentifier.getCurrentOwner())) {
                         logger.debug("The port {} is owned by this binding. If no DSMR meters will be found it "
-                                + "might indicate the port is locked by an older instance of this binding. "
-                                + "Restart the system to unlock the port.", currentScannedPortName);
+                            + "might indicate the port is locked by an older instance of this binding. "
+                            + "Restart the system to unlock the port.", currentScannedPortName);
                     }
                 } else {
                     logger.debug("Start discovery on serial port: {}", currentScannedPortName);
                     DSMRSerialAutoDevice device = new DSMRSerialAutoDevice(serialPortManager, portIdentifier.getName(),
-                            this, scheduler, BAUDRATE_SWITCH_TIMEOUT_SECONDS);
+                        this, scheduler, BAUDRATE_SWITCH_TIMEOUT_SECONDS);
                     device.setLenientMode(true);
                     currentScannedDevice = new DSMRDeviceRunnable(device, this);
                     currentScannedDevice.run();
@@ -141,7 +144,7 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
     /**
      * Handle if telegrams are received.
      *
-     * If there are cosem objects received a new bridge will we discovered
+     * If there are cosem objects received a new bridge will we discovered.
      *
      * @param telegram the received telegram
      */
@@ -153,34 +156,53 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
             logger.debug("[{}] Received {} cosemObjects", currentScannedPortName, cosemObjects.size());
         }
         if (!cosemObjects.isEmpty()) {
-            bridgeDiscovered(telegram);
+            ThingUID bridgeThingUID = bridgeDiscovered(THING_TYPE_DSMR_BRIDGE);
+            meterDetector.detectMeters(telegram).getKey().forEach(m -> meterDiscovered(m, bridgeThingUID));
             stopSerialPortScan();
         }
     }
 
+    @Override
+    public void parse(byte[] data, int length) {
+        if (length > 0) {
+            bridgeDiscovered(THING_TYPE_SMARTY_BRIDGE);
+        }
+        stopSerialPortScan();
+    }
+
+    @Override
+    public void reset() {
+        // Nothing to do
+    }
+
+    @Override
+    public void setLenientMode(boolean lenientMode) {
+        // Nothing to do
+    }
+
     /**
+     * Creates a bridge.
      *
-     * Therefore this method will always return true
-     *
-     * @return true if bridge is accepted, false otherwise
+     * @return The {@link ThingUID} of the newly created bridge
      */
-    private boolean bridgeDiscovered(P1Telegram telegram) {
-        ThingUID thingUID = new ThingUID(DSMRBindingConstants.THING_TYPE_DSMR_BRIDGE,
-                Integer.toHexString(currentScannedPortName.hashCode()));
+    private ThingUID bridgeDiscovered(ThingTypeUID bridgeThingTypeUID) {
+        ThingUID thingUID = new ThingUID(bridgeThingTypeUID, Integer.toHexString(currentScannedPortName.hashCode()));
+        boolean smarty = THING_TYPE_DSMR_BRIDGE.equals(bridgeThingTypeUID);
+        String label = String.format("@text/thing-type.dsmr.%s.label", smarty ? "smartyBridge" : "dsmrBridge");
 
         // Construct the configuration for this meter
         Map<String, Object> properties = new HashMap<>();
-        properties.put("serialPort", currentScannedPortName);
-
-        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID)
-                .withThingType(DSMRBindingConstants.THING_TYPE_DSMR_BRIDGE).withProperties(properties)
-                .withLabel("@text/thing-type.dsmr.dsmrBridge.label").build();
+        properties.put(CONFIGURATION_SERIAL_PORT, currentScannedPortName);
+        if (smarty) {
+            properties.put(CONFIGURATION_DECRYPTION_KEY, CONFIGURATION_DECRYPTION_KEY_EMPTY);
+        }
+        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID).withThingType(bridgeThingTypeUID)
+            .withProperties(properties).withLabel(label).build();
 
         logger.debug("[{}] discovery result:{}", currentScannedPortName, discoveryResult);
 
         thingDiscovered(discoveryResult);
-        meterDetector.detectMeters(telegram).getKey().forEach(m -> meterDiscovered(m, thingUID));
-        return true;
+        return thingUID;
     }
 
     @Override
