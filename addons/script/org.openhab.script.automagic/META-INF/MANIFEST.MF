@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Automation-ResourceType: json
+Automatic-Module-Name: org.openhab.script.automagic
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Bundle-ManifestVersion: 2
+Bundle-Name: Automagic Binding
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-SymbolicName: org.openhab.script.automagic;singleton:=true
+Bundle-Vendor: openHAB
+Bundle-Version: 2.4.0.qualifier
+Import-Package: 
+ org.eclipse.jdt.annotation;resolution:=optional,
+ org.eclipse.smarthome.automation,
+ org.eclipse.smarthome.automation.core.util,
+ org.eclipse.smarthome.automation.handler,
+ org.eclipse.smarthome.automation.module.core.handler,
+ org.eclipse.smarthome.automation.module.script,
+ org.eclipse.smarthome.automation.module.timer.handler,
+ org.eclipse.smarthome.automation.type,
+ org.eclipse.smarthome.config.core,
+ org.eclipse.smarthome.core.events,
+ org.eclipse.smarthome.core.thing,
+ org.eclipse.smarthome.core.thing.events,
+ org.osgi.framework,
+ org.slf4j
+Service-Component: OSGI-INF/*.xml

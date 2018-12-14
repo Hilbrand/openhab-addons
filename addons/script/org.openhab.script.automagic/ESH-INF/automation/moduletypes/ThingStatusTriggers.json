@@ -1,0 +1,91 @@
+{
+   "triggers":[
+      {
+         "uid":"automagic.ThingStatusChangeTrigger",
+         "label":"a thing status is changed",
+         "description":"This triggers the rule if a thing status has changed.",
+         "configDescriptions":[
+            {
+               "name":"thingUID",
+               "type":"TEXT",
+               "context":"thing",
+               "label":"Thing",
+               "description":"the uid of the thing",
+               "required":true
+            },
+            {
+               "name":"status",
+               "type":"TEXT",
+               "label":"status",
+               "description":"the status to trigger on",
+               "required":false
+           },
+            {
+               "name":"previousStatus",
+               "type":"TEXT",
+               "label":"status",
+               "description":"the previous status to trigger on",
+               "required":false
+           }           
+         ],
+         "outputs":[
+           {
+               "name":"oldStatus",
+               "type":"TEXT",
+               "description":"the old status",
+               "label":"Old Status"
+           },
+           {
+               "name":"newStatus",
+               "type":"TEXT",
+               "description":"the new status",
+               "label":"New Status"
+           },
+           {
+               "name":"event",
+               "type":"org.eclipse.smarthome.core.events.Event",
+               "label":"Event",
+               "description":"The events which was sent.",
+               "reference":"event"
+            }
+         ]
+      },
+      {
+         "uid":"automagic.ThingStatusUpdateTrigger",
+         "label":"a thing status is updated",
+         "description":"This triggers the rule if a thing status is updated.",
+         "configDescriptions":[
+            {
+               "name":"thingUID",
+               "type":"TEXT",
+               "context":"thing",
+               "label":"Thing",
+               "description":"the uid of the thing",
+               "required":true
+            },
+            {
+               "name":"status",
+               "type":"TEXT",
+               "label":"status",
+               "description":"the status to trigger on",
+               "required":false
+           }
+         ],
+         "outputs":[
+           {
+               "name":"status",
+               "type":"TEXT",
+               "description":"the status",
+               "label":"Status"
+           },
+           {
+               "name":"event",
+               "type":"org.eclipse.smarthome.core.events.Event",
+               "label":"Event",
+               "description":"The events which was sent.",
+               "reference":"event"
+            }
+         ]
+      }
+   ]
+}
