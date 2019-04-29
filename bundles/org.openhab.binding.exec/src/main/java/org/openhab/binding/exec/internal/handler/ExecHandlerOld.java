@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.items.ItemNotFoundException;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.DateTimeType;
@@ -56,7 +55,7 @@ import org.slf4j.LoggerFactory;
  * @author Karel Goderis - Initial contribution
  */
 @NonNullByDefault
-public class ExecHandlerNew extends BaseThingHandler {
+public class ExecHandlerOld extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(ExecHandlerNew.class);
 
@@ -71,17 +70,16 @@ public class ExecHandlerNew extends BaseThingHandler {
     // RegEx to extract a parse a function String <code>'(.*?)\((.*)\)'</code>
     private static final Pattern EXTRACT_FUNCTION_PATTERN = Pattern.compile("(.*?)\\((.*)\\)");
 
-    private @NonNullByDefault({}) ScheduledFuture<?> periodicExecutionJob;
+    private ScheduledFuture<?> periodicExecutionJob;
     private ItemRegistry itemRegistry;
-
-    private @Nullable String currentInput;
-    private @Nullable String previousInput;
+    private String currentInput;
+    private String previousInput;
     private StrSubstitutor substitutor;
     private final ReentrantLock lock = new ReentrantLock();
 
     private static Runtime rt = Runtime.getRuntime();
 
-    public ExecHandlerNew(Thing thing, ItemRegistry itemRegistry) {
+    public ExecHandlerOld(Thing thing, ItemRegistry itemRegistry) {
         super(thing);
 
         this.itemRegistry = itemRegistry;
@@ -212,15 +210,11 @@ public class ExecHandlerNew extends BaseThingHandler {
         }
     }
 
-    private void runPeriodic() {
-        this.input = currentInput;
-
-    }
-
     protected class PeriodicExecutionRunnable extends ExecutionRunnable {
 
         @Override
         public void run() {
+            this.input = currentInput;
             super.run();
         }
     }
