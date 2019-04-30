@@ -14,51 +14,42 @@ package org.openhab.binding.exec.internal.handler;
 
 import static org.openhab.binding.exec.internal.ExecBindingConstants.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Calendar;
+import java.lang.ref.WeakReference;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.items.ItemNotFoundException;
 import org.eclipse.smarthome.core.items.ItemRegistry;
-import org.eclipse.smarthome.core.library.types.DateTimeType;
-import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.transform.TransformationException;
-import org.eclipse.smarthome.core.transform.TransformationHelper;
 import org.eclipse.smarthome.core.transform.TransformationService;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
+import org.eclipse.smarthome.core.types.State;
 import org.openhab.binding.exec.internal.ExecCommandConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link ExecHandlerNew} is responsible for handling commands, which are
+ * The {@link ExecHandler} is responsible for handling commands, which are
  * sent to one of the channels.
  *
  * @author Karel Goderis - Initial contribution
  */
 @NonNullByDefault
-public class ExecHandlerNew extends BaseThingHandler {
+public class ExecHandler extends BaseThingHandler {
 
-    private Logger logger = LoggerFactory.getLogger(ExecHandlerNew.class);
+    private Logger logger = LoggerFactory.getLogger(ExecHandler.class);
 
     // List of Configurations constants
     public static final String INTERVAL = "interval";
@@ -71,38 +62,58 @@ public class ExecHandlerNew extends BaseThingHandler {
     // RegEx to extract a parse a function String <code>'(.*?)\((.*)\)'</code>
     private static final Pattern EXTRACT_FUNCTION_PATTERN = Pattern.compile("(.*?)\\((.*)\\)");
 
+    private final Runtime rt = Runtime.getRuntime();
+    private final ItemRegistry itemRegistry;
+    private final Function<String, @Nullable TransformationService> provider;
+    private final WeakReference<@Nullable TransformationService> transformationServiceRef = new WeakReference<>(null);
     private @NonNullByDefault({}) ScheduledFuture<?> periodicExecutionJob;
-    private ItemRegistry itemRegistry;
+    private @NonNullByDefault({}) ExecutionRunnable runnable;
+    private @NonNullByDefault({}) ExecCommandConfiguration config;
 
-    private @Nullable String currentInput;
-    private @Nullable String previousInput;
+    private String currentInput = "";
+    private String previousInput = "";
     private StrSubstitutor substitutor;
-    private final ReentrantLock lock = new ReentrantLock();
+    private String transformationType = "";
 
-    private static Runtime rt = Runtime.getRuntime();
-
-    public ExecHandlerNew(Thing thing, ItemRegistry itemRegistry) {
+    public ExecHandler(Thing thing, ItemRegistry itemRegistry,
+            Function<String, @Nullable TransformationService> provider) {
         super(thing);
-
         this.itemRegistry = itemRegistry;
-
+        this.provider = provider;
         substitutor = new StrSubstitutor(new ExecStrLookup());
         substitutor.setEnableSubstitutionInVariables(true);
     }
 
     @Override
     public void initialize() {
+        config = getConfigAs(ExecCommandConfiguration.class);
 
-        ExecCommandConfiguration config = getConfigAs(ExecCommandConfiguration.class);
+        runnable = new ExecutionRunnable(rt, transformFunction(config.getTransform()), config) {
+            @Override
+            void updateState(String channelId, State state) {
+                ExecHandler.this.updateState(channelId, state);
+            }
+        };
 
         if (periodicExecutionJob == null || periodicExecutionJob.isCancelled()) {
             if (config.getInterval() != null && config.getInterval().intValue() > 0) {
-                periodicExecutionJob = scheduler.scheduleWithFixedDelay(new PeriodicExecutionRunnable(), 0,
+                periodicExecutionJob = scheduler.scheduleWithFixedDelay(() -> runnable.run(currentInput), 0,
                         config.getInterval().intValue(), TimeUnit.SECONDS);
             }
         }
 
         updateStatus(ThingStatus.ONLINE);
+    }
+
+    private Function<String, String> transformFunction(String transformation) {
+        if (StringUtils.isNotBlank(transformation)) {
+            final String[] parts = splitTransformationConfig(transformation);
+            transformationType = parts[0];
+
+            return s -> transformString(s, parts[1]);
+        } else {
+            return Function.identity();
+        }
     }
 
     @Override
@@ -117,277 +128,56 @@ public class ExecHandlerNew extends BaseThingHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
         ExecCommandConfiguration config = getConfigAs(ExecCommandConfiguration.class);
 
-        if (!(command instanceof RefreshType)) {
-            if (channelUID.getId().equals(RUN)) {
-                if (command instanceof OnOffType) {
-                    if (command == OnOffType.ON) {
-                        scheduler.schedule(new ExecutionRunnable(currentInput), 0, TimeUnit.SECONDS);
-                    }
+        if (command instanceof RefreshType || currentInput.isEmpty()) {
+            return;
+        }
+        boolean run = false;
+        if (RUN.equals(channelUID.getId())) {
+            run = command == OnOffType.ON;
+        } else if (INPUT.equals(channelUID.getId()) && config.getRunOnInput()) {
+            currentInput = command.toString();
+
+            if (currentInput.equals(previousInput)) {
+                if (config.getRepeatEnabled()) {
+                    logger.trace("Executing command '{}' because of a repetition on the input channel ('{}')",
+                            config.getCommand(), command);
+                    run = true;
                 }
-            } else if (channelUID.getId().equals(INPUT)) {
-                currentInput = command.toString();
-                if (config.getRunOnInput() != null && config.getRunOnInput()) {
-                    if (currentInput != null && currentInput.equals(previousInput) && config.getRepeatEnabled() != null
-                            && config.getRepeatEnabled()) {
-                        logger.trace("Executing command '{}' because of a repitition on the input channel ('{}')",
-                                config.getCommand(), command.toString());
-                        scheduler.schedule(new ExecutionRunnable(currentInput), 0, TimeUnit.SECONDS);
-                    } else {
-                        if (currentInput != null && (!currentInput.equals(previousInput) || previousInput == null)) {
-                            logger.trace("Executing command '{}' after a change of the input channel to '{}'",
-                                    config.getCommand(), command.toString());
-                            scheduler.schedule(new ExecutionRunnable(currentInput), 0, TimeUnit.SECONDS);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    class ExecStrLookup extends StrLookup {
-
-        private String execInput;
-
-        public void setInput(String input) {
-            this.execInput = input;
-        }
-
-        @Override
-        public String lookup(String key) {
-            String transform = null;
-            String format = null;
-
-            String parts[] = key.split(":");
-            String subkey = parts[0];
-
-            if (parts.length == 2) {
-                format = parts[1];
-            } else if (parts.length == 3) {
-                transform = parts[1];
-                format = parts[2];
-            }
-
-            try {
-                if ("exec-time".equals(subkey)) {
-                    // Transform is not relevant here, as our source is a Date
-                    if (format != null) {
-                        return String.format(format, Calendar.getInstance().getTime());
-                    } else {
-                        return null;
-                    }
-                } else if ("exec-input".equals(subkey)) {
-                    if (execInput != null) {
-                        String transformedInput = execInput;
-                        if (transform != null) {
-                            transformedInput = transformString(transformedInput, transform);
-                        }
-                        if (format != null) {
-                            return String.format(format, transformedInput);
-                        } else {
-                            return execInput;
-                        }
-                    } else {
-                        return null;
-                    }
-                } else {
-                    String transformedInput = itemRegistry.getItem(subkey).getState().toString();
-                    if (transform != null) {
-                        transformedInput = transformString(transformedInput, transform);
-                    }
-                    if (format != null) {
-                        return String.format(format, transformedInput);
-                    } else {
-                        return transformedInput;
-                    }
-                }
-            } catch (PatternSyntaxException e) {
-                logger.warn("Invalid substitution key '{}'", key);
-                return null;
-            } catch (ItemNotFoundException e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("The Item '{}' could not be found in the Registry : '{}'", subkey, e.getMessage(), e);
-                }
-                return null;
-            }
-        }
-    }
-
-    private void runPeriodic() {
-        this.input = currentInput;
-
-    }
-
-    protected class PeriodicExecutionRunnable extends ExecutionRunnable {
-
-        @Override
-        public void run() {
-            super.run();
-        }
-    }
-
-    protected class ExecutionRunnable implements Runnable {
-
-        protected String input;
-
-        public ExecutionRunnable(String input) {
-            this.input = input;
-        }
-
-        public ExecutionRunnable() {
-        }
-
-        @Override
-        public void run() {
-
-            ExecCommandConfiguration config = getConfigAs(ExecCommandConfiguration.class);
-
-            try {
-                lock.lock();
-
-                String commandLine = config.getCommand();
-
-                if (StringUtils.isNotBlank(commandLine)) {
-                    updateState(RUN, OnOffType.ON);
-
-                    // For some obscure reason, when using Apache Common Exec, or using a straight implementation of
-                    // Runtime.Exec(), on Mac OS X (Yosemite and El Capitan), there seems to be a lock race condition
-                    // randomly appearing (on UNIXProcess) *when* one tries to gobble up the stdout and sterr output of
-                    // the subprocess in separate threads. It seems to be common "wisdom" to do that in separate
-                    // threads, but only when keeping everything between .exec() and .waitfor() in the same thread, this
-                    // lock
-                    // race condition seems to go away. This approach of not reading the outputs in separate threads
-                    // *might*
-                    // be a problem for external commands that generate a lot of output, but this will be dependent on
-                    // the limits of the underlying operating system.
-
-                    try {
-                        ((ExecStrLookup) substitutor.getVariableResolver()).setInput(input);
-                        commandLine = substitutor.replace(commandLine);
-                        if (StringUtils.contains(commandLine, "${exec-input}")) {
-                            logger.debug("${exec-input} is not set or the input Channel is not linked");
-                            return;
-                        } else if (StringUtils.contains(commandLine, "${exec-time}")) {
-                            logger.debug("${exec-time} could not be transformed");
-                            return;
-                        }
-                    } catch (Exception e) {
-                        logger.debug("An exception occurred while formatting the command line : '{}'", e.getMessage(),
-                                e);
-                        updateState(RUN, OnOffType.OFF);
-                        updateState(OUTPUT, new StringType(e.getMessage()));
-                        return;
-                    }
-
-                    logger.debug("The command to be executed is '{}'", commandLine);
-
-                    Process proc;
-                    try {
-                        proc = rt.exec(commandLine.toString());
-                    } catch (Exception e) {
-                        logger.debug("An exception occurred while executing '{}' : '{}'", commandLine, e.getMessage(),
-                                e);
-                        updateState(RUN, OnOffType.OFF);
-                        updateState(OUTPUT, new StringType(e.getMessage()));
-                        return;
-                    }
-
-                    StringBuilder outputBuilder = new StringBuilder();
-                    StringBuilder errorBuilder = new StringBuilder();
-
-                    try (InputStreamReader isr = new InputStreamReader(proc.getInputStream());
-                            BufferedReader br = new BufferedReader(isr);) {
-                        String line = null;
-                        while ((line = br.readLine()) != null) {
-                            outputBuilder.append(line).append("\n");
-                            logger.debug("Exec [OUTPUT]: '{}'", line);
-                        }
-                        isr.close();
-                    } catch (IOException e) {
-                        logger.error("An exception occurred while reading the stdout when executing '{}' : '{}'",
-                                commandLine, e.getMessage(), e);
-                    }
-
-                    try (InputStreamReader isr = new InputStreamReader(proc.getErrorStream());
-                            BufferedReader br = new BufferedReader(isr);) {
-                        String line = null;
-                        while ((line = br.readLine()) != null) {
-                            errorBuilder.append(line).append("\n");
-                            logger.debug("Exec [ERROR]: '{}'", line);
-                        }
-                        isr.close();
-                    } catch (IOException e) {
-                        logger.error("An exception occurred while reading the stderr when executing '{}' : '{}'",
-                                commandLine, e.getMessage(), e);
-                    }
-
-                    boolean hasExited = false;
-                    try {
-                        hasExited = proc.waitFor(config.getTimeout().intValue(), TimeUnit.SECONDS);
-                    } catch (InterruptedException e) {
-                        logger.error("An exception occurred while waiting for the process ('{}') to finish : '{}'",
-                                commandLine, e.getMessage(), e);
-                        Thread.currentThread().interrupt();
-                    }
-
-                    if (!hasExited) {
-                        logger.warn("Forcibly termininating the process ('{}') after a timeout of {} seconds",
-                                commandLine, config.getTimeout().intValue());
-                        proc.destroyForcibly();
-                    }
-
-                    updateState(RUN, OnOffType.OFF);
-                    updateState(EXIT, new DecimalType(proc.exitValue()));
-
-                    outputBuilder.append(errorBuilder.toString());
-
-                    String transformedResponse = StringUtils.chomp(outputBuilder.toString());
-                    String transformation = config.getTransform();
-
-                    if (StringUtils.isNotBlank(transformation)) {
-                        transformedResponse = transformString(transformedResponse, transformation);
-                    }
-
-                    updateState(OUTPUT, new StringType(transformedResponse));
-
-                    DateTimeType stampType = new DateTimeType();
-                    updateState(LAST_EXECUTION, stampType);
-                }
-            } catch (Exception e) {
-                logger.error("An exception occurred while executing the command '{}' : '{}'", config.getCommand(),
-                        e.getMessage(), e);
-            } finally {
-                lock.unlock();
-            }
-        }
-    };
-
-    protected String transformString(String response, String transformation) {
-        String transformedResponse;
-
-        try {
-            String[] parts = splitTransformationConfig(transformation);
-            String transformationType = parts[0];
-            String transformationFunction = parts[1];
-
-            TransformationService transformationService = TransformationHelper.getTransformationService(bundleContext,
-                    transformationType);
-            if (transformationService != null) {
-                transformedResponse = transformationService.transform(transformationFunction, response);
             } else {
-                transformedResponse = response;
+                logger.trace("Executing command '{}' after a change of the input channel to '{}'", config.getCommand(),
+                        command);
+                run = true;
+            }
+        }
+        if (run) {
+            final String runInput = currentInput;
+
+            scheduler.schedule(() -> runnable.run(runInput), 0, TimeUnit.SECONDS);
+        }
+    }
+
+    private String transformString(String source, String function) {
+        String transformedResponse = source;
+        try {
+            TransformationService transformationService = transformationServiceRef.get();
+
+            if (transformationService == null) {
+                transformationService = provider.apply(transformationType);
+            }
+            if (transformationService == null) {
                 logger.warn("Couldn't transform response because transformationService of type '{}' is unavailable",
                         transformationType);
+            } else {
+                transformedResponse = transformationService.transform(function, source);
             }
         } catch (TransformationException te) {
-            logger.error("An exception occurred while transforming '{}' with '{}' : '{}'",
-                    new Object[] { response, transformation, te.getMessage() });
-
+            logger.warn("An exception occurred while transforming '{}' with '{}' : '{}'", source, config.getTransform(),
+                    te.getMessage());
             // in case of an error we return the response without any transformation
-            transformedResponse = response;
         }
 
         logger.debug("Transformed response is '{}'", transformedResponse);
-        return transformedResponse;
+        return transformedResponse == null ? source : transformedResponse;
     }
 
     /**
@@ -405,12 +195,10 @@ public class ExecHandlerNew extends BaseThingHandler {
                     + "' does not follow the expected pattern '<function>(<pattern>)'");
         }
         matcher.reset();
-
         matcher.find();
-        String type = matcher.group(1);
-        String pattern = matcher.group(2);
+        final String type = matcher.group(1);
+        final String pattern = matcher.group(2);
 
         return new String[] { type, pattern };
     }
-
 }

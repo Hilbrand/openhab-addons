@@ -28,6 +28,7 @@ public class ExecBindingConstants {
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_COMMAND = new ThingTypeUID(BINDING_ID, "command");
+    public static final ThingTypeUID THING_COMMAND_LEGACY = new ThingTypeUID(BINDING_ID, "command");
 
     // List of all Channel ids
     public static final String OUTPUT = "output";

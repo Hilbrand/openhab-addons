@@ -40,11 +40,11 @@ public class ExecCommandConfiguration {
         return timeout;
     }
 
-    public Boolean getRunOnInput() {
+    public boolean getRunOnInput() {
         return runOnInput;
     }
 
-    public Boolean getRepeatEnabled() {
+    public boolean getRepeatEnabled() {
         return repeatEnabled;
     }
 

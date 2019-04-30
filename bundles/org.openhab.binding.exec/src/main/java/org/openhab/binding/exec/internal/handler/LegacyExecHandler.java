@@ -46,15 +46,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link ExecHandler} is responsible for handling commands, which are
+ * The {@link LegacyExecHandler} is responsible for handling commands, which are
  * sent to one of the channels.
  *
  * @author Karel Goderis - Initial contribution
  */
 @NonNullByDefault
-public class ExecHandler extends BaseThingHandler {
+public class LegacyExecHandler extends BaseThingHandler {
 
-    private Logger logger = LoggerFactory.getLogger(ExecHandler.class);
+    private Logger logger = LoggerFactory.getLogger(LegacyExecHandler.class);
 
     // List of Configurations constants
     public static final String INTERVAL = "interval";
@@ -71,7 +71,7 @@ public class ExecHandler extends BaseThingHandler {
 
     private static Runtime rt = Runtime.getRuntime();
 
-    public ExecHandler(Thing thing) {
+    public LegacyExecHandler(Thing thing) {
         super(thing);
     }
 

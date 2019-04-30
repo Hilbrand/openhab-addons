@@ -12,7 +12,7 @@
  */
 package org.openhab.binding.exec.internal;
 
-import static org.openhab.binding.exec.internal.ExecBindingConstants.THING_COMMAND;
+import static org.openhab.binding.exec.internal.ExecBindingConstants.*;
 
 import java.util.Collections;
 import java.util.Set;
@@ -25,7 +25,9 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
-import org.openhab.binding.exec.internal.handler.ExecHandlerNew;
+import org.eclipse.smarthome.core.transform.TransformationHelper;
+import org.openhab.binding.exec.internal.handler.ExecHandler;
+import org.openhab.binding.exec.internal.handler.LegacyExecHandler;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -39,7 +41,7 @@ import org.osgi.service.component.annotations.Reference;
 @Component(service = ThingHandlerFactory.class, configurationPid = "binding.exec")
 public class ExecHandlerFactory extends BaseThingHandlerFactory {
 
-    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections.singleton(THING_COMMAND);
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections.singleton(THING_COMMAND_LEGACY);
 
     private @NonNullByDefault({}) ItemRegistry itemRegistry;
 
@@ -61,8 +63,11 @@ public class ExecHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (thingTypeUID.equals(THING_COMMAND)) {
-            return new ExecHandlerNew(thing, itemRegistry);
+        if (THING_COMMAND.equals(thingTypeUID)) {
+            return new ExecHandler(thing, itemRegistry, transformationType -> TransformationHelper
+                    .getTransformationService(bundleContext, transformationType));
+        } else if (THING_COMMAND_LEGACY.equals(thingTypeUID)) {
+            return new LegacyExecHandler(thing);
         }
 
         return null;
