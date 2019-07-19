@@ -1,0 +1,10 @@
+automation:
+  alias: "Light on switch"
+  trigger:
+    - typeId: core.ItemCommandAction
+      itemName:  
+      state: ON
+  action:
+    - typeId: core.ItemCommandAction
+      itemName: 
+      command: ON

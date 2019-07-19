@@ -1,0 +1,7 @@
+automation:
+    trigger:
+        typeId: core.ItemStateUpdateTrigger
+        itemName: myitem
+        state: ON
+
+ 

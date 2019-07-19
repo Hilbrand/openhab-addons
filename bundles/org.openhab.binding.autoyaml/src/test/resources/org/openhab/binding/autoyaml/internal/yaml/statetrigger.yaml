@@ -1,0 +1,11 @@
+automation:
+  trigger:
+    platform: state
+    entity_id: device_tracker.paulus, device_tracker.anne_therese
+    # Optional
+    #from: 'not_home'
+    # Optional
+    #to: 'home'
+
+    # If given, will trigger when state has been the to state for X time.
+    #for: '01:10:05'

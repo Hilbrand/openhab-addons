@@ -1,0 +1,8 @@
+automation:
+  trigger:
+      # first trigger
+    - platform: time_pattern
+      minutes: 5
+      # our second trigger is the sunset
+    - platform: sun
+      event: sunset
