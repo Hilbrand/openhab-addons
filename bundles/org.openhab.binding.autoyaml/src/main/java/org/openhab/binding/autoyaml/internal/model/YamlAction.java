@@ -19,7 +19,12 @@ public class YamlAction extends YamlAutomationEntry {
     private static final String SERVICE = "service";
     private static final String DELAY = "delay";
 
-    public YamlAction(Map<String, Object> map) {
-        super(map);
+    public YamlAction(String id, Map<String, Object> map) {
+        super(id, map);
+    }
+
+    @Override
+    public String getId() {
+        return "123";
     }
 }

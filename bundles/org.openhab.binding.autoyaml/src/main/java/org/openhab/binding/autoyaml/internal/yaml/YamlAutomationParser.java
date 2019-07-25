@@ -13,14 +13,18 @@
 package org.openhab.binding.autoyaml.internal.yaml;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.openhab.binding.autoyaml.internal.model.YamlAutomation;
 import org.yaml.snakeyaml.Yaml;
 
 public class YamlAutomationParser {
+
+    private static final String AUTOMATION = "automation";
 
     private final Yaml yaml;
 
@@ -31,12 +35,36 @@ public class YamlAutomationParser {
     public List<YamlAutomation> parse(final String yamlString, final String name) {
         final Map<String, Object> rawAutomation = (Map<String, Object>) yaml.load(yamlString);
         final List<YamlAutomation> automations = new ArrayList<YamlAutomation>();
-        int idx = 0;
+        final int idx = 0;
 
         for (final Entry<String, Object> entry : rawAutomation.entrySet()) {
-            automations.add(new AutomationParser(name + (idx++), entry).parse());
+            x(name, automations, idx, entry);
         }
         return automations;
+    }
+
+    private void x(final String name, final List<YamlAutomation> automations, final int idx,
+            final Entry<String, Object> rawAutomation) {
+        if (rawAutomation.getKey().startsWith(AUTOMATION)) {
+            if (rawAutomation.getValue() instanceof List) {
+                automations.addAll((Collection<? extends YamlAutomation>) ((List) rawAutomation.getValue()).stream()
+                        .map(v -> parse(name, idx, v)).collect(Collectors.toList()));
+            } else {
+                automations.add(parse(name, idx, rawAutomation.getValue()));
+            }
+        }
+    }
+
+    private YamlAutomation parse(final String name, int idx, final Object object) {
+        return new AutomationParser(name + (idx++), toMap(object)).parse();
+    }
+
+    private Map toMap(final Object value) {
+        if (value instanceof Map) {
+            return (Map) value;
+        } else {
+            return null;
+        }
     }
 
 }

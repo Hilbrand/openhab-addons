@@ -21,14 +21,14 @@ import org.openhab.core.automation.util.TriggerBuilder;
 class TriggerFactory {
 
     public static Trigger createTrigger(YamlTrigger yTrigger) {
-        if (yTrigger.getPlatform() != null) {
+        if (yTrigger.isHATrigger()) {
             return createHATrigger(yTrigger);
         }
         return defaultTrigger(yTrigger);
     }
 
     public static Trigger createHATrigger(YamlTrigger yTrigger) {
-        switch (yTrigger.getTriggerType()) {
+        switch (yTrigger.getTypeUID()) {
             case StateTriggerBuilder.PLATFORM:
                 return StateTriggerBuilder.build(yTrigger);
         }
@@ -36,9 +36,11 @@ class TriggerFactory {
     }
 
     private static Trigger defaultTrigger(YamlTrigger yTrigger) {
-        final String typeUID = "";
         return TriggerBuilder.create() //
-                .withTypeUID(typeUID) //
+                .withTypeUID(yTrigger.getTypeUID()) //
+                .withId(yTrigger.getId()) //
+                .withLabel(yTrigger.getLabel()) //
+                .withDescription(yTrigger.getDescription()) //
                 .withConfiguration(yTrigger.createConfiguration()) //
                 .build();
     }

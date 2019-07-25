@@ -21,55 +21,41 @@ import org.openhab.binding.autoyaml.internal.model.YamlAutomation;
 
 class AutomationParser {
 
-    private static final String AUTOMATION = "automation";
     private static final String DESCRIPTION = "description";
     private static final String NAME = "name";
+    private static final String ALIAS = "alias";
     private static final String TAGS = "tags";
     private static final String TRIGGER = "trigger";
     private static final String CONDITION = "condition";
     private static final String ACTION = "action";
 
     private final YamlAutomation automation = new YamlAutomation();
-    private final Entry<String, Object> rawAutomation;
+    private final Map<Object, Object> rawAutomation;
     private final String name;
 
-    public AutomationParser(final String name, final Entry<String, Object> rawAutomation) {
+    public AutomationParser(final String name, final Map<Object, Object> rawAutomation) {
         this.name = name;
         this.rawAutomation = rawAutomation;
     }
 
     public YamlAutomation parse() {
-        if (rawAutomation.getKey().startsWith(AUTOMATION)) {
-            mapAutomationMap(toMap(rawAutomation.getValue()));
-        }
-        return automation;
-    }
-
-    private Map toMap(final Object value) {
-        if (value instanceof Map) {
-            return (Map) value;
-        } else {
+        if (rawAutomation == null) {
             return null;
         }
-    }
-
-    private void mapAutomationMap(final Map<Object, Object> value) {
-        if (value == null) {
-            return;
-        }
         int idx = 0;
-        for (final Entry<Object, Object> entry : value.entrySet()) {
+        for (final Entry<Object, Object> entry : rawAutomation.entrySet()) {
             if (entry.getKey() instanceof String) {
                 collectAutomationEntry(name + '-' + (idx++), (String) entry.getKey(), entry.getValue());
             } else {
             }
-
         }
+        return automation;
     }
 
     private void collectAutomationEntry(final String id, final String key, final Object value) {
         switch (key) {
             case NAME:
+            case ALIAS:
                 automation.setName(value.toString().trim());
                 break;
             case DESCRIPTION:
@@ -85,7 +71,7 @@ class AutomationParser {
                 // addEntry(value, automation::addCondition);
                 break;
             case ACTION:
-                // addEntry(value, automation::addAction);
+                addEntry(value, id, automation::addAction);
                 break;
             default:
                 // TODO log

@@ -14,32 +14,13 @@ package org.openhab.binding.autoyaml.internal.model;
 
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
+@NonNullByDefault
 public class YamlTrigger extends YamlAutomationEntry {
 
-    private static final String TRIGGER_TYPE_ID = "typeId";
-    private static final String HA_TRIGGER_TYPE_ID = "platform";
-
-    private final String id;
-    private final String eventType;
-    private final String platform;
-
     public YamlTrigger(final String id, final Map<String, Object> map) {
-        super(map);
+        super(id, map);
         // map.remove(TRIGGER_TYPE_ID);
-        this.id = id;
-        eventType = getStringRequired(TRIGGER_TYPE_ID, HA_TRIGGER_TYPE_ID);
-        platform = getString(HA_TRIGGER_TYPE_ID);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getTriggerType() {
-        return eventType;
-    }
-
-    public String getPlatform() {
-        return platform;
     }
 }

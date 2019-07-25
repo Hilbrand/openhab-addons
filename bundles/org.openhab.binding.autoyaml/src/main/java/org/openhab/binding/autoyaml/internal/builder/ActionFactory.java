@@ -18,14 +18,16 @@ import org.openhab.core.automation.util.ActionBuilder;
 
 class ActionFactory {
 
-    public static Action createAction(YamlAction yAction) {
+    public static Action createAction(final YamlAction yAction) {
         return defaultAction(yAction);
     }
 
-    private static Action defaultAction(YamlAction yAction) {
-        final String typeUID = "";
+    private static Action defaultAction(final YamlAction yAction) {
         return ActionBuilder.create() //
-                .withTypeUID(typeUID) //
+                .withTypeUID(yAction.getTypeUID()) //
+                .withId(yAction.getId()) //
+                .withLabel(yAction.getLabel()) //
+                .withDescription(yAction.getDescription()) //
                 .withConfiguration(yAction.createConfiguration()) //
                 .build();
     }

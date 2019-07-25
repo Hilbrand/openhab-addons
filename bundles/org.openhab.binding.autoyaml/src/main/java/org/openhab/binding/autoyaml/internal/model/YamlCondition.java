@@ -19,8 +19,8 @@ public class YamlCondition extends YamlAutomationEntry {
     private static final String CONDITION = "condition";
     private final String condition;
 
-    public YamlCondition(Map<String, Object> map) {
-        super(map);
+    public YamlCondition(String id, Map<String, Object> map) {
+        super(id, map);
         condition = setCondition();
     }
 

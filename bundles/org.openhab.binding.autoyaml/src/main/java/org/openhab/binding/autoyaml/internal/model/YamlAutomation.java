@@ -33,7 +33,7 @@ public class YamlAutomation {
         return description;
     }
 
-    public void setDescription(final String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
@@ -41,7 +41,7 @@ public class YamlAutomation {
         return name;
     }
 
-    public void setName(final String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -49,7 +49,7 @@ public class YamlAutomation {
         return tags;
     }
 
-    public void setTags(final String tagString) {
+    public void setTags(String tagString) {
         tags = Arrays.asList(tagString.split(",")).stream().map(String::trim).collect(Collectors.toSet());
     }
 
@@ -57,7 +57,7 @@ public class YamlAutomation {
         return null;
     }
 
-    public void addTrigger(final String id, final Map<String, Object> trigger) {
+    public void addTrigger(String id, Map<String, Object> trigger) {
         triggers.add(new YamlTrigger(id, trigger));
     }
 
@@ -65,16 +65,16 @@ public class YamlAutomation {
         return triggers;
     }
 
-    public void addCondition(final Map<String, Object> condition) {
-        conditions.add(new YamlCondition(condition));
+    public void addCondition(String id, Map<String, Object> condition) {
+        conditions.add(new YamlCondition(id, condition));
     }
 
     public List<YamlCondition> getConditions() {
         return conditions;
     }
 
-    public void addAction(final Map<String, Object> action) {
-        actions.add(new YamlAction(action));
+    public void addAction(String id, Map<String, Object> action) {
+        actions.add(new YamlAction(id, action));
     }
 
     public List<YamlAction> getActions() {

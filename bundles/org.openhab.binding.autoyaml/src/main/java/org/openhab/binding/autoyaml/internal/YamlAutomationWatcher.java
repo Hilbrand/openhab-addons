@@ -42,8 +42,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 @NonNullByDefault
-@Component
-public class YamlAutomationWatcher extends AbstractWatchService {
+@Component(immediate = true)
+public class YamlAutomationWatcher extends AbstractWatchService /* implements ModelParser */ {
 
     private static final String YAML_AUTOMATION = "yautomation";
 
@@ -56,6 +56,11 @@ public class YamlAutomationWatcher extends AbstractWatchService {
 
     public YamlAutomationWatcher() {
         super(ConfigConstants.getConfigFolder() + File.separator + YAML_AUTOMATION);
+    }
+
+    // @Override
+    public String getExtension() {
+        return "yaml";
     }
 
     @Reference
@@ -102,6 +107,7 @@ public class YamlAutomationWatcher extends AbstractWatchService {
         String yamlString;
         try {
             final File file = new File(fileUrl.toURI());
+            logger.info("Loading yaml automation file '{}'", file.getName());
             yamlString = FileUtils.readFileToString(file);
 
             final List<YamlAutomation> automations = parser.parse(yamlString,
