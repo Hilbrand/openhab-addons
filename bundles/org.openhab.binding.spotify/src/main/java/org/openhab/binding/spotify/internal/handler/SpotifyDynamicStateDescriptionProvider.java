@@ -14,17 +14,23 @@ package org.openhab.binding.spotify.internal.handler;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.binding.BaseDynamicStateDescriptionProvider;
 import org.eclipse.smarthome.core.thing.type.DynamicStateDescriptionProvider;
+import org.eclipse.smarthome.core.types.StateDescription;
+import org.eclipse.smarthome.core.types.StateDescriptionFragmentBuilder;
 import org.eclipse.smarthome.core.types.StateOption;
 import org.openhab.binding.spotify.internal.api.model.Device;
 import org.openhab.binding.spotify.internal.api.model.Playlist;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 
 /**
  * Dynamically create the users list of devices and playlists.
@@ -33,10 +39,11 @@ import org.osgi.service.component.annotations.Component;
  */
 @Component(service = { DynamicStateDescriptionProvider.class, SpotifyDynamicStateDescriptionProvider.class })
 @NonNullByDefault
-public class SpotifyDynamicStateDescriptionProvider extends BaseDynamicStateDescriptionProvider {
+public class SpotifyDynamicStateDescriptionProvider implements DynamicStateDescriptionProvider {
 
     private final Map<ChannelUID, List<Device>> devicesByChannel = new HashMap<>();
     private final Map<ChannelUID, List<Playlist>> playlistsByChannel = new HashMap<>();
+    private final Map<ChannelUID, @Nullable List<StateOption>> channelOptionsMap = new ConcurrentHashMap<>();
 
     public void setDevices(ChannelUID channelUID, List<Device> spotifyDevices) {
         final List<Device> devices = devicesByChannel.get(channelUID);
@@ -63,10 +70,23 @@ public class SpotifyDynamicStateDescriptionProvider extends BaseDynamicStateDesc
         }
     }
 
-    @Override
+    @Deactivate
     public void deactivate() {
-        super.deactivate();
         devicesByChannel.clear();
         playlistsByChannel.clear();
+    }
+
+    @Override
+    public @Nullable StateDescription getStateDescription(Channel channel, @Nullable StateDescription original,
+            @Nullable Locale locale) {
+        List<StateOption> list = channelOptionsMap.get(channel.getUID());
+        return list == null ? null
+                : (original == null ? StateDescriptionFragmentBuilder.create()
+                        : StateDescriptionFragmentBuilder.create(original)).withOptions(list).build()
+                                .toStateDescription();
+    }
+
+    public void setStateOptions(ChannelUID channelUID, List<StateOption> options) {
+        channelOptionsMap.put(channelUID, options);
     }
 }

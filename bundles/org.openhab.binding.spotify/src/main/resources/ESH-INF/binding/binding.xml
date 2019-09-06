@@ -3,7 +3,7 @@
 	xmlns:binding="https://openhab.org/schemas/binding/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/binding/v1.0.0 https://openhab.org/schemas/binding-1.0.0.xsd">
 
-	<name>Spotify Binding</name>
+	<name>Spotify Binding (Beta 09/12/2019)</name>
 	<description>This is the openHAB binding for Spotify used to manage Connect devices. Using the Spotify WebAPI.</description>
 	<author>Andreas Stenlund, Hilbrand Bouwkamp</author>
 
