@@ -583,32 +583,48 @@ public class InnogyDeviceHandler extends BaseThingHandler implements DeviceStatu
                         logger.debug("Pushbutton index {} count {}", buttonIndexState, pushCountState);
                         if (pushCountState != null) {
                             DecimalType pushCount = new DecimalType(pushCountState);
-                            if (buttonIndexState.equals(0)) {
-                                triggerChannel(CHANNEL_BUTTON1, CommonTriggerEvents.PRESSED);
-                                updateState(CHANNEL_BUTTON1_COUNT, pushCount);
-                            } else if (buttonIndexState.equals(1)) {
-                                triggerChannel(CHANNEL_BUTTON2, CommonTriggerEvents.PRESSED);
-                                updateState(CHANNEL_BUTTON2_COUNT, pushCount);
-                            } else if (buttonIndexState.equals(2)) {
-                                triggerChannel(CHANNEL_BUTTON3, CommonTriggerEvents.PRESSED);
-                                updateState(CHANNEL_BUTTON3_COUNT, pushCount);
-                            } else if (buttonIndexState.equals(3)) {
-                                triggerChannel(CHANNEL_BUTTON4, CommonTriggerEvents.PRESSED);
-                                updateState(CHANNEL_BUTTON4_COUNT, pushCount);
-                            } else if (buttonIndexState.equals(4)) {
-                                triggerChannel(CHANNEL_BUTTON5, CommonTriggerEvents.PRESSED);
-                                updateState(CHANNEL_BUTTON5_COUNT, pushCount);
-                            } else if (buttonIndexState.equals(5)) {
-                                triggerChannel(CHANNEL_BUTTON6, CommonTriggerEvents.PRESSED);
-                                updateState(CHANNEL_BUTTON6_COUNT, pushCount);
-                            } else if (buttonIndexState.equals(6)) {
-                                triggerChannel(CHANNEL_BUTTON7, CommonTriggerEvents.PRESSED);
-                                updateState(CHANNEL_BUTTON7_COUNT, pushCount);
-                            } else if (buttonIndexState.equals(7)) {
-                                triggerChannel(CHANNEL_BUTTON8, CommonTriggerEvents.PRESSED);
-                                updateState(CHANNEL_BUTTON8_COUNT, pushCount);
+                            // prevent error when buttonIndexState is null
+                            if (buttonIndexState != null) {
+                                switch (buttonIndexState) {
+                                    case 0:
+                                        triggerChannel(CHANNEL_BUTTON1, CommonTriggerEvents.PRESSED);
+                                        updateState(CHANNEL_BUTTON1_COUNT, pushCount);
+                                        break;
+                                    case 1:
+                                        triggerChannel(CHANNEL_BUTTON2, CommonTriggerEvents.PRESSED);
+                                        updateState(CHANNEL_BUTTON2_COUNT, pushCount);
+                                        break;
+                                    case 2:
+                                        triggerChannel(CHANNEL_BUTTON3, CommonTriggerEvents.PRESSED);
+                                        updateState(CHANNEL_BUTTON3_COUNT, pushCount);
+                                        break;
+                                    case 3:
+                                        triggerChannel(CHANNEL_BUTTON4, CommonTriggerEvents.PRESSED);
+                                        updateState(CHANNEL_BUTTON4_COUNT, pushCount);
+                                        break;
+                                    case 4:
+                                        triggerChannel(CHANNEL_BUTTON5, CommonTriggerEvents.PRESSED);
+                                        updateState(CHANNEL_BUTTON5_COUNT, pushCount);
+                                        break;
+                                    case 5:
+                                        triggerChannel(CHANNEL_BUTTON6, CommonTriggerEvents.PRESSED);
+                                        updateState(CHANNEL_BUTTON6_COUNT, pushCount);
+                                        break;
+                                    case 6:
+                                        triggerChannel(CHANNEL_BUTTON7, CommonTriggerEvents.PRESSED);
+                                        updateState(CHANNEL_BUTTON7_COUNT, pushCount);
+                                        break;
+                                    case 7:
+                                        triggerChannel(CHANNEL_BUTTON8, CommonTriggerEvents.PRESSED);
+                                        updateState(CHANNEL_BUTTON8_COUNT, pushCount);
+                                        break;
+                                    default:
+                                        logger.debug("Button index {} not supported.", buttonIndexState);
+                                        break;
+                                }
                             } else {
-                                logger.debug("Button index {} not supported.", buttonIndexState);
+                                logger.debug("State for {} is STILL NULL!! cstate-id: {}, c-id: {}", c.getType(),
+                                        c.getCapabilityState().getId(), c.getId());
                             }
                         } else {
                             logger.debug("State for {} is STILL NULL!! cstate-id: {}, c-id: {}", c.getType(),
@@ -748,24 +764,51 @@ public class InnogyDeviceHandler extends BaseThingHandler implements DeviceStatu
 
                         // TemperatureSensor
                     } else if (capability.isTypeTemperatureSensor()) {
-                        capabilityState.setTemperatureSensorTemperatureState(event.getProperties().getTemperature());
-                        capabilityState.setTemperatureSensorFrostWarningState(event.getProperties().getFrostWarning());
+                        // when values are changed, they come with separate events
+                        // values should only updated when they are not null
+                        Double tmpTemperatureState = event.getProperties().getTemperature();
+                        Boolean tmpFrostWarningState = event.getProperties().getFrostWarning();
+                        if (tmpTemperatureState != null) {
+                            capabilityState.setTemperatureSensorTemperatureState(tmpTemperatureState);
+                        }
+                        if (tmpFrostWarningState != null) {
+                            capabilityState.setTemperatureSensorFrostWarningState(tmpFrostWarningState);
+                        }
                         deviceChanged = true;
 
                         // ThermostatActuator
                     } else if (capability.isTypeThermostatActuator()) {
-                        capabilityState.setThermostatActuatorPointTemperatureState(
-                                event.getProperties().getPointTemperature());
-                        capabilityState
-                                .setThermostatActuatorOperationModeState(event.getProperties().getOperationMode());
-                        capabilityState.setThermostatActuatorWindowReductionActiveState(
-                                event.getProperties().getWindowReductionActive());
+                        // when values are changed, they come with separate events
+                        // values should only updated when they are not null
+
+                        Double tmpPointTemperatureState = event.getProperties().getPointTemperature();
+                        String tmpOperationModeState = event.getProperties().getOperationMode();
+                        Boolean tmpWindowReductionActiveState = event.getProperties().getWindowReductionActive();
+
+                        if (tmpPointTemperatureState != null) {
+                            capabilityState.setThermostatActuatorPointTemperatureState(tmpPointTemperatureState);
+                        }
+                        if (tmpOperationModeState != null) {
+                            capabilityState.setThermostatActuatorOperationModeState(tmpOperationModeState);
+                        }
+                        if (tmpWindowReductionActiveState != null) {
+                            capabilityState
+                                    .setThermostatActuatorWindowReductionActiveState(tmpWindowReductionActiveState);
+                        }
                         deviceChanged = true;
 
                         // HumiditySensor
                     } else if (capability.isTypeHumiditySensor()) {
-                        capabilityState.setHumiditySensorHumidityState(event.getProperties().getHumidity());
-                        capabilityState.setHumiditySensorMoldWarningState(event.getProperties().getMoldWarning());
+                        // when values are changed, they come with separate events
+                        // values should only updated when they are not null
+                        Double tmpHumidityState = event.getProperties().getHumidity();
+                        Boolean tmpMoldWarningState = event.getProperties().getMoldWarning();
+                        if (tmpHumidityState != null) {
+                            capabilityState.setHumiditySensorHumidityState(tmpHumidityState);
+                        }
+                        if (tmpMoldWarningState != null) {
+                            capabilityState.setHumiditySensorMoldWarningState(tmpMoldWarningState);
+                        }
                         deviceChanged = true;
 
                         // WindowDoorSensor
@@ -795,9 +838,17 @@ public class InnogyDeviceHandler extends BaseThingHandler implements DeviceStatu
 
                         // PushButtonSensor
                     } else if (capability.isTypePushButtonSensor()) {
-                        capabilityState
-                                .setPushButtonSensorButtonIndexState(event.getProperties().getLastPressedButtonIndex());
-                        capabilityState.setPushButtonSensorCounterState(event.getProperties().getLastKeyPressCounter());
+                        // if the same button is pressed more than once
+                        // the buttonIndex and LastKeyPressCounter come with two events
+                        // updates should only do when arriving value
+                        Integer tmpButtonIndex = event.getProperties().getLastPressedButtonIndex();
+                        Integer tmpLastKeyPressCounter = event.getProperties().getLastKeyPressCounter();
+                        if (tmpButtonIndex != null) {
+                            capabilityState.setPushButtonSensorButtonIndexState(tmpButtonIndex);
+                        }
+                        if (tmpLastKeyPressCounter != null) {
+                            capabilityState.setPushButtonSensorCounterState(tmpLastKeyPressCounter);
+                        }
                         deviceChanged = true;
 
                         // EnergyConsumptionSensor

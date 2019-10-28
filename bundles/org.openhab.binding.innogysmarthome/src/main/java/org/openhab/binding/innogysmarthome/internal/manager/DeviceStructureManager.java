@@ -129,8 +129,6 @@ public class DeviceStructureManager {
                         if (c.hasState()) {
                             org.openhab.binding.innogysmarthome.internal.client.entity.capability.State state = c
                                     .getCapabilityState().getState();
-                            logger.debug(">> CAP-State: {} -> {} ({})", state.getName(), state.getValue(),
-                                    state.getLastChanged());
                         } else {
                             logger.debug(">> CAP-State: unknown (NULL)");
                         }

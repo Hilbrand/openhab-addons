@@ -154,42 +154,6 @@ public class State {
     @SerializedName("windowReductionActive")
     private BooleanState windowReductionActiveState;
 
-    private String name;
-    private String value;
-    private String lastChanged;
-
-    /**
-     * @param name
-     * @param value
-     * @param lastChanged
-     */
-    private void setGeneralState(String name, String value, String lastChanged) {
-        this.name = name;
-        this.value = value;
-        this.lastChanged = lastChanged;
-    }
-
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @return the value
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * @return the lastChanged
-     */
-    public String getLastChanged() {
-        return lastChanged;
-    }
-
     /**
      * @return the absoluteEnergyConsumptionState
      */
@@ -202,7 +166,6 @@ public class State {
      */
     public void setAbsoluteEnergyConsumptionState(DoubleState state) {
         this.absoluteEnergyConsumptionState = state;
-        setGeneralState("absoluteEnergyConsumptionState", state.getValue().toString(), state.getLastChanged());
     }
 
     /**
@@ -217,7 +180,6 @@ public class State {
      */
     public void setActiveChannelState(StringState state) {
         this.activeChannelState = state;
-        setGeneralState("activeChannelState", state.getValue().toString(), state.getLastChanged());
     }
 
     /**
@@ -232,7 +194,6 @@ public class State {
      */
     public void setDimLevelState(IntegerState state) {
         this.dimLevelState = state;
-        setGeneralState("dimLevelState", state.getValue().toString(), state.getLastChanged());
     }
 
     /**
@@ -247,7 +208,6 @@ public class State {
      */
     public void setEnergyConsumptionDayEuroState(DoubleState state) {
         this.energyConsumptionDayEuroState = state;
-        setGeneralState("energyConsumptionDayEuroState", state.getValue().toString(), state.getLastChanged());
     }
 
     /**
@@ -402,7 +362,6 @@ public class State {
      */
     public void setIsOnState(BooleanState state) {
         this.isOnState = state;
-        setGeneralState("isOnState", state.getValue().toString(), state.getLastChanged());
     }
 
     /**
@@ -417,7 +376,6 @@ public class State {
      */
     public void setIsOpenState(BooleanState state) {
         this.isOpenState = state;
-        setGeneralState("isOpenState", state.getValue().toString(), state.getLastChanged());
     }
 
     /**

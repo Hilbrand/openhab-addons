@@ -28,6 +28,7 @@ import com.google.gson.annotations.SerializedName;
  * @author Oliver Kuhl - Initial contribution
  */
 public class Device {
+
     public static final String DEVICE_TYPE_SHC = "SHC";
     public static final String DEVICE_TYPE_SHCA = "SHCA";
     public static final String DEVICE_TYPE_ANALOG_METER = "AnalogMeter";
@@ -131,7 +132,7 @@ public class Device {
     @SerializedName("location")
     private String locationLink;
 
-    private Location location;
+    private transient Location location;
 
     private List<Message> messageList;
 
@@ -456,6 +457,7 @@ public class Device {
      */
     public void setIsBatteryPowered(boolean hasBattery) {
         batteryPowered = hasBattery;
+
     }
 
     /**
