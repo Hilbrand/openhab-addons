@@ -14,12 +14,10 @@ package org.openhab.binding.innogysmarthome.internal.client.entity.error;
 
 import java.util.List;
 
-import org.openhab.binding.innogysmarthome.internal.client.InnogyConfig;
-
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link InnogyConfig} contains all configurations for the innogy SmartHome library.
+ * Error response object from the innogy SmartHome api.
  *
  * @author Oliver Kuhl - Initial contribution
  *

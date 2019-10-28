@@ -26,6 +26,7 @@ import org.openhab.binding.innogysmarthome.internal.client.entity.device.Device;
 import org.openhab.binding.innogysmarthome.internal.client.entity.link.Link;
 import org.openhab.binding.innogysmarthome.internal.client.entity.message.Message;
 import org.openhab.binding.innogysmarthome.internal.client.exception.ApiException;
+import org.openhab.binding.innogysmarthome.internal.client.exception.AuthenticationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,19 +58,6 @@ public class DeviceStructureManager {
     }
 
     /**
-     * Starts the {@link DeviceStructureManager} by building the device structure.
-     *
-     * @throws IOException
-     * @throws ApiException
-     */
-    public synchronized void start() throws IOException, ApiException {
-        logger.debug("Starting device structure manager.");
-
-        refreshDevices();
-        logger.debug("Devices loaded. Device structure manager ready.");
-    }
-
-    /**
      * Returns the {@link #deviceMap}, a map with the device id and the device.
      *
      * @return
@@ -84,8 +72,11 @@ public class DeviceStructureManager {
      *
      * @throws IOException
      * @throws ApiException
+     * @throws AuthenticationException
      */
-    private void refreshDevices() throws IOException, ApiException {
+    public void refreshDevices() throws IOException, ApiException, AuthenticationException {
+        deviceMap.clear();
+        capabilityIdToDeviceMap.clear();
         List<Device> devices = client.getFullDevices();
         for (Device d : devices) {
             handleRefreshedDevice(d);
@@ -98,8 +89,9 @@ public class DeviceStructureManager {
      * @param deviceId
      * @throws IOException
      * @throws ApiException
+     * @throws AuthenticationException
      */
-    public void refreshDevice(String deviceId) throws IOException, ApiException {
+    public void refreshDevice(String deviceId) throws IOException, ApiException, AuthenticationException {
         logger.trace("Refreshing Device with id '{}'", deviceId);
         Device d = client.getFullDeviceById(deviceId);
         handleRefreshedDevice(d);
@@ -144,8 +136,8 @@ public class DeviceStructureManager {
                         }
                     }
                 }
-            } catch (Exception e) {
-                logger.error("EX: ", e);
+            } catch (RuntimeException e) {
+                logger.debug("Error during logging: ", e);
             }
             logger.debug("====================================");
         }

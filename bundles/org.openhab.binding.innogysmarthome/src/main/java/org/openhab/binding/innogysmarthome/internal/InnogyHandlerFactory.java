@@ -12,28 +12,21 @@
  */
 package org.openhab.binding.innogysmarthome.internal;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.smarthome.config.discovery.DiscoveryService;
 import org.eclipse.smarthome.core.auth.client.oauth2.OAuthFactory;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
-import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
 import org.eclipse.smarthome.io.net.http.HttpClientFactory;
-import org.openhab.binding.innogysmarthome.internal.discovery.InnogyDeviceDiscoveryService;
 import org.openhab.binding.innogysmarthome.internal.handler.InnogyBridgeHandler;
 import org.openhab.binding.innogysmarthome.internal.handler.InnogyDeviceHandler;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -56,7 +49,6 @@ public class InnogyHandlerFactory extends BaseThingHandlerFactory implements Thi
             .collect(Collectors.toSet());
 
     private final Logger logger = LoggerFactory.getLogger(InnogyHandlerFactory.class);
-    private final Map<ThingUID, ServiceRegistration<?>> discoveryServiceRegs = new HashMap<>();
 
     private final OAuthFactory oAuthFactory;
     private final HttpClient httpClient;
@@ -76,7 +68,6 @@ public class InnogyHandlerFactory extends BaseThingHandlerFactory implements Thi
     protected ThingHandler createHandler(Thing thing) {
         if (InnogyBridgeHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
             InnogyBridgeHandler handler = new InnogyBridgeHandler((Bridge) thing, oAuthFactory, httpClient);
-            registerDeviceDiscoveryService(handler);
             return handler;
         } else if (InnogyDeviceHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
             InnogyDeviceHandler handler = new InnogyDeviceHandler(thing);
@@ -84,33 +75,6 @@ public class InnogyHandlerFactory extends BaseThingHandlerFactory implements Thi
         } else {
             logger.debug("Unsupported thing {}.", thing.getThingTypeUID());
             return null;
-        }
-    }
-
-    /**
-     * Registers the device discovery service.
-     *
-     * @param bridgeHandler
-     */
-    private synchronized void registerDeviceDiscoveryService(InnogyBridgeHandler bridgeHandler) {
-        InnogyDeviceDiscoveryService discoveryService = new InnogyDeviceDiscoveryService(bridgeHandler);
-        this.discoveryServiceRegs.put(bridgeHandler.getThing().getUID(),
-                bundleContext.registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<>()));
-    }
-
-    @Override
-    protected synchronized void removeHandler(ThingHandler thingHandler) {
-        if (thingHandler instanceof InnogyBridgeHandler) {
-            ServiceRegistration<?> serviceReg = this.discoveryServiceRegs.remove(thingHandler.getThing().getUID());
-            if (serviceReg != null) {
-                // remove discovery service, if bridge handler is removed
-                InnogyDeviceDiscoveryService service = (InnogyDeviceDiscoveryService) bundleContext
-                        .getService(serviceReg.getReference());
-                serviceReg.unregister();
-                if (service != null) {
-                    service.deactivate();
-                }
-            }
         }
     }
 }

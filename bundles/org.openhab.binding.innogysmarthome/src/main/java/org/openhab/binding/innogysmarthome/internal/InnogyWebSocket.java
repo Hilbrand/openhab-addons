@@ -16,6 +16,8 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.StatusCode;
@@ -26,6 +28,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.openhab.binding.innogysmarthome.internal.handler.InnogyBridgeHandler;
+import org.openhab.binding.innogysmarthome.internal.listener.EventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,16 +38,18 @@ import org.slf4j.LoggerFactory;
  *
  * @author Oliver Kuhl - Initial contribution
  */
+@NonNullByDefault
 @WebSocket
 public class InnogyWebSocket {
 
-    private Logger logger = LoggerFactory.getLogger(InnogyWebSocket.class);
+    private final Logger logger = LoggerFactory.getLogger(InnogyWebSocket.class);
     private final CountDownLatch closeLatch;
-    private Session session;
-    private org.openhab.binding.innogysmarthome.internal.listener.EventListener eventListener;
-    private WebSocketClient client;
+    private final EventListener eventListener;
     private final URI webSocketURI;
     private final int maxIdleTimeout;
+
+    private @Nullable Session session;
+    private @Nullable WebSocketClient client;
     private boolean closing = false;
 
     /**
@@ -54,8 +59,8 @@ public class InnogyWebSocket {
      * @param webSocketURI the {@link URI} of the websocket endpoint
      * @param maxIdleTimeout
      */
-    public InnogyWebSocket(InnogyBridgeHandler bridgeHandler, URI webSocketURI, int maxIdleTimeout) {
-        this.eventListener = bridgeHandler;
+    public InnogyWebSocket(EventListener eventListener, URI webSocketURI, int maxIdleTimeout) {
+        this.eventListener = eventListener;
         this.closeLatch = new CountDownLatch(1);
         this.webSocketURI = webSocketURI;
         this.maxIdleTimeout = maxIdleTimeout;
@@ -133,25 +138,30 @@ public class InnogyWebSocket {
      * @param duration
      * @param unit
      * @return
-     * @throws InterruptedException
      */
-    public boolean awaitClose(int duration, TimeUnit unit) throws InterruptedException {
+    public boolean awaitClose(int duration, TimeUnit unit) {
         logger.debug("innogy WebSocket awaitClose() - {}{}", duration, unit);
-        return this.closeLatch.await(duration, unit);
+        try {
+            return this.closeLatch.await(duration, unit);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return true;
+        }
     }
 
     @OnWebSocketError
     public void onError(Throwable cause) {
-        logger.error("innogy WebSocket onError() - {}", cause.getMessage());
+        logger.debug("innogy WebSocket onError() - {}", cause.getMessage());
+        eventListener.onError(cause);
     }
 
     @OnWebSocketMessage
     public void onMessage(String msg) {
         logger.debug("innogy WebSocket onMessage() - {}", msg);
-        if (!this.closing) {
-            eventListener.onEvent(msg);
-        } else {
+        if (this.closing) {
             logger.debug("innogy WebSocket onMessage() - ignored, WebSocket is closing...");
+        } else {
+            eventListener.onEvent(msg);
         }
     }
 }

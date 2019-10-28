@@ -14,7 +14,6 @@ package org.openhab.binding.innogysmarthome.internal.discovery;
 
 import static org.openhab.binding.innogysmarthome.internal.InnogyBindingConstants.*;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +27,8 @@ import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.thing.binding.BridgeHandler;
+import org.eclipse.smarthome.core.thing.binding.ThingHandler;
+import org.eclipse.smarthome.core.thing.binding.ThingHandlerService;
 import org.openhab.binding.innogysmarthome.internal.client.entity.device.Device;
 import org.openhab.binding.innogysmarthome.internal.handler.InnogyBridgeHandler;
 import org.openhab.binding.innogysmarthome.internal.handler.InnogyDeviceHandler;
@@ -41,20 +42,21 @@ import org.slf4j.LoggerFactory;
  * @author Oliver Kuhl - Initial contribution
  */
 @NonNullByDefault
-public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService {
+public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService implements ThingHandlerService {
 
-    private static final int SEARCH_TIME = 60;
+    private static final int SEARCH_TIME_SECONDS = 60;
+
     private final Logger logger = LoggerFactory.getLogger(InnogyDeviceDiscoveryService.class);
-    private InnogyBridgeHandler bridgeHandler;
+
+    private @Nullable InnogyBridgeHandler bridgeHandler;
 
     /**
      * Construct an {@link InnogyDeviceDiscoveryService} with the given {@link BridgeHandler}.
      *
      * @param bridgeHandler
      */
-    public InnogyDeviceDiscoveryService(InnogyBridgeHandler bridgeHandler) {
-        super(SEARCH_TIME);
-        this.bridgeHandler = bridgeHandler;
+    public InnogyDeviceDiscoveryService() {
+        super(SEARCH_TIME_SECONDS);
     }
 
     /**
@@ -76,10 +78,10 @@ public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService {
     @Override
     protected void startScan() {
         logger.debug("SCAN for new innogy devices started...");
-
-        Collection<Device> devices = bridgeHandler.loadDevices();
-        for (Device d : devices) {
-            onDeviceAdded(d);
+        if (bridgeHandler != null) {
+            for (Device d : bridgeHandler.loadDevices()) {
+                onDeviceAdded(d);
+            }
         }
     }
 
@@ -90,21 +92,23 @@ public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService {
     }
 
     public void onDeviceAdded(Device device) {
-        ThingUID thingUID = getThingUID(device);
-        ThingTypeUID thingTypeUID = getThingTypeUID(device);
+        if (bridgeHandler == null) {
+            return;
+        }
+        final ThingUID bridgeUID = bridgeHandler.getThing().getUID();
+        final ThingUID thingUID = getThingUID(bridgeUID, device);
+        final ThingTypeUID thingTypeUID = getThingTypeUID(device);
+
         if (thingUID != null && thingTypeUID != null) {
-
-            ThingUID bridgeUID = bridgeHandler.getThing().getUID();
-
             String name = device.getConfig().getName();
             if (name.isEmpty()) {
                 name = device.getSerialnumber();
             }
 
-            Map<String, Object> properties = new HashMap<>();
+            final Map<String, Object> properties = new HashMap<>();
             properties.put(PROPERTY_ID, device.getId());
 
-            String label;
+            final String label;
             if (device.hasLocation()) {
                 label = device.getType() + ": " + name + " (" + device.getLocation().getName() + ")";
             } else {
@@ -127,14 +131,12 @@ public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService {
      * @param device
      * @return
      */
-    private @Nullable ThingUID getThingUID(Device device) {
-        ThingUID bridgeUID = bridgeHandler.getThing().getUID();
-        ThingTypeUID thingTypeUID = getThingTypeUID(device);
+    private @Nullable ThingUID getThingUID(ThingUID bridgeUID, Device device) {
+        final ThingTypeUID thingTypeUID = getThingTypeUID(device);
 
         if (thingTypeUID != null && getSupportedThingTypes().contains(thingTypeUID)) {
             return new ThingUID(thingTypeUID, bridgeUID, device.getId());
         }
-
         return null;
     }
 
@@ -147,5 +149,17 @@ public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService {
     private @Nullable ThingTypeUID getThingTypeUID(Device device) {
         String thingTypeId = device.getType();
         return thingTypeId != null ? new ThingTypeUID(BINDING_ID, thingTypeId) : null;
+    }
+
+    @Override
+    public void setThingHandler(@Nullable ThingHandler handler) {
+        if (handler instanceof InnogyBridgeHandler) {
+            bridgeHandler = (InnogyBridgeHandler) handler;
+        }
+    }
+
+    @Override
+    public @Nullable ThingHandler getThingHandler() {
+        return bridgeHandler;
     }
 }

@@ -51,20 +51,6 @@
 				<default>900</default>
 				<advanced>true</advanced>
 			</parameter>
-			<parameter name="refreshtoken" type="text" groupName="advanced" readOnly="true">
-				<label>Refresh token</label>
-				<description>The refresh token is used to create a valid access token. It is automatically
-					pulled from innogy SmartHome backend with the initial auth-code.</description>
-				<advanced>true</advanced>
-				<context>password</context>
-			</parameter>
-			<parameter name="accesstoken" type="text" groupName="advanced" readOnly="true">
-				<label>Access token</label>
-				<description>The access token is used to access the innogy SmartHome backend. Is is automatically
-					pulled from innogy SmartHome backend.</description>
-				<advanced>true</advanced>
-				<context>password</context>
-			</parameter>
 		</config-description>
 	</bridge-type>
 

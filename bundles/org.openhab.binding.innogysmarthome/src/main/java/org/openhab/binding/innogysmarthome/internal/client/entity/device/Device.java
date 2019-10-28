@@ -19,8 +19,6 @@ import java.util.List;
 import org.openhab.binding.innogysmarthome.internal.client.entity.capability.Capability;
 import org.openhab.binding.innogysmarthome.internal.client.entity.location.Location;
 import org.openhab.binding.innogysmarthome.internal.client.entity.message.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -30,8 +28,6 @@ import com.google.gson.annotations.SerializedName;
  * @author Oliver Kuhl - Initial contribution
  */
 public class Device {
-    private final Logger logger = LoggerFactory.getLogger(Device.class);
-
     public static final String DEVICE_TYPE_SHC = "SHC";
     public static final String DEVICE_TYPE_SHCA = "SHCA";
     public static final String DEVICE_TYPE_ANALOG_METER = "AnalogMeter";
@@ -460,7 +456,6 @@ public class Device {
      */
     public void setIsBatteryPowered(boolean hasBattery) {
         batteryPowered = hasBattery;
-
     }
 
     /**

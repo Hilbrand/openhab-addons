@@ -166,15 +166,15 @@ public class InnogyDeviceHandler extends BaseThingHandler implements DeviceStatu
             // OPERATION_MODE
         } else if (channelUID.getId().equals(CHANNEL_OPERATION_MODE)) {
             if (command instanceof StringType) {
-                StringType autoModeCommand = (StringType) command;
+                String autoModeCommand = command.toString();
 
-                if (autoModeCommand.toString().equals("Auto")) {
+                if (autoModeCommand.equals("Auto")) {
                     innogyBridgeHandler.commandSetOperationMode(deviceId, true);
-                } else if (autoModeCommand.toString().equals("Manu")) {
+                } else if (autoModeCommand.equals("Manu")) {
                     innogyBridgeHandler.commandSetOperationMode(deviceId, false);
                 } else {
                     logger.warn("Could not set operationmode. Invalid value '{}'! Only '{}' or '{}' allowed.",
-                            autoModeCommand.toString(), "Auto", "Manu");
+                            autoModeCommand, "Auto", "Manu");
                 }
             }
 
@@ -193,6 +193,13 @@ public class InnogyDeviceHandler extends BaseThingHandler implements DeviceStatu
     public void initialize() {
         logger.debug("Initializing innogy SmartHome device handler.");
         initializeThing(getBridge() == null ? null : getBridge().getStatus());
+    }
+
+    @Override
+    public void dispose() {
+        if (bridgeHandler != null) {
+            bridgeHandler.unregisterDeviceStatusListener(this);
+        }
     }
 
     @Override
@@ -700,8 +707,6 @@ public class InnogyDeviceHandler extends BaseThingHandler implements DeviceStatu
         synchronized (this.lock) {
             Device device = changedDevice;
             if (!deviceId.equals(device.getId())) {
-                // logger.trace("DeviceId {} not relevant for this handler (responsible for id {})", device.getId(),
-                // deviceId);
                 return;
             }
 

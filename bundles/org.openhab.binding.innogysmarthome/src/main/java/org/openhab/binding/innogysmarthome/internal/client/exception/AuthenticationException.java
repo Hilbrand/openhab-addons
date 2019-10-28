@@ -13,18 +13,19 @@
 package org.openhab.binding.innogysmarthome.internal.client.exception;
 
 /**
- * Thrown, if the {@Link Configuration} is not complete
+ * Thrown, if an authentication error is given.
  *
- * @author Oliver Kuhl - Initial contribution
+ * @author Hilbrand Bouwkamp - Initial contribution
  *
  */
-@SuppressWarnings("serial")
-public class ConfigurationException extends Exception {
+public class AuthenticationException extends Exception {
 
-    public ConfigurationException() {
+    private static final long serialVersionUID = 1L;
+
+    public AuthenticationException() {
     }
 
-    public ConfigurationException(String message) {
+    public AuthenticationException(String message) {
         super(message);
     }
 

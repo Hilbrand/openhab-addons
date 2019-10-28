@@ -233,7 +233,6 @@ public class State {
     public void setDimLevelState(IntegerState state) {
         this.dimLevelState = state;
         setGeneralState("dimLevelState", state.getValue().toString(), state.getLastChanged());
-
     }
 
     /**

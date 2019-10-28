@@ -98,19 +98,6 @@ public class Event extends BaseEvent {
         this.properties = properties;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see in.ollie.innogysmarthome.entity.PropertyList#getPropertyMap()
-     */
-    // protected Map<String, Property> getPropertyMap() {
-    // if (propertyMap == null) {
-    // // propertyMap = PropertyList.getHashMap(properties);
-    // }
-    //
-    // return propertyMap;
-    // }
-
     /**
      * @return the dataList
      */

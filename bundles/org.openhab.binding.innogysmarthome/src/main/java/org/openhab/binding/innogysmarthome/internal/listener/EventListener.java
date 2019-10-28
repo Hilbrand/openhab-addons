@@ -29,10 +29,17 @@ public interface EventListener {
      *
      * @param msg
      */
-    public void onEvent(String msg);
+    void onEvent(String msg);
+
+    /**
+     * This method is called when the innogy websocket services throws an onError.
+     *
+     * @param cause
+     */
+    void onError(Throwable cause);
 
     /**
      * This method is called, when the evenRunner stops abnormally (statuscode <> 1000).
      */
-    public void connectionClosed();
+    void connectionClosed();
 }
