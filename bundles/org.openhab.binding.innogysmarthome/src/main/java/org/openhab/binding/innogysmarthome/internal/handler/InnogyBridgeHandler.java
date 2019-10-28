@@ -107,7 +107,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
     private @Nullable DeviceStructureManager deviceStructMan;
     private @Nullable String bridgeId;
     private @Nullable ScheduledFuture<?> reinitJob;
-    private @Nullable InnogyBridgeConfiguration bridgeConfiguration;
+    private @NonNullByDefault({}) InnogyBridgeConfiguration bridgeConfiguration;
     private @Nullable OAuthClientService oAuthService;
 
     /**
@@ -232,6 +232,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
                 return;
             }
         }
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         try {
             deviceStructMan.refreshDevices();
         } catch (IOException | ApiException | AuthenticationException e) {
@@ -256,14 +260,17 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
 
             logger.debug("WebSocket URL: {}...{}", webSocketUrl.substring(0, 70),
                     webSocketUrl.substring(webSocketUrl.length() - 10));
-            if (webSocket != null && webSocket.isRunning()) {
-                webSocket.stop();
-                webSocket = null;
+            InnogyWebSocket localWebSocket = this.webSocket;
+
+            if (localWebSocket != null && localWebSocket.isRunning()) {
+                localWebSocket.stop();
+                this.webSocket = null;
             }
-            webSocket = new InnogyWebSocket(this, URI.create(webSocketUrl),
+            localWebSocket = new InnogyWebSocket(this, URI.create(webSocketUrl),
                     bridgeConfiguration.websocketidletimeout * 1000);
             logger.debug("Starting innogy websocket.");
-            webSocket.start();
+            this.webSocket = localWebSocket;
+            localWebSocket.start();
             updateStatus(ThingStatus.ONLINE);
         } catch (Exception e) { // Catch Exception because websocket start throws Exception
             logger.warn("Error starting websocket.", e);
@@ -384,13 +391,14 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @return a Collection of {@link Device}s
      */
     public Collection<Device> loadDevices() {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         final Collection<Device> devices;
+
         if (deviceStructMan == null) {
             devices = Collections.emptyList();
         } else {
             devices = deviceStructMan.getDeviceList();
         }
-
         return devices;
     }
 
@@ -414,6 +422,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @return the {@link Device} or null, if it does not exist or no {@link DeviceStructureManager} is available
      */
     public @Nullable Device refreshDevice(String deviceId) {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return null;
         }
@@ -563,6 +572,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @throws AuthenticationException
      */
     public void handleStateChangedEvent(Event event) throws ApiException, IOException, AuthenticationException {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
@@ -611,6 +621,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      */
     public void handleControllerConnectivityChangedEvent(Event event)
             throws ApiException, IOException, AuthenticationException {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         Boolean connected = event.getIsConnected();
         if (connected != null) {
             logger.debug("SmartHome Controller connectivity changed to {}.", connected ? "online" : "offline");
@@ -635,6 +649,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      */
     public void handleNewMessageReceivedEvent(MessageEvent event)
             throws ApiException, IOException, AuthenticationException {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         Message message = event.getMessage();
         if (logger.isTraceEnabled()) {
             logger.trace("Message: {}", gson.toJson(message));
@@ -669,6 +687,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @throws AuthenticationException
      */
     public void handleMessageDeletedEvent(Event event) throws ApiException, IOException, AuthenticationException {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
@@ -700,6 +719,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param state
      */
     public void commandSwitchDevice(String deviceId, boolean state) {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         try {
             // TODO: ADD DEVICES
             // VariableActuator
@@ -727,6 +750,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param pointTemperature
      */
     public void commandUpdatePointTemperature(String deviceId, double pointTemperature) {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         try {
             String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_THERMOSTATACTUATOR);
             client.setPointTemperatureState(capabilityId, pointTemperature);
@@ -743,6 +770,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param alarmState
      */
     public void commandSwitchAlarm(String deviceId, boolean alarmState) {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         try {
             String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_ALARMACTUATOR);
             client.setAlarmActuatorState(capabilityId, alarmState);
@@ -759,6 +790,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param autoMode true activates the automatic mode, false the manual mode.
      */
     public void commandSetOperationMode(String deviceId, boolean autoMode) {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         try {
             String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_THERMOSTATACTUATOR);
             client.setOperationMode(capabilityId, autoMode);
@@ -775,6 +810,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param dimLevel
      */
     public void commandSetDimmLevel(String deviceId, int dimLevel) {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         try {
             String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_DIMMERACTUATOR);
             client.setDimmerActuatorState(capabilityId, dimLevel);
@@ -791,6 +830,10 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param rollerSchutterLevel
      */
     public void commandSetRollerShutterLevel(String deviceId, int rollerSchutterLevel) {
+        final DeviceStructureManager deviceStructMan = this.deviceStructMan;
+        if (deviceStructMan == null) {
+            return;
+        }
         try {
             String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_ROLLERSHUTTERACTUATOR);
             client.setRollerShutterActuatorState(capabilityId, rollerSchutterLevel);
