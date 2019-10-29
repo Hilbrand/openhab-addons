@@ -22,6 +22,7 @@ import java.util.Map;
 import org.openhab.binding.innogysmarthome.internal.InnogyBindingConstants;
 import org.openhab.binding.innogysmarthome.internal.client.InnogyClient;
 import org.openhab.binding.innogysmarthome.internal.client.entity.capability.Capability;
+import org.openhab.binding.innogysmarthome.internal.client.entity.capability.State;
 import org.openhab.binding.innogysmarthome.internal.client.entity.device.Device;
 import org.openhab.binding.innogysmarthome.internal.client.entity.link.Link;
 import org.openhab.binding.innogysmarthome.internal.client.entity.message.Message;
@@ -127,8 +128,7 @@ public class DeviceStructureManager {
                         logger.debug(">> CAP-State: unknown (device NOT REACHABLE).");
                     } else {
                         if (c.hasState()) {
-                            org.openhab.binding.innogysmarthome.internal.client.entity.capability.State state = c
-                                    .getCapabilityState().getState();
+                            final State state = c.getCapabilityState().getState();
                         } else {
                             logger.debug(">> CAP-State: unknown (NULL)");
                         }

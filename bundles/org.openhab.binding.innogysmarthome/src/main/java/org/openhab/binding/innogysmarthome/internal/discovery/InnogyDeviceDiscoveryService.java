@@ -24,9 +24,9 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
 import org.eclipse.smarthome.config.discovery.DiscoveryResult;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
+import org.eclipse.smarthome.config.discovery.DiscoveryService;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
-import org.eclipse.smarthome.core.thing.binding.BridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerService;
 import org.openhab.binding.innogysmarthome.internal.client.entity.device.Device;
@@ -42,7 +42,8 @@ import org.slf4j.LoggerFactory;
  * @author Oliver Kuhl - Initial contribution
  */
 @NonNullByDefault
-public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService implements ThingHandlerService {
+public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService
+        implements DiscoveryService, ThingHandlerService {
 
     private static final int SEARCH_TIME_SECONDS = 60;
 
@@ -51,9 +52,7 @@ public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService imple
     private @Nullable InnogyBridgeHandler bridgeHandler;
 
     /**
-     * Construct an {@link InnogyDeviceDiscoveryService} with the given {@link BridgeHandler}.
-     *
-     * @param bridgeHandler
+     * Construct an {@link InnogyDeviceDiscoveryService}.
      */
     public InnogyDeviceDiscoveryService() {
         super(SEARCH_TIME_SECONDS);
@@ -79,7 +78,7 @@ public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService imple
     protected void startScan() {
         logger.debug("SCAN for new innogy devices started...");
         if (bridgeHandler != null) {
-            for (Device d : bridgeHandler.loadDevices()) {
+            for (final Device d : bridgeHandler.loadDevices()) {
                 onDeviceAdded(d);
             }
         }
@@ -115,7 +114,7 @@ public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService imple
                 label = device.getType() + ": " + name;
             }
 
-            DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID).withThingType(thingTypeUID)
+            final DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID).withThingType(thingTypeUID)
                     .withProperties(properties).withBridge(bridgeUID).withLabel(label).build();
 
             thingDiscovered(discoveryResult);
@@ -147,7 +146,7 @@ public class InnogyDeviceDiscoveryService extends AbstractDiscoveryService imple
      * @return
      */
     private @Nullable ThingTypeUID getThingTypeUID(Device device) {
-        String thingTypeId = device.getType();
+        final String thingTypeId = device.getType();
         return thingTypeId != null ? new ThingTypeUID(BINDING_ID, thingTypeId) : null;
     }
 
