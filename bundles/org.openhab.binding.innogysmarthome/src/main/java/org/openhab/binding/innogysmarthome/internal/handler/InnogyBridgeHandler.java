@@ -117,14 +117,14 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param oAuthFactory Factory class to get OAuth2 servce
      * @param httpClient httpclient instance
      */
-    public InnogyBridgeHandler(Bridge bridge, OAuthFactory oAuthFactory, HttpClient httpClient) {
+    public InnogyBridgeHandler(final Bridge bridge, final OAuthFactory oAuthFactory, final HttpClient httpClient) {
         super(bridge);
         this.oAuthFactory = oAuthFactory;
         this.httpClient = httpClient;
     }
 
     @Override
-    public void handleCommand(ChannelUID channelUID, Command command) {
+    public void handleCommand(final ChannelUID channelUID, final Command command) {
         // not needed
     }
 
@@ -148,7 +148,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      *
      * @return true if the configuration if valid
      */
-    private boolean checkConfig(InnogyBridgeConfiguration bridgeConfiguration) {
+    private boolean checkConfig(final InnogyBridgeConfiguration bridgeConfiguration) {
         if (BRAND_INNOGY_SMARTHOME.equals(bridgeConfiguration.brand)) {
             return true;
         } else {
@@ -272,14 +272,14 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
             this.webSocket = localWebSocket;
             localWebSocket.start();
             updateStatus(ThingStatus.ONLINE);
-        } catch (Exception e) { // Catch Exception because websocket start throws Exception
+        } catch (final Exception e) { // Catch Exception because websocket start throws Exception
             logger.warn("Error starting websocket.", e);
             handleClientException(e);
         }
     }
 
     @Override
-    public void onAccessTokenResponse(AccessTokenResponse credential) {
+    public void onAccessTokenResponse(final AccessTokenResponse credential) {
         scheduleRestartClient(REINITIALIZE_DELAY_SECONDS);
     }
 
@@ -288,21 +288,23 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      *
      * @param seconds
      */
-    private synchronized void scheduleRestartClient(long seconds) {
-        if (reinitJob != null && !reinitJob.isDone()) {
+    private synchronized void scheduleRestartClient(final long seconds) {
+        final ScheduledFuture<?> localReinitJob = reinitJob;
+
+        if (localReinitJob != null && !localReinitJob.isDone()) {
             logger.debug("Scheduling reinitialize in {} seconds - ignored: already triggered in {} seconds.", seconds,
-                    reinitJob.getDelay(TimeUnit.SECONDS));
+                    localReinitJob.getDelay(TimeUnit.SECONDS));
             return;
         }
         logger.debug("Scheduling reinitialize in {} seconds.", seconds);
         reinitJob = scheduler.schedule(this::startClient, seconds, TimeUnit.SECONDS);
     }
 
-    private void setBridgeProperties(Device bridgeDevice) {
+    private void setBridgeProperties(final Device bridgeDevice) {
         logger.debug("Setting Bridge Device Properties for Bridge of type '{}' with ID '{}'",
                 bridgeDevice.getConfig().getName(), bridgeDevice.getId());
 
-        Map<String, String> properties = editProperties();
+        final Map<String, String> properties = editProperties();
         Optional.ofNullable(bridgeDevice.getManufacturer())
                 .ifPresent(manufacturer -> properties.put(Thing.PROPERTY_VENDOR, manufacturer));
         Optional.ofNullable(bridgeDevice.getSerialnumber())
@@ -371,7 +373,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceStatusListener
      * @return true, if successful
      */
-    public boolean registerDeviceStatusListener(DeviceStatusListener deviceStatusListener) {
+    public boolean registerDeviceStatusListener(final DeviceStatusListener deviceStatusListener) {
         return deviceStatusListeners.add(deviceStatusListener);
     }
 
@@ -381,7 +383,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceStatusListener
      * @return true, if successful
      */
-    public boolean unregisterDeviceStatusListener(DeviceStatusListener deviceStatusListener) {
+    public boolean unregisterDeviceStatusListener(final DeviceStatusListener deviceStatusListener) {
         return deviceStatusListeners.remove(deviceStatusListener);
     }
 
@@ -408,7 +410,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceId
      * @return {@link Device} or null, if it does not exist or no {@link DeviceStructureManager} is available
      */
-    public @Nullable Device getDeviceById(String deviceId) {
+    public @Nullable Device getDeviceById(final String deviceId) {
         if (deviceStructMan != null) {
             return deviceStructMan.getDeviceById(deviceId);
         }
@@ -421,7 +423,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceId
      * @return the {@link Device} or null, if it does not exist or no {@link DeviceStructureManager} is available
      */
-    public @Nullable Device refreshDevice(String deviceId) {
+    public @Nullable Device refreshDevice(final String deviceId) {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return null;
@@ -438,7 +440,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
     }
 
     @Override
-    public void onDeviceStateChanged(Device device) {
+    public void onDeviceStateChanged(final Device device) {
         synchronized (this.lock) {
             if (!bridgeId.equals(device.getId())) {
                 logger.trace("DeviceId {} not relevant for this handler (responsible for id {})", device.getId(),
@@ -450,17 +452,17 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
 
             // DEVICE STATES
             if (device.hasDeviceState()) {
-                Double cpuUsage = device.getDeviceState().getState().getCpuUsage().getValue();
+                final Double cpuUsage = device.getDeviceState().getState().getCpuUsage().getValue();
                 if (cpuUsage != null) {
                     logger.debug("-> CPU usage state: {}", cpuUsage);
                     updateState(CHANNEL_CPU, new DecimalType(cpuUsage));
                 }
-                Double diskUsage = device.getDeviceState().getState().getDiskUsage().getValue();
+                final Double diskUsage = device.getDeviceState().getState().getDiskUsage().getValue();
                 if (diskUsage != null) {
                     logger.debug("-> Disk usage state: {}", diskUsage);
                     updateState(CHANNEL_DISK, new DecimalType(diskUsage));
                 }
-                Double memoryUsage = device.getDeviceState().getState().getMemoryUsage().getValue();
+                final Double memoryUsage = device.getDeviceState().getState().getMemoryUsage().getValue();
                 if (memoryUsage != null) {
                     logger.debug("-> Memory usage state: {}", memoryUsage);
                     updateState(CHANNEL_MEMORY, new DecimalType(memoryUsage));
@@ -473,7 +475,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
     }
 
     @Override
-    public void onDeviceStateChanged(Device device, Event event) {
+    public void onDeviceStateChanged(final Device device, final Event event) {
         synchronized (this.lock) {
             if (!bridgeId.equals(device.getId())) {
                 logger.trace("DeviceId {} not relevant for this handler (responsible for id {})", device.getId(),
@@ -493,18 +495,18 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
     }
 
     @Override
-    public void onEvent(String msg) {
+    public void onEvent(final String msg) {
         logger.trace("=====================================================");
         logger.trace("onEvent called. Msg: {}", msg);
 
         try {
-            BaseEvent be = gson.fromJson(msg, BaseEvent.class);
+            final BaseEvent be = gson.fromJson(msg, BaseEvent.class);
             logger.debug("Event no {} found. Type: {}", be.getSequenceNumber(), be.getType());
             if (!BaseEvent.SUPPORTED_EVENT_TYPES.contains(be.getType())) {
                 logger.debug("Event type {} not supported. Skipping...", be.getType());
             } else {
 
-                Event event = gson.fromJson(msg, Event.class);
+                final Event event = gson.fromJson(msg, Event.class);
 
                 switch (event.getType()) {
                     case BaseEvent.TYPE_STATE_CHANGED:
@@ -535,7 +537,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
 
                     case BaseEvent.TYPE_NEW_MESSAGE_RECEIVED:
                     case BaseEvent.TYPE_MESSAGE_CREATED:
-                        MessageEvent messageEvent = gson.fromJson(msg, MessageEvent.class);
+                        final MessageEvent messageEvent = gson.fromJson(msg, MessageEvent.class);
                         handleNewMessageReceivedEvent(messageEvent);
                         break;
 
@@ -548,7 +550,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
                         break;
                 }
             }
-        } catch (IOException | ApiException | AuthenticationException e) {
+        } catch (IOException | ApiException | AuthenticationException | RuntimeException e) {
             logger.debug("Error with Event: {}", e.getMessage(), e);
             handleClientException(e);
         }
@@ -556,7 +558,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
     }
 
     @Override
-    public void onError(Throwable cause) {
+    public void onError(final Throwable cause) {
         if (cause instanceof Exception) {
             handleClientException((Exception) cause);
         }
@@ -571,7 +573,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @throws IOException
      * @throws AuthenticationException
      */
-    public void handleStateChangedEvent(Event event) throws ApiException, IOException, AuthenticationException {
+    public void handleStateChangedEvent(final Event event) throws ApiException, IOException, AuthenticationException {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
@@ -580,9 +582,9 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
         // CAPABILITY
         if (event.isLinkedtoCapability()) {
             logger.trace("Event is linked to capability");
-            Device device = deviceStructMan.getDeviceByCapabilityId(event.getSourceId());
+            final Device device = deviceStructMan.getDeviceByCapabilityId(event.getSourceId());
             if (device != null) {
-                for (DeviceStatusListener deviceStatusListener : deviceStatusListeners) {
+                for (final DeviceStatusListener deviceStatusListener : deviceStatusListeners) {
                     deviceStatusListener.onDeviceStateChanged(device, event);
                 }
             } else {
@@ -596,9 +598,9 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
             if (!event.getSourceId().equals(deviceStructMan.getBridgeDevice().getId())) {
                 deviceStructMan.refreshDevice(event.getSourceId());
             }
-            Device device = deviceStructMan.getDeviceById(event.getSourceId());
+            final Device device = deviceStructMan.getDeviceById(event.getSourceId());
             if (device != null) {
-                for (DeviceStatusListener deviceStatusListener : deviceStatusListeners) {
+                for (final DeviceStatusListener deviceStatusListener : deviceStatusListeners) {
                     deviceStatusListener.onDeviceStateChanged(device, event);
                 }
             } else {
@@ -619,13 +621,13 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @throws IOException
      * @throws AuthenticationException
      */
-    public void handleControllerConnectivityChangedEvent(Event event)
+    public void handleControllerConnectivityChangedEvent(final Event event)
             throws ApiException, IOException, AuthenticationException {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
-        Boolean connected = event.getIsConnected();
+        final Boolean connected = event.getIsConnected();
         if (connected != null) {
             logger.debug("SmartHome Controller connectivity changed to {}.", connected ? "online" : "offline");
             if (connected) {
@@ -647,23 +649,23 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @throws IOException
      * @throws AuthenticationException
      */
-    public void handleNewMessageReceivedEvent(MessageEvent event)
+    public void handleNewMessageReceivedEvent(final MessageEvent event)
             throws ApiException, IOException, AuthenticationException {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
-        Message message = event.getMessage();
+        final Message message = event.getMessage();
         if (logger.isTraceEnabled()) {
             logger.trace("Message: {}", gson.toJson(message));
             logger.trace("Messagetype: {}", message.getType());
         }
         if (Message.TYPE_DEVICE_LOW_BATTERY.equals(message.getType())) {
-            for (String link : message.getDeviceLinkList()) {
+            for (final String link : message.getDeviceLinkList()) {
                 deviceStructMan.refreshDevice(Link.getId(link));
-                Device device = deviceStructMan.getDeviceById(Link.getId(link));
+                final Device device = deviceStructMan.getDeviceById(Link.getId(link));
                 if (device != null) {
-                    for (DeviceStatusListener deviceStatusListener : deviceStatusListeners) {
+                    for (final DeviceStatusListener deviceStatusListener : deviceStatusListeners) {
                         deviceStatusListener.onDeviceStateChanged(device);
                     }
                 } else {
@@ -686,19 +688,19 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @throws IOException
      * @throws AuthenticationException
      */
-    public void handleMessageDeletedEvent(Event event) throws ApiException, IOException, AuthenticationException {
+    public void handleMessageDeletedEvent(final Event event) throws ApiException, IOException, AuthenticationException {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
-        String messageId = event.getData().getId();
+        final String messageId = event.getData().getId();
 
         logger.debug("handleMessageDeletedEvent with messageId '{}'", messageId);
         Device device = deviceStructMan.getDeviceWithMessageId(messageId);
         if (device != null) {
             deviceStructMan.refreshDevice(device.getId());
             device = deviceStructMan.getDeviceById(device.getId());
-            for (DeviceStatusListener deviceStatusListener : deviceStatusListeners) {
+            for (final DeviceStatusListener deviceStatusListener : deviceStatusListeners) {
                 deviceStatusListener.onDeviceStateChanged(device);
             }
         } else {
@@ -718,7 +720,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceId
      * @param state
      */
-    public void commandSwitchDevice(String deviceId, boolean state) {
+    public void commandSwitchDevice(final String deviceId, final boolean state) {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
@@ -726,15 +728,15 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
         try {
             // TODO: ADD DEVICES
             // VariableActuator
-            String deviceType = deviceStructMan.getDeviceById(deviceId).getType();
+            final String deviceType = deviceStructMan.getDeviceById(deviceId).getType();
             if (deviceType.equals(DEVICE_VARIABLE_ACTUATOR)) {
-                String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_VARIABLEACTUATOR);
+                final String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_VARIABLEACTUATOR);
                 client.setVariableActuatorState(capabilityId, state);
 
                 // PSS / PSSO / ISS2
             } else if (deviceType.equals(DEVICE_PSS) || deviceType.equals(DEVICE_PSSO)
                     || deviceType.equals(DEVICE_ISS2)) {
-                String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_SWITCHACTUATOR);
+                final String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_SWITCHACTUATOR);
                 client.setSwitchActuatorState(capabilityId, state);
             }
         } catch (IOException | ApiException | AuthenticationException e) {
@@ -749,13 +751,13 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceId
      * @param pointTemperature
      */
-    public void commandUpdatePointTemperature(String deviceId, double pointTemperature) {
+    public void commandUpdatePointTemperature(final String deviceId, final double pointTemperature) {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
         try {
-            String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_THERMOSTATACTUATOR);
+            final String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_THERMOSTATACTUATOR);
             client.setPointTemperatureState(capabilityId, pointTemperature);
         } catch (IOException | ApiException | AuthenticationException e) {
             handleClientException(e);
@@ -769,13 +771,13 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceId
      * @param alarmState
      */
-    public void commandSwitchAlarm(String deviceId, boolean alarmState) {
+    public void commandSwitchAlarm(final String deviceId, final boolean alarmState) {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
         try {
-            String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_ALARMACTUATOR);
+            final String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_ALARMACTUATOR);
             client.setAlarmActuatorState(capabilityId, alarmState);
         } catch (IOException | ApiException | AuthenticationException e) {
             handleClientException(e);
@@ -789,13 +791,13 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceId
      * @param autoMode true activates the automatic mode, false the manual mode.
      */
-    public void commandSetOperationMode(String deviceId, boolean autoMode) {
+    public void commandSetOperationMode(final String deviceId, final boolean autoMode) {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
         try {
-            String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_THERMOSTATACTUATOR);
+            final String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_THERMOSTATACTUATOR);
             client.setOperationMode(capabilityId, autoMode);
         } catch (IOException | ApiException | AuthenticationException e) {
             handleClientException(e);
@@ -809,13 +811,13 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceId
      * @param dimLevel
      */
-    public void commandSetDimmLevel(String deviceId, int dimLevel) {
+    public void commandSetDimmLevel(final String deviceId, final int dimLevel) {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
         try {
-            String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_DIMMERACTUATOR);
+            final String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_DIMMERACTUATOR);
             client.setDimmerActuatorState(capabilityId, dimLevel);
         } catch (IOException | ApiException | AuthenticationException e) {
             handleClientException(e);
@@ -829,13 +831,14 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param deviceId
      * @param rollerSchutterLevel
      */
-    public void commandSetRollerShutterLevel(String deviceId, int rollerSchutterLevel) {
+    public void commandSetRollerShutterLevel(final String deviceId, final int rollerSchutterLevel) {
         final DeviceStructureManager deviceStructMan = this.deviceStructMan;
         if (deviceStructMan == null) {
             return;
         }
         try {
-            String capabilityId = deviceStructMan.getCapabilityId(deviceId, Capability.TYPE_ROLLERSHUTTERACTUATOR);
+            final String capabilityId = deviceStructMan.getCapabilityId(deviceId,
+                    Capability.TYPE_ROLLERSHUTTERACTUATOR);
             client.setRollerShutterActuatorState(capabilityId, rollerSchutterLevel);
         } catch (IOException | ApiException | AuthenticationException e) {
             handleClientException(e);
@@ -850,7 +853,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
      * @param e the Exception
      * @return boolean true, if binding should continue.
      */
-    private boolean handleClientException(Exception e) {
+    private boolean handleClientException(final Exception e) {
         long reinitialize = REINITIALIZE_DELAY_SECONDS;
         if (e instanceof SessionExistsException) {
             logger.debug("Session already exists. Continuing...");
@@ -877,7 +880,7 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
             logger.debug("IO error: {}", e.getMessage());
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
         } else if (e instanceof ApiException) {
-            logger.debug("Unexcepted API error: {}", e.getMessage());
+            logger.warn("Unexcepted API error: {}", e.getMessage(), e);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
         } else if (e instanceof SocketTimeoutException) {
             logger.debug("Socket timeout: {}", e.getMessage());
@@ -886,9 +889,11 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
             reinitialize = -1;
             Thread.currentThread().interrupt();
         } else if (e instanceof ExecutionException) {
-            logger.debug("ExecutionException: {}", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("ExecutionException: {}", ExceptionUtils.getRootCauseMessage(e));
+            updateStatus(ThingStatus.OFFLINE);
         } else {
-            logger.debug("Unknown exception", e);
+            logger.warn("Unknown exception", e);
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.NONE, e.getMessage());
         }
         if (reinitialize > 0) {
             scheduleRestartClient(reinitialize);

@@ -67,11 +67,9 @@ public class InnogyHandlerFactory extends BaseThingHandlerFactory implements Thi
     @Override
     protected ThingHandler createHandler(Thing thing) {
         if (InnogyBridgeHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
-            InnogyBridgeHandler handler = new InnogyBridgeHandler((Bridge) thing, oAuthFactory, httpClient);
-            return handler;
+            return new InnogyBridgeHandler((Bridge) thing, oAuthFactory, httpClient);
         } else if (InnogyDeviceHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
-            InnogyDeviceHandler handler = new InnogyDeviceHandler(thing);
-            return handler;
+            return new InnogyDeviceHandler(thing);
         } else {
             logger.debug("Unsupported thing {}.", thing.getThingTypeUID());
             return null;

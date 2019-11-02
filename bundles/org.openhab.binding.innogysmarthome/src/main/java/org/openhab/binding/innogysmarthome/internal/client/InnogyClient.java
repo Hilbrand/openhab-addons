@@ -117,9 +117,9 @@ public class InnogyClient {
      */
     public void refreshStatus() throws IOException, ApiException, AuthenticationException {
         logger.debug("Get innogy SmartHome status...");
-        ContentResponse response = executeGet(API_URL_STATUS);
+        final ContentResponse response = executeGet(API_URL_STATUS);
 
-        StatusResponse status = gson.fromJson(response.getContentAsString(), StatusResponse.class);
+        final StatusResponse status = gson.fromJson(response.getContentAsString(), StatusResponse.class);
         bridgeDetails = status.gateway;
         configVersion = bridgeDetails.getConfigVersion();
 
@@ -210,6 +210,7 @@ public class InnogyClient {
      * @throws ControllerOfflineException thrown, if the innogy SmartHome controller (SHC) is offline.
      * @throws IOException
      * @throws ApiException
+     * @throws AuthenticationException
      */
     private void handleResponseErrors(ContentResponse response)
             throws IOException, ApiException, AuthenticationException {
@@ -227,7 +228,7 @@ public class InnogyClient {
                 try {
                     content = response.getContentAsString();
                     logger.trace("Response error content: {}", content);
-                    ErrorResponse error = gson.fromJson(content, ErrorResponse.class);
+                    final ErrorResponse error = gson.fromJson(content, ErrorResponse.class);
 
                     if (error == null) {
                         logger.debug("Error without JSON message, code: {} / message: {}", response.getStatus(),
@@ -257,7 +258,7 @@ public class InnogyClient {
                             logger.debug("Unknown error: {}", error.toString());
                             throw new ApiException("Unknown error: " + error.toString());
                     }
-                } catch (JsonSyntaxException e) {
+                } catch (final JsonSyntaxException e) {
                     throw new ApiException("Invalid JSON syntax in error response: " + content);
                 }
         }
@@ -273,9 +274,9 @@ public class InnogyClient {
      */
     public void setSwitchActuatorState(String capabilityId, boolean state)
             throws IOException, ApiException, AuthenticationException {
-        Action action = new SetStateAction(capabilityId, Capability.TYPE_SWITCHACTUATOR, state);
+        final Action action = new SetStateAction(capabilityId, Capability.TYPE_SWITCHACTUATOR, state);
 
-        String json = gson.toJson(action);
+        final String json = gson.toJson(action);
         logger.debug("Action toggle JSON: {}", json);
 
         executePost(API_URL_ACTION, action);
@@ -291,9 +292,9 @@ public class InnogyClient {
      */
     public void setDimmerActuatorState(String capabilityId, int dimLevel)
             throws IOException, ApiException, AuthenticationException {
-        Action action = new SetStateAction(capabilityId, Capability.TYPE_DIMMERACTUATOR, dimLevel);
+        final Action action = new SetStateAction(capabilityId, Capability.TYPE_DIMMERACTUATOR, dimLevel);
 
-        String json = gson.toJson(action);
+        final String json = gson.toJson(action);
         logger.debug("Action dimm JSON: {}", json);
 
         executePost(API_URL_ACTION, action);
@@ -309,9 +310,10 @@ public class InnogyClient {
      */
     public void setRollerShutterActuatorState(String capabilityId, int rollerShutterLevel)
             throws IOException, ApiException, AuthenticationException {
-        Action action = new SetStateAction(capabilityId, Capability.TYPE_ROLLERSHUTTERACTUATOR, rollerShutterLevel);
+        final Action action = new SetStateAction(capabilityId, Capability.TYPE_ROLLERSHUTTERACTUATOR,
+                rollerShutterLevel);
 
-        String json = gson.toJson(action);
+        final String json = gson.toJson(action);
         logger.debug("Action rollershutter JSON: {}", json);
 
         executePost(API_URL_ACTION, action);
@@ -327,9 +329,9 @@ public class InnogyClient {
      */
     public void setVariableActuatorState(String capabilityId, boolean state)
             throws IOException, ApiException, AuthenticationException {
-        Action action = new SetStateAction(capabilityId, Capability.TYPE_VARIABLEACTUATOR, state);
+        final Action action = new SetStateAction(capabilityId, Capability.TYPE_VARIABLEACTUATOR, state);
 
-        String json = gson.toJson(action);
+        final String json = gson.toJson(action);
         logger.debug("Action toggle JSON: {}", json);
 
         executePost(API_URL_ACTION, action);
@@ -345,9 +347,9 @@ public class InnogyClient {
      */
     public void setPointTemperatureState(String capabilityId, double pointTemperature)
             throws IOException, ApiException, AuthenticationException {
-        Action action = new SetStateAction(capabilityId, Capability.TYPE_THERMOSTATACTUATOR, pointTemperature);
+        final Action action = new SetStateAction(capabilityId, Capability.TYPE_THERMOSTATACTUATOR, pointTemperature);
 
-        String json = gson.toJson(action);
+        final String json = gson.toJson(action);
         logger.debug("Action toggle JSON: {}", json);
 
         executePost(API_URL_ACTION, action);
@@ -363,10 +365,10 @@ public class InnogyClient {
      */
     public void setOperationMode(String capabilityId, boolean autoMode)
             throws IOException, ApiException, AuthenticationException {
-        Action action = new SetStateAction(capabilityId, Capability.TYPE_THERMOSTATACTUATOR,
+        final Action action = new SetStateAction(capabilityId, Capability.TYPE_THERMOSTATACTUATOR,
                 autoMode ? "Auto" : "Manu");
 
-        String json = gson.toJson(action);
+        final String json = gson.toJson(action);
         logger.debug("Action toggle JSON: {}", json);
 
         executePost(API_URL_ACTION, action);
@@ -382,9 +384,9 @@ public class InnogyClient {
      */
     public void setAlarmActuatorState(String capabilityId, boolean alarmState)
             throws IOException, ApiException, AuthenticationException {
-        Action action = new SetStateAction(capabilityId, Capability.TYPE_ALARMACTUATOR, alarmState);
+        final Action action = new SetStateAction(capabilityId, Capability.TYPE_ALARMACTUATOR, alarmState);
 
-        String json = gson.toJson(action);
+        final String json = gson.toJson(action);
         logger.debug("Action toggle JSON: {}", json);
 
         executePost(API_URL_ACTION, action);
@@ -399,7 +401,7 @@ public class InnogyClient {
      */
     public List<Device> getDevices() throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading innogy devices...");
-        ContentResponse response = executeGet(API_URL_DEVICE);
+        final ContentResponse response = executeGet(API_URL_DEVICE);
 
         return Arrays.asList(gson.fromJson(response.getContentAsString(), Device[].class));
     }
@@ -414,7 +416,7 @@ public class InnogyClient {
      */
     public Device getDeviceById(String deviceId) throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading device with id {}...", deviceId);
-        ContentResponse response = executeGet(API_URL_DEVICE_ID.replace("{id}", deviceId));
+        final ContentResponse response = executeGet(API_URL_DEVICE_ID.replace("{id}", deviceId));
 
         return gson.fromJson(response.getContentAsString(), Device.class);
     }
@@ -429,39 +431,39 @@ public class InnogyClient {
      */
     public List<Device> getFullDevices() throws IOException, ApiException, AuthenticationException {
         // LOCATIONS
-        List<Location> locationList = getLocations();
-        Map<String, Location> locationMap = new HashMap<>();
-        for (Location l : locationList) {
+        final List<Location> locationList = getLocations();
+        final Map<String, Location> locationMap = new HashMap<>();
+        for (final Location l : locationList) {
             locationMap.put(l.getId(), l);
         }
 
         // CAPABILITIES
-        List<Capability> capabilityList = getCapabilities();
-        Map<String, Capability> capabilityMap = new HashMap<>();
-        for (Capability c : capabilityList) {
+        final List<Capability> capabilityList = getCapabilities();
+        final Map<String, Capability> capabilityMap = new HashMap<>();
+        for (final Capability c : capabilityList) {
             capabilityMap.put(c.getId(), c);
         }
 
         // CAPABILITY STATES
-        List<CapabilityState> capabilityStateList = getCapabilityStates();
-        Map<String, CapabilityState> capabilityStateMap = new HashMap<>();
-        for (CapabilityState cs : capabilityStateList) {
+        final List<CapabilityState> capabilityStateList = getCapabilityStates();
+        final Map<String, CapabilityState> capabilityStateMap = new HashMap<>();
+        for (final CapabilityState cs : capabilityStateList) {
             capabilityStateMap.put(cs.getId(), cs);
         }
 
         // DEVICE STATES
-        List<DeviceState> deviceStateList = getDeviceStates();
-        Map<String, DeviceState> deviceStateMap = new HashMap<>();
-        for (DeviceState es : deviceStateList) {
+        final List<DeviceState> deviceStateList = getDeviceStates();
+        final Map<String, DeviceState> deviceStateMap = new HashMap<>();
+        for (final DeviceState es : deviceStateList) {
             deviceStateMap.put(es.getId(), es);
         }
 
         // MESSAGES
-        List<Message> messageList = getMessages();
-        Map<String, List<Message>> deviceMessageMap = new HashMap<>();
-        for (Message m : messageList) {
+        final List<Message> messageList = getMessages();
+        final Map<String, List<Message>> deviceMessageMap = new HashMap<>();
+        for (final Message m : messageList) {
             if (m.getDeviceLinkList() != null && !m.getDeviceLinkList().isEmpty()) {
-                String deviceId = m.getDeviceLinkList().get(0).replace("/device/", "");
+                final String deviceId = m.getDeviceLinkList().get(0).replace("/device/", "");
                 List<Message> ml;
                 if (deviceMessageMap.containsKey(deviceId)) {
                     ml = deviceMessageMap.get(deviceId);
@@ -474,21 +476,21 @@ public class InnogyClient {
         }
 
         // DEVICES
-        List<Device> deviceList = getDevices();
-        for (Device d : deviceList) {
+        final List<Device> deviceList = getDevices();
+        for (final Device d : deviceList) {
             if (BATTERY_POWERED_DEVICES.contains(d.getType())) {
                 d.setIsBatteryPowered(true);
             }
 
             // location
             d.setLocation(locationMap.get(d.getLocationId()));
-            HashMap<String, Capability> deviceCapabilityMap = new HashMap<>();
+            final HashMap<String, Capability> deviceCapabilityMap = new HashMap<>();
 
             // capabilities and their states
-            for (String cl : d.getCapabilityLinkList()) {
-                Capability c = capabilityMap.get(Link.getId(cl));
-                String capabilityId = c.getId();
-                CapabilityState capabilityState = capabilityStateMap.get(capabilityId);
+            for (final String cl : d.getCapabilityLinkList()) {
+                final Capability c = capabilityMap.get(Link.getId(cl));
+                final String capabilityId = c.getId();
+                final CapabilityState capabilityState = capabilityStateMap.get(capabilityId);
                 c.setCapabilityState(capabilityState);
                 deviceCapabilityMap.put(capabilityId, c);
             }
@@ -500,7 +502,7 @@ public class InnogyClient {
             // messages
             if (deviceMessageMap.containsKey(d.getId())) {
                 d.setMessageList(deviceMessageMap.get(d.getId()));
-                for (Message m : d.getMessageList()) {
+                for (final Message m : d.getMessageList()) {
                     switch (m.getType()) {
                         case Message.TYPE_DEVICE_LOW_BATTERY:
                             d.setLowBattery(true);
@@ -525,43 +527,43 @@ public class InnogyClient {
      */
     public Device getFullDeviceById(String deviceId) throws IOException, ApiException, AuthenticationException {
         // LOCATIONS
-        List<Location> locationList = getLocations();
-        Map<String, Location> locationMap = new HashMap<>();
-        for (Location l : locationList) {
+        final List<Location> locationList = getLocations();
+        final Map<String, Location> locationMap = new HashMap<>();
+        for (final Location l : locationList) {
             locationMap.put(l.getId(), l);
         }
 
         // CAPABILITIES FOR DEVICE
-        List<Capability> capabilityList = getCapabilitiesForDevice(deviceId);
-        Map<String, Capability> capabilityMap = new HashMap<>();
-        for (Capability c : capabilityList) {
+        final List<Capability> capabilityList = getCapabilitiesForDevice(deviceId);
+        final Map<String, Capability> capabilityMap = new HashMap<>();
+        for (final Capability c : capabilityList) {
             capabilityMap.put(c.getId(), c);
         }
 
         // CAPABILITY STATES
-        List<CapabilityState> capabilityStateList = getCapabilityStates();
-        Map<String, CapabilityState> capabilityStateMap = new HashMap<>();
-        for (CapabilityState cs : capabilityStateList) {
+        final List<CapabilityState> capabilityStateList = getCapabilityStates();
+        final Map<String, CapabilityState> capabilityStateMap = new HashMap<>();
+        for (final CapabilityState cs : capabilityStateList) {
             capabilityStateMap.put(cs.getId(), cs);
         }
 
         // DEVICE STATE
-        State state = getDeviceStateByDeviceId(deviceId);
-        DeviceState deviceState = new DeviceState();
+        final State state = getDeviceStateByDeviceId(deviceId);
+        final DeviceState deviceState = new DeviceState();
         deviceState.setId(deviceId);
         deviceState.setState(state);
 
         // deviceState.setStateList(deviceStateList);
 
         // MESSAGES
-        List<Message> messageList = getMessages();
+        final List<Message> messageList = getMessages();
 
-        List<Message> ml = new ArrayList<>();
+        final List<Message> ml = new ArrayList<>();
 
-        for (Message m : messageList) {
+        for (final Message m : messageList) {
             logger.trace("Message Type {} with ID {}", m.getType(), m.getId());
             if (m.getDeviceLinkList() != null && !m.getDeviceLinkList().isEmpty()) {
-                for (String li : m.getDeviceLinkList()) {
+                for (final String li : m.getDeviceLinkList()) {
                     if (li.equals("/device/" + deviceId)) {
                         ml.add(m);
                     }
@@ -570,7 +572,7 @@ public class InnogyClient {
         }
 
         // DEVICE
-        Device d = getDeviceById(deviceId);
+        final Device d = getDeviceById(deviceId);
         if (BATTERY_POWERED_DEVICES.contains(d.getType())) {
             d.setIsBatteryPowered(true);
             d.setLowBattery(false);
@@ -580,10 +582,10 @@ public class InnogyClient {
         d.setLocation(locationMap.get(d.getLocationId()));
 
         // capabilities and their states
-        HashMap<String, Capability> deviceCapabilityMap = new HashMap<>();
-        for (String cl : d.getCapabilityLinkList()) {
+        final HashMap<String, Capability> deviceCapabilityMap = new HashMap<>();
+        for (final String cl : d.getCapabilityLinkList()) {
 
-            Capability c = capabilityMap.get(Link.getId(cl));
+            final Capability c = capabilityMap.get(Link.getId(cl));
             c.setCapabilityState(capabilityStateMap.get(c.getId()));
             deviceCapabilityMap.put(c.getId(), c);
 
@@ -596,7 +598,7 @@ public class InnogyClient {
         // messages
         if (ml.size() > 0) {
             d.setMessageList(ml);
-            for (Message m : d.getMessageList()) {
+            for (final Message m : d.getMessageList()) {
                 switch (m.getType()) {
                     case Message.TYPE_DEVICE_LOW_BATTERY:
                         d.setLowBattery(true);
@@ -618,7 +620,7 @@ public class InnogyClient {
      */
     public List<DeviceState> getDeviceStates() throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading device states...");
-        ContentResponse response = executeGet(API_URL_DEVICE_STATES);
+        final ContentResponse response = executeGet(API_URL_DEVICE_STATES);
 
         return Arrays.asList(gson.fromJson(response.getContentAsString(), DeviceState[].class));
     }
@@ -633,7 +635,7 @@ public class InnogyClient {
      */
     public State getDeviceStateByDeviceId(String deviceId) throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading device states for device id {}...", deviceId);
-        ContentResponse response = executeGet(API_URL_DEVICE_ID_STATE.replace("{id}", deviceId));
+        final ContentResponse response = executeGet(API_URL_DEVICE_ID_STATE.replace("{id}", deviceId));
 
         return gson.fromJson(response.getContentAsString(), State.class);
     }
@@ -647,7 +649,7 @@ public class InnogyClient {
      */
     public List<Location> getLocations() throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading locations...");
-        ContentResponse response = executeGet(API_URL_LOCATION);
+        final ContentResponse response = executeGet(API_URL_LOCATION);
 
         return Arrays.asList(gson.fromJson(response.getContentAsString(), Location[].class));
     }
@@ -663,7 +665,7 @@ public class InnogyClient {
     public List<Capability> getCapabilitiesForDevice(String deviceId)
             throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading capabilities for device {}...", deviceId);
-        ContentResponse response = executeGet(API_URL_DEVICE_CAPABILITIES.replace("{id}", deviceId));
+        final ContentResponse response = executeGet(API_URL_DEVICE_CAPABILITIES.replace("{id}", deviceId));
 
         return Arrays.asList(gson.fromJson(response.getContentAsString(), Capability[].class));
     }
@@ -677,7 +679,7 @@ public class InnogyClient {
      */
     public List<Capability> getCapabilities() throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading capabilities...");
-        ContentResponse response = executeGet(API_URL_CAPABILITY);
+        final ContentResponse response = executeGet(API_URL_CAPABILITY);
 
         return Arrays.asList(gson.fromJson(response.getContentAsString(), Capability[].class));
     }
@@ -691,7 +693,7 @@ public class InnogyClient {
      */
     public List<CapabilityState> getCapabilityStates() throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading capability states...");
-        ContentResponse response = executeGet(API_URL_CAPABILITY_STATES);
+        final ContentResponse response = executeGet(API_URL_CAPABILITY_STATES);
 
         return Arrays.asList(gson.fromJson(response.getContentAsString(), CapabilityState[].class));
     }
@@ -705,7 +707,7 @@ public class InnogyClient {
      */
     public List<Message> getMessages() throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading messages...");
-        ContentResponse response = executeGet(API_URL_MESSAGE);
+        final ContentResponse response = executeGet(API_URL_MESSAGE);
 
         return Arrays.asList(gson.fromJson(response.getContentAsString(), Message[].class));
     }

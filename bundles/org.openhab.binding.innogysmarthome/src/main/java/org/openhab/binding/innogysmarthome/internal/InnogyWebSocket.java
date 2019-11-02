@@ -13,8 +13,6 @@
 package org.openhab.binding.innogysmarthome.internal;
 
 import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -43,14 +41,13 @@ import org.slf4j.LoggerFactory;
 public class InnogyWebSocket {
 
     private final Logger logger = LoggerFactory.getLogger(InnogyWebSocket.class);
-    private final CountDownLatch closeLatch;
     private final EventListener eventListener;
     private final URI webSocketURI;
     private final int maxIdleTimeout;
 
     private @Nullable Session session;
     private @Nullable WebSocketClient client;
-    private boolean closing = false;
+    private boolean closing;
 
     /**
      * Constructs the {@link InnogyWebSocket}.
@@ -61,7 +58,6 @@ public class InnogyWebSocket {
      */
     public InnogyWebSocket(EventListener eventListener, URI webSocketURI, int maxIdleTimeout) {
         this.eventListener = eventListener;
-        this.closeLatch = new CountDownLatch(1);
         this.webSocketURI = webSocketURI;
         this.maxIdleTimeout = maxIdleTimeout;
     }
@@ -72,7 +68,7 @@ public class InnogyWebSocket {
      * @throws Exception
      */
     public synchronized void start() throws Exception {
-        SslContextFactory sslContextFactory = new SslContextFactory();
+        final SslContextFactory sslContextFactory = new SslContextFactory();
         // sslContextFactory.setTrustAll(true); // The magic
 
         if (client == null || client.isStopped()) {
@@ -122,30 +118,12 @@ public class InnogyWebSocket {
 
     @OnWebSocketClose
     public void onClose(int statusCode, String reason) {
-        this.closeLatch.countDown();
         if (statusCode == StatusCode.NORMAL) {
             logger.info("Connection to innogy Webservice was closed normally.");
         } else {
             logger.info("Connection to innogy Webservice was closed abnormally (code: {}). Reason: {}", statusCode,
                     reason);
             eventListener.connectionClosed();
-        }
-    }
-
-    /**
-     * Await the closing of the websocket.
-     *
-     * @param duration
-     * @param unit
-     * @return
-     */
-    public boolean awaitClose(int duration, TimeUnit unit) {
-        logger.debug("innogy WebSocket awaitClose() - {}{}", duration, unit);
-        try {
-            return this.closeLatch.await(duration, unit);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return true;
         }
     }
 
@@ -158,7 +136,7 @@ public class InnogyWebSocket {
     @OnWebSocketMessage
     public void onMessage(String msg) {
         logger.debug("innogy WebSocket onMessage() - {}", msg);
-        if (this.closing) {
+        if (closing) {
             logger.debug("innogy WebSocket onMessage() - ignored, WebSocket is closing...");
         } else {
             eventListener.onEvent(msg);
