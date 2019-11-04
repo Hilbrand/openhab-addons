@@ -24,10 +24,10 @@ public class SetStateAction extends Action {
     /**
      * Constructs a new {@link SetStateAction}.
      *
-     * @param capabilityId   String of the 32 character capability id
+     * @param capabilityId String of the 32 character capability id
      * @param capabilityType the type of the {@link Capability}, {@link Capability#TYPE_SWITCHACTUATOR} or
-     *                           {@link Capability#TYPE_VARIABLEACTUATOR}
-     * @param state          the new state as boolean (true=on, false=off)
+     *            {@link Capability#TYPE_VARIABLEACTUATOR}
+     * @param state the new state as boolean (true=on, false=off)
      */
     public SetStateAction(String capabilityId, String capabilityType, boolean state) {
         setType(ACTION_TYPE_SETSTATE);
@@ -47,9 +47,9 @@ public class SetStateAction extends Action {
     /**
      * Constructs a new {@link SetStateAction}.
      *
-     * @param capabilityId   String of the 32 character capability id
+     * @param capabilityId String of the 32 character capability id
      * @param capabilityType the type of the {@link Capability}, {@link Capability#TYPE_THERMOSTATACTUATOR}
-     * @param newValue       the new double value
+     * @param newValue the new double value
      */
     public SetStateAction(String capabilityId, String capabilityType, double newValue) {
         setType(ACTION_TYPE_SETSTATE);
@@ -65,9 +65,9 @@ public class SetStateAction extends Action {
     /**
      * Constructs a new {@link SetStateAction}.
      *
-     * @param capabilityId   String of the 32 character capability id
+     * @param capabilityId String of the 32 character capability id
      * @param capabilityType the type of the {@link Capability}, {@link Capability#TYPE_DIMMERACTUATOR}
-     * @param newValue       the new int value
+     * @param newValue the new int value
      */
     public SetStateAction(String capabilityId, String capabilityType, int newValue) {
         setType(ACTION_TYPE_SETSTATE);
@@ -86,9 +86,9 @@ public class SetStateAction extends Action {
     /**
      * Constructs a new {@link SetStateAction}.
      *
-     * @param capabilityId   String of the 32 character capability id
+     * @param capabilityId String of the 32 character capability id
      * @param capabilityType the type of the {@link Capability}, {@link Capability#TYPE_THERMOSTATACTUATOR}
-     * @param newValue       the new string value
+     * @param newValue the new string value
      */
     public SetStateAction(String capabilityId, String capabilityType, String newValue) {
         setType(ACTION_TYPE_SETSTATE);

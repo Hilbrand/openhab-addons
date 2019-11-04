@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<thing:thing-descriptions bindingId="innogysmarthome" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<thing:thing-descriptions bindingId="innogysmarthome"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
@@ -36,9 +37,9 @@
 				<label>Authorization code</label>
 				<description><![CDATA[ The auth-code is a one-time code needed to retrieve the
 				necessary access-codes from innogy SmartHome Service. <b>Please go - depending on your brand - to...</b>
-				<ul> 
+				<ul>
 				<li><b>innogy SmartHome Portal</b>: https://api.services-smarthome.de/AUTH/authorize?response_type=code&client_id=24635748&redirect_uri=https%3A%2F%2Fwww.openhab.org%2Foauth%2Finnogy%2Finnogy-smarthome.html&scope&lang=de-DE</li>
-				</ul>                
+				</ul>
 				<b>... to generate an auth-code and paste it here</b>. After initial authorization, this code is not needed anymore.]]></description>
 			</parameter>
 			<parameter name="websocketidletimeout" type="integer" min="0" max="3600" unit="s" groupName="advanced">
@@ -46,8 +47,10 @@
 				<unitLabel>seconds</unitLabel>
 				<label>WebSocket idle timeout in seconds</label>
 				<description>The WebSocket is the connection to the innogy service that listens to status updates.
-					If no data is received over the websocket connection for the given time,
-					the websocket will reconnect. 0 will disable the idle timeout. Default is 900 seconds (15 minutes).</description>
+					If no data is
+					received over the websocket connection for the given time,
+					the websocket will reconnect. 0 will disable the idle
+					timeout. Default is 900 seconds (15 minutes).</description>
 				<default>900</default>
 				<advanced>true</advanced>
 			</parameter>
