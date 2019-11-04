@@ -89,7 +89,7 @@ public class CapabilityState /* extends EntityState */ {
     /**
      * @param id the id to set
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -103,7 +103,7 @@ public class CapabilityState /* extends EntityState */ {
     /**
      * @param state the state to set
      */
-    public void setState(State state) {
+    public void setState(final State state) {
         this.state = state;
     }
 
@@ -111,7 +111,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getValueState().getValue();
     }
 
-    public void setVariableActuatorState(boolean on) {
+    public void setVariableActuatorState(final Boolean on) {
         getState().getValueState().setValue(on);
     }
 
@@ -119,7 +119,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getOnState().getValue();
     }
 
-    public void setSwitchActuatorState(boolean on) {
+    public void setSwitchActuatorState(final Boolean on) {
         getState().getOnState().setValue(on);
     }
 
@@ -127,7 +127,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getTemperatureState().getValue();
     }
 
-    public void setTemperatureSensorTemperatureState(double temperature) {
+    public void setTemperatureSensorTemperatureState(final Double temperature) {
         getState().getTemperatureState().setValue(temperature);
     }
 
@@ -135,7 +135,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getFrostWarningState().getValue();
     }
 
-    public void setTemperatureSensorFrostWarningState(boolean frostWarning) {
+    public void setTemperatureSensorFrostWarningState(final Boolean frostWarning) {
         getState().getFrostWarningState().setValue(frostWarning);
     }
 
@@ -143,7 +143,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getPointTemperatureState().getValue();
     }
 
-    public void setThermostatActuatorPointTemperatureState(double pointTemperature) {
+    public void setThermostatActuatorPointTemperatureState(final Double pointTemperature) {
         getState().getPointTemperatureState().setValue(pointTemperature);
     }
 
@@ -151,7 +151,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getOperationModeState().getValue();
     }
 
-    public void setThermostatActuatorOperationModeState(String operationMode) {
+    public void setThermostatActuatorOperationModeState(final String operationMode) {
         if (operationMode.equals(STATE_VALUE_OPERATION_MODE_MANUAL)) {
             getState().getOperationModeState().setValue(STATE_VALUE_OPERATION_MODE_MANUAL);
         } else {
@@ -163,7 +163,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getWindowReductionActiveState().getValue();
     }
 
-    public void setThermostatActuatorWindowReductionActiveState(boolean windowReductionActive) {
+    public void setThermostatActuatorWindowReductionActiveState(final Boolean windowReductionActive) {
         getState().getWindowReductionActiveState().setValue(windowReductionActive);
     }
 
@@ -171,7 +171,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getHumidityState().getValue();
     }
 
-    public void setHumiditySensorHumidityState(double humidity) {
+    public void setHumiditySensorHumidityState(final Double humidity) {
         getState().getHumidityState().setValue(humidity);
     }
 
@@ -179,7 +179,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getMoldWarningState().getValue();
     }
 
-    public void setHumiditySensorMoldWarningState(boolean moldWarning) {
+    public void setHumiditySensorMoldWarningState(final Boolean moldWarning) {
         getState().getMoldWarningState().setValue(moldWarning);
     }
 
@@ -187,7 +187,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getIsOpenState().getValue();
     }
 
-    public void setWindowDoorSensorState(boolean open) {
+    public void setWindowDoorSensorState(final Boolean open) {
         getState().getIsOpenState().setValue(open);
     }
 
@@ -195,7 +195,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getIsSmokeAlarmState().getValue();
     }
 
-    public void setSmokeDetectorSensorState(boolean on) {
+    public void setSmokeDetectorSensorState(final Boolean on) {
         getState().getIsSmokeAlarmState().setValue(on);
     }
 
@@ -203,7 +203,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getOnState().getValue();
     }
 
-    public void setAlarmActuatorState(boolean on) {
+    public void setAlarmActuatorState(final Boolean on) {
         getState().getOnState().setValue(on);
     }
 
@@ -211,7 +211,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getMotionDetectedCountState().getValue();
     }
 
-    public void setMotionDetectionSensorState(Integer numberOfMotions) {
+    public void setMotionDetectionSensorState(final Integer numberOfMotions) {
         getState().getMotionDetectedCountState().setValue(numberOfMotions);
     }
 
@@ -219,7 +219,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getLuminanceState().getValue();
     }
 
-    public void setLuminanceSensorState(double luminance) {
+    public void setLuminanceSensorState(final Double luminance) {
         getState().getLuminanceState().setValue(luminance);
     }
 
@@ -227,7 +227,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getLastKeyPressCounterState().getValue();
     }
 
-    public void setPushButtonSensorCounterState(Integer numberOfPresses) {
+    public void setPushButtonSensorCounterState(final Integer numberOfPresses) {
         getState().getLastKeyPressCounterState().setValue(numberOfPresses);
     }
 
@@ -235,7 +235,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getLastPressedButtonIndex().getValue();
     }
 
-    public void setPushButtonSensorButtonIndexState(Integer buttonIndex) {
+    public void setPushButtonSensorButtonIndexState(final Integer buttonIndex) {
         getState().getLastPressedButtonIndex().setValue(buttonIndex);
     }
 
@@ -243,7 +243,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getDimLevelState().getValue();
     }
 
-    public void setDimmerActuatorState(Integer DimLevel) {
+    public void setDimmerActuatorState(final Integer DimLevel) {
         getState().getDimLevelState().setValue(DimLevel);
     }
 
@@ -251,7 +251,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getShutterLevelState().getValue();
     }
 
-    public void setRollerShutterActuatorState(Integer rollerShutterLevel) {
+    public void setRollerShutterActuatorState(final Integer rollerShutterLevel) {
         getState().getShutterLevelState().setValue(rollerShutterLevel);
     }
 
@@ -260,7 +260,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyConsumptionMonthKWhState().getValue();
     }
 
-    public void setEnergyConsumptionSensorEnergyConsumptionMonthKWhState(double state) {
+    public void setEnergyConsumptionSensorEnergyConsumptionMonthKWhState(final Double state) {
         getState().getEnergyConsumptionMonthKWhState().setValue(state);
     }
 
@@ -268,7 +268,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getAbsoluteEnergyConsumptionState().getValue();
     }
 
-    public void setEnergyConsumptionSensorAbsoluteEnergyConsumptionState(double state) {
+    public void setEnergyConsumptionSensorAbsoluteEnergyConsumptionState(final Double state) {
         getState().getAbsoluteEnergyConsumptionState().setValue(state);
     }
 
@@ -276,7 +276,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyConsumptionMonthEuroState().getValue();
     }
 
-    public void setEnergyConsumptionSensorEnergyConsumptionMonthEuroState(double state) {
+    public void setEnergyConsumptionSensorEnergyConsumptionMonthEuroState(final Double state) {
         getState().getEnergyConsumptionMonthEuroState().setValue(state);
     }
 
@@ -284,7 +284,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyConsumptionDayEuroState().getValue();
     }
 
-    public void setEnergyConsumptionSensorEnergyConsumptionDayEuroState(double state) {
+    public void setEnergyConsumptionSensorEnergyConsumptionDayEuroState(final Double state) {
         getState().getEnergyConsumptionDayEuroState().setValue(state);
     }
 
@@ -292,7 +292,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyConsumptionDayKWhState().getValue();
     }
 
-    public void setEnergyConsumptionSensorEnergyConsumptionDayKWhState(double state) {
+    public void setEnergyConsumptionSensorEnergyConsumptionDayKWhState(final Double state) {
         getState().getEnergyConsumptionDayKWhState().setValue(state);
     }
 
@@ -301,7 +301,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getPowerConsumptionWattState().getValue();
     }
 
-    public void setPowerConsumptionSensorPowerConsumptionWattState(double state) {
+    public void setPowerConsumptionSensorPowerConsumptionWattState(final Double state) {
         getState().getPowerConsumptionWattState().setValue(state);
     }
 
@@ -310,7 +310,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerMonthInKWhState().getValue();
     }
 
-    public void setGenerationMeterEnergySensorEnergyPerMonthInKWhState(double state) {
+    public void setGenerationMeterEnergySensorEnergyPerMonthInKWhState(final Double state) {
         getState().getEnergyPerMonthInKWhState().setValue(state);
     }
 
@@ -318,7 +318,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getTotalEnergyState().getValue();
     }
 
-    public void setGenerationMeterEnergySensorTotalEnergyState(double state) {
+    public void setGenerationMeterEnergySensorTotalEnergyState(final Double state) {
         getState().getTotalEnergyState().setValue(state);
     }
 
@@ -326,7 +326,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerMonthInEuroState().getValue();
     }
 
-    public void setGenerationMeterEnergySensorEnergyPerMonthInEuroState(double state) {
+    public void setGenerationMeterEnergySensorEnergyPerMonthInEuroState(final Double state) {
         getState().getEnergyPerMonthInEuroState().setValue(state);
     }
 
@@ -334,7 +334,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerDayInEuroState().getValue();
     }
 
-    public void setGenerationMeterEnergySensorEnergyPerDayInEuroState(double state) {
+    public void setGenerationMeterEnergySensorEnergyPerDayInEuroState(final Double state) {
         getState().getEnergyPerDayInEuroState().setValue(state);
     }
 
@@ -342,7 +342,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerDayInKWhState().getValue();
     }
 
-    public void setGenerationMeterEnergySensorEnergyPerDayInKWhState(double state) {
+    public void setGenerationMeterEnergySensorEnergyPerDayInKWhState(final Double state) {
         getState().getEnergyPerDayInKWhState().setValue(state);
     }
 
@@ -351,7 +351,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getPowerInWattState().getValue();
     }
 
-    public void setGenerationMeterPowerConsumptionSensorPowerInWattState(double state) {
+    public void setGenerationMeterPowerConsumptionSensorPowerInWattState(final Double state) {
         getState().getPowerInWattState().setValue(state);
     }
 
@@ -360,7 +360,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerMonthInKWhState().getValue();
     }
 
-    public void setTwoWayMeterEnergyConsumptionSensorEnergyPerMonthInKWhState(double state) {
+    public void setTwoWayMeterEnergyConsumptionSensorEnergyPerMonthInKWhState(final Double state) {
         getState().getEnergyPerMonthInKWhState().setValue(state);
     }
 
@@ -368,7 +368,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getTotalEnergyState().getValue();
     }
 
-    public void setTwoWayMeterEnergyConsumptionSensorTotalEnergyState(double state) {
+    public void setTwoWayMeterEnergyConsumptionSensorTotalEnergyState(final Double state) {
         getState().getTotalEnergyState().setValue(state);
     }
 
@@ -376,7 +376,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerMonthInEuroState().getValue();
     }
 
-    public void setTwoWayMeterEnergyConsumptionSensorEnergyPerMonthInEuroState(double state) {
+    public void setTwoWayMeterEnergyConsumptionSensorEnergyPerMonthInEuroState(final Double state) {
         getState().getEnergyPerMonthInEuroState().setValue(state);
     }
 
@@ -384,7 +384,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerDayInEuroState().getValue();
     }
 
-    public void setTwoWayMeterEnergyConsumptionSensorEnergyPerDayInEuroState(double state) {
+    public void setTwoWayMeterEnergyConsumptionSensorEnergyPerDayInEuroState(final Double state) {
         getState().getEnergyPerDayInEuroState().setValue(state);
     }
 
@@ -392,7 +392,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerDayInKWhState().getValue();
     }
 
-    public void setTwoWayMeterEnergyConsumptionSensorEnergyPerDayInKWhState(double state) {
+    public void setTwoWayMeterEnergyConsumptionSensorEnergyPerDayInKWhState(final Double state) {
         getState().getEnergyPerDayInKWhState().setValue(state);
     }
 
@@ -401,7 +401,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerMonthInKWhState().getValue();
     }
 
-    public void setTwoWayMeterEnergyFeedSensorEnergyPerMonthInKWhState(double state) {
+    public void setTwoWayMeterEnergyFeedSensorEnergyPerMonthInKWhState(final Double state) {
         getState().getEnergyPerMonthInKWhState().setValue(state);
     }
 
@@ -409,7 +409,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getTotalEnergyState().getValue();
     }
 
-    public void setTwoWayMeterEnergyFeedSensorTotalEnergyState(double state) {
+    public void setTwoWayMeterEnergyFeedSensorTotalEnergyState(final Double state) {
         getState().getTotalEnergyState().setValue(state);
     }
 
@@ -417,7 +417,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerMonthInEuroState().getValue();
     }
 
-    public void setTwoWayMeterEnergyFeedSensorEnergyPerMonthInEuroState(double state) {
+    public void setTwoWayMeterEnergyFeedSensorEnergyPerMonthInEuroState(final Double state) {
         getState().getEnergyPerMonthInEuroState().setValue(state);
     }
 
@@ -425,7 +425,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerDayInEuroState().getValue();
     }
 
-    public void setTwoWayMeterEnergyFeedSensorEnergyPerDayInEuroState(double state) {
+    public void setTwoWayMeterEnergyFeedSensorEnergyPerDayInEuroState(final Double state) {
         getState().getEnergyPerDayInEuroState().setValue(state);
     }
 
@@ -433,7 +433,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getEnergyPerDayInKWhState().getValue();
     }
 
-    public void setTwoWayMeterEnergyFeedSensorEnergyPerDayInKWhState(double state) {
+    public void setTwoWayMeterEnergyFeedSensorEnergyPerDayInKWhState(final Double state) {
         getState().getEnergyPerDayInKWhState().setValue(state);
     }
 
@@ -442,7 +442,7 @@ public class CapabilityState /* extends EntityState */ {
         return getState().getPowerInWattState().getValue();
     }
 
-    public void setTwoWayMeterPowerConsumptionSensorPowerInWattState(double state) {
+    public void setTwoWayMeterPowerConsumptionSensorPowerInWattState(final Double state) {
         getState().getPowerInWattState().setValue(state);
     }
 

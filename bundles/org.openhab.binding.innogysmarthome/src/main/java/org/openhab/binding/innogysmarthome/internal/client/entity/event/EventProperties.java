@@ -66,7 +66,7 @@ public class EventProperties {
 
     private Integer lastPressedButtonIndex;
 
-    private Integer luminance;
+    private Double luminance;
 
     private Boolean moldWarning;
 
@@ -98,7 +98,7 @@ public class EventProperties {
     /**
      * @param configVersion the configurationVersion to set
      */
-    public void setConfigVersion(Integer configVersion) {
+    public void setConfigVersion(final Integer configVersion) {
         this.configVersion = configVersion;
     }
 
@@ -112,7 +112,7 @@ public class EventProperties {
     /**
      * @param isConnected the isConnected to set
      */
-    public void setIsConnected(Boolean isConnected) {
+    public void setIsConnected(final Boolean isConnected) {
         this.isConnected = isConnected;
     }
 
@@ -126,7 +126,7 @@ public class EventProperties {
     /**
      * @param dimLevel the dimLevel to set
      */
-    public void setDimLevel(Integer dimLevel) {
+    public void setDimLevel(final Integer dimLevel) {
         this.dimLevel = dimLevel;
     }
 
@@ -140,7 +140,7 @@ public class EventProperties {
     /**
      * @param onState the onState to set
      */
-    public void setOnState(Boolean onState) {
+    public void setOnState(final Boolean onState) {
         this.onState = onState;
     }
 
@@ -154,7 +154,7 @@ public class EventProperties {
     /**
      * @param operationMode the operationMode to set
      */
-    public void setOperationMode(String operationMode) {
+    public void setOperationMode(final String operationMode) {
         this.operationMode = operationMode;
     }
 
@@ -168,7 +168,7 @@ public class EventProperties {
     /**
      * @param pointTemperature the pointTemperature to set
      */
-    public void setPointTemperature(Double pointTemperature) {
+    public void setPointTemperature(final Double pointTemperature) {
         this.pointTemperature = pointTemperature;
     }
 
@@ -182,7 +182,7 @@ public class EventProperties {
     /**
      * @param shutterLevel the shutterLevel to set
      */
-    public void setShutterLevel(Integer shutterLevel) {
+    public void setShutterLevel(final Integer shutterLevel) {
         this.shutterLevel = shutterLevel;
     }
 
@@ -196,7 +196,7 @@ public class EventProperties {
     /**
      * @param value the value to set
      */
-    public void setValue(Boolean value) {
+    public void setValue(final Boolean value) {
         this.value = value;
     }
 
@@ -210,7 +210,7 @@ public class EventProperties {
     /**
      * @param absoluteEnergyConsumption the absoluteEnergyConsumption to set
      */
-    public void setAbsoluteEnergyConsumption(Double absoluteEnergyConsumption) {
+    public void setAbsoluteEnergyConsumption(final Double absoluteEnergyConsumption) {
         this.absoluteEnergyConsumption = absoluteEnergyConsumption;
     }
 
@@ -224,7 +224,7 @@ public class EventProperties {
     /**
      * @param energyConsumptionDayEuro the energyConsumptionDayEuro to set
      */
-    public void setEnergyConsumptionDayEuro(Double energyConsumptionDayEuro) {
+    public void setEnergyConsumptionDayEuro(final Double energyConsumptionDayEuro) {
         this.energyConsumptionDayEuro = energyConsumptionDayEuro;
     }
 
@@ -238,7 +238,7 @@ public class EventProperties {
     /**
      * @param energyConsumptionDayKWh the energyConsumptionDayKWh to set
      */
-    public void setEnergyConsumptionDayKWh(Double energyConsumptionDayKWh) {
+    public void setEnergyConsumptionDayKWh(final Double energyConsumptionDayKWh) {
         this.energyConsumptionDayKWh = energyConsumptionDayKWh;
     }
 
@@ -252,7 +252,7 @@ public class EventProperties {
     /**
      * @param energyConsumptionMonthEuro the energyConsumptionMonthEuro to set
      */
-    public void setEnergyConsumptionMonthEuro(Double energyConsumptionMonthEuro) {
+    public void setEnergyConsumptionMonthEuro(final Double energyConsumptionMonthEuro) {
         this.energyConsumptionMonthEuro = energyConsumptionMonthEuro;
     }
 
@@ -266,7 +266,7 @@ public class EventProperties {
     /**
      * @param energyConsumptionMonthKWh the energyConsumptionMonthKWh to set
      */
-    public void setEnergyConsumptionMonthKWh(Double energyConsumptionMonthKWh) {
+    public void setEnergyConsumptionMonthKWh(final Double energyConsumptionMonthKWh) {
         this.energyConsumptionMonthKWh = energyConsumptionMonthKWh;
     }
 
@@ -280,7 +280,7 @@ public class EventProperties {
     /**
      * @param energyPerDayInEuro the energyPerDayInEuro to set
      */
-    public void setEnergyPerDayInEuro(Double energyPerDayInEuro) {
+    public void setEnergyPerDayInEuro(final Double energyPerDayInEuro) {
         this.energyPerDayInEuro = energyPerDayInEuro;
     }
 
@@ -294,7 +294,7 @@ public class EventProperties {
     /**
      * @param energyPerDayInKWh the energyPerDayInKWh to set
      */
-    public void setEnergyPerDayInKWh(Double energyPerDayInKWh) {
+    public void setEnergyPerDayInKWh(final Double energyPerDayInKWh) {
         this.energyPerDayInKWh = energyPerDayInKWh;
     }
 
@@ -308,7 +308,7 @@ public class EventProperties {
     /**
      * @param energyPerMonthInEuro the energyPerMonthInEuro to set
      */
-    public void setEnergyPerMonthInEuro(Double energyPerMonthInEuro) {
+    public void setEnergyPerMonthInEuro(final Double energyPerMonthInEuro) {
         this.energyPerMonthInEuro = energyPerMonthInEuro;
     }
 
@@ -322,7 +322,7 @@ public class EventProperties {
     /**
      * @param energyPerMonthInKWh the energyPerMonthInKWh to set
      */
-    public void setEnergyPerMonthInKWh(Double energyPerMonthInKWh) {
+    public void setEnergyPerMonthInKWh(final Double energyPerMonthInKWh) {
         this.energyPerMonthInKWh = energyPerMonthInKWh;
     }
 
@@ -336,7 +336,7 @@ public class EventProperties {
     /**
      * @param frostWarning the frostWarning to set
      */
-    public void setFrostWarning(Boolean frostWarning) {
+    public void setFrostWarning(final Boolean frostWarning) {
         this.frostWarning = frostWarning;
     }
 
@@ -350,7 +350,7 @@ public class EventProperties {
     /**
      * @param humidity the humidity to set
      */
-    public void setHumidity(Double humidity) {
+    public void setHumidity(final Double humidity) {
         this.humidity = humidity;
     }
 
@@ -364,7 +364,7 @@ public class EventProperties {
     /**
      * @param isOpen the isOpen to set
      */
-    public void setIsOpen(Boolean isOpen) {
+    public void setIsOpen(final Boolean isOpen) {
         this.isOpen = isOpen;
     }
 
@@ -378,7 +378,7 @@ public class EventProperties {
     /**
      * @param isSmokeAlarm the isSmokeAlarm to set
      */
-    public void setIsSmokeAlarm(Boolean isSmokeAlarm) {
+    public void setIsSmokeAlarm(final Boolean isSmokeAlarm) {
         this.isSmokeAlarm = isSmokeAlarm;
     }
 
@@ -392,7 +392,7 @@ public class EventProperties {
     /**
      * @param lastKeyPressCounter the lastKeyPressCounter to set
      */
-    public void setLastKeyPressCounter(Integer lastKeyPressCounter) {
+    public void setLastKeyPressCounter(final Integer lastKeyPressCounter) {
         this.lastKeyPressCounter = lastKeyPressCounter;
     }
 
@@ -406,21 +406,21 @@ public class EventProperties {
     /**
      * @param lastPressedButtonIndex the lastPressedButtonIndex to set
      */
-    public void setLastPressedButtonIndex(Integer lastPressedButtonIndex) {
+    public void setLastPressedButtonIndex(final Integer lastPressedButtonIndex) {
         this.lastPressedButtonIndex = lastPressedButtonIndex;
     }
 
     /**
      * @return the luminance
      */
-    public Integer getLuminance() {
+    public Double getLuminance() {
         return luminance;
     }
 
     /**
      * @param luminance the luminance to set
      */
-    public void setLuminance(Integer luminance) {
+    public void setLuminance(final Double luminance) {
         this.luminance = luminance;
     }
 
@@ -434,7 +434,7 @@ public class EventProperties {
     /**
      * @param moldWarning the moldWarning to set
      */
-    public void setMoldWarning(Boolean moldWarning) {
+    public void setMoldWarning(final Boolean moldWarning) {
         this.moldWarning = moldWarning;
     }
 
@@ -448,7 +448,7 @@ public class EventProperties {
     /**
      * @param motionDetectedCount the motionDetectedCount to set
      */
-    public void setMotionDetectedCount(Integer motionDetectedCount) {
+    public void setMotionDetectedCount(final Integer motionDetectedCount) {
         this.motionDetectedCount = motionDetectedCount;
     }
 
@@ -462,7 +462,7 @@ public class EventProperties {
     /**
      * @param powerConsumptionWatt the powerConsumptionWatt to set
      */
-    public void setPowerConsumptionWatt(Double powerConsumptionWatt) {
+    public void setPowerConsumptionWatt(final Double powerConsumptionWatt) {
         this.powerConsumptionWatt = powerConsumptionWatt;
     }
 
@@ -476,7 +476,7 @@ public class EventProperties {
     /**
      * @param powerInWatt the powerInWatt to set
      */
-    public void setPowerInWatt(Double powerInWatt) {
+    public void setPowerInWatt(final Double powerInWatt) {
         this.powerInWatt = powerInWatt;
     }
 
@@ -490,7 +490,7 @@ public class EventProperties {
     /**
      * @param temperature the temperature to set
      */
-    public void setTemperature(Double temperature) {
+    public void setTemperature(final Double temperature) {
         this.temperature = temperature;
     }
 
@@ -504,7 +504,7 @@ public class EventProperties {
     /**
      * @param totalEnergy the totalEnergy to set
      */
-    public void setTotalEnergy(Double totalEnergy) {
+    public void setTotalEnergy(final Double totalEnergy) {
         this.totalEnergy = totalEnergy;
     }
 
@@ -518,14 +518,14 @@ public class EventProperties {
     /**
      * @param windowReductionActive the windowReductionActive to set
      */
-    public void setWindowReductionActive(Boolean windowReductionActive) {
+    public void setWindowReductionActive(final Boolean windowReductionActive) {
         this.windowReductionActive = windowReductionActive;
     }
 
     /**
      * @param cpuUsage the cpuUsage to set
      */
-    public void setCpuUsage(Double cpuUsage) {
+    public void setCpuUsage(final Double cpuUsage) {
         this.cpuUsage = cpuUsage;
     }
 
@@ -539,7 +539,7 @@ public class EventProperties {
     /**
      * @param diskUsage the diskUsage to set
      */
-    public void setDiskUsage(Double diskUsage) {
+    public void setDiskUsage(final Double diskUsage) {
         this.diskUsage = diskUsage;
     }
 
@@ -553,7 +553,7 @@ public class EventProperties {
     /**
      * @param memoryUsage the memoryUsage to set
      */
-    public void setMemoryUsage(Double memoryUsage) {
+    public void setMemoryUsage(final Double memoryUsage) {
         this.memoryUsage = memoryUsage;
     }
 

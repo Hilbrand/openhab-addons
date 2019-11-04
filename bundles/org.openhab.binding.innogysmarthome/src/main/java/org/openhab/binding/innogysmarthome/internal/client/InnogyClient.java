@@ -93,7 +93,7 @@ public class InnogyClient {
     private String configVersion = "";
     private long apiCallCounter;
 
-    public InnogyClient(OAuthClientService oAuthService, HttpClient httpClient) {
+    public InnogyClient(final OAuthClientService oAuthService, final HttpClient httpClient) {
         this.oAuthService = oAuthService;
         this.httpClient = httpClient;
     }
@@ -135,7 +135,7 @@ public class InnogyClient {
      * @throws AuthenticationException
      * @throws ApiException
      */
-    private ContentResponse executeGet(String url) throws IOException, AuthenticationException, ApiException {
+    private ContentResponse executeGet(final String url) throws IOException, AuthenticationException, ApiException {
         apiCallCounter++;
         return request(httpClient.newRequest(url).method(HttpMethod.GET));
     }
@@ -150,7 +150,7 @@ public class InnogyClient {
      * @throws AuthenticationException
      * @throws ApiException
      */
-    private ContentResponse executePost(String url, Action action)
+    private ContentResponse executePost(final String url, final Action action)
             throws IOException, AuthenticationException, ApiException {
         apiCallCounter++;
         return executePost(url, gson.toJson(action));
@@ -166,14 +166,14 @@ public class InnogyClient {
      * @throws AuthenticationException
      * @throws ApiException
      */
-    private ContentResponse executePost(String url, String content)
+    private ContentResponse executePost(final String url, final String content)
             throws IOException, AuthenticationException, ApiException {
         apiCallCounter++;
         return request(httpClient.newRequest(url).method(HttpMethod.POST)
                 .content(new StringContentProvider(content), CONTENT_TYPE).accept("application/json"));
     }
 
-    private ContentResponse request(Request request) throws IOException, AuthenticationException, ApiException {
+    private ContentResponse request(final Request request) throws IOException, AuthenticationException, ApiException {
         final ContentResponse response;
         try {
             final AccessTokenResponse accessTokenResponse = getAccessTokenResponse();
@@ -212,7 +212,7 @@ public class InnogyClient {
      * @throws ApiException
      * @throws AuthenticationException
      */
-    private void handleResponseErrors(ContentResponse response)
+    private void handleResponseErrors(final ContentResponse response)
             throws IOException, ApiException, AuthenticationException {
         String content = "";
 
@@ -272,7 +272,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public void setSwitchActuatorState(String capabilityId, boolean state)
+    public void setSwitchActuatorState(final String capabilityId, final boolean state)
             throws IOException, ApiException, AuthenticationException {
         final Action action = new SetStateAction(capabilityId, Capability.TYPE_SWITCHACTUATOR, state);
 
@@ -290,7 +290,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public void setDimmerActuatorState(String capabilityId, int dimLevel)
+    public void setDimmerActuatorState(final String capabilityId, final int dimLevel)
             throws IOException, ApiException, AuthenticationException {
         final Action action = new SetStateAction(capabilityId, Capability.TYPE_DIMMERACTUATOR, dimLevel);
 
@@ -308,7 +308,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public void setRollerShutterActuatorState(String capabilityId, int rollerShutterLevel)
+    public void setRollerShutterActuatorState(final String capabilityId, final int rollerShutterLevel)
             throws IOException, ApiException, AuthenticationException {
         final Action action = new SetStateAction(capabilityId, Capability.TYPE_ROLLERSHUTTERACTUATOR,
                 rollerShutterLevel);
@@ -327,7 +327,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public void setVariableActuatorState(String capabilityId, boolean state)
+    public void setVariableActuatorState(final String capabilityId, final boolean state)
             throws IOException, ApiException, AuthenticationException {
         final Action action = new SetStateAction(capabilityId, Capability.TYPE_VARIABLEACTUATOR, state);
 
@@ -345,7 +345,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public void setPointTemperatureState(String capabilityId, double pointTemperature)
+    public void setPointTemperatureState(final String capabilityId, final double pointTemperature)
             throws IOException, ApiException, AuthenticationException {
         final Action action = new SetStateAction(capabilityId, Capability.TYPE_THERMOSTATACTUATOR, pointTemperature);
 
@@ -363,7 +363,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public void setOperationMode(String capabilityId, boolean autoMode)
+    public void setOperationMode(final String capabilityId, final boolean autoMode)
             throws IOException, ApiException, AuthenticationException {
         final Action action = new SetStateAction(capabilityId, Capability.TYPE_THERMOSTATACTUATOR,
                 autoMode ? "Auto" : "Manu");
@@ -382,7 +382,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public void setAlarmActuatorState(String capabilityId, boolean alarmState)
+    public void setAlarmActuatorState(final String capabilityId, final boolean alarmState)
             throws IOException, ApiException, AuthenticationException {
         final Action action = new SetStateAction(capabilityId, Capability.TYPE_ALARMACTUATOR, alarmState);
 
@@ -414,7 +414,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public Device getDeviceById(String deviceId) throws IOException, ApiException, AuthenticationException {
+    public Device getDeviceById(final String deviceId) throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading device with id {}...", deviceId);
         final ContentResponse response = executeGet(API_URL_DEVICE_ID.replace("{id}", deviceId));
 
@@ -525,7 +525,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public Device getFullDeviceById(String deviceId) throws IOException, ApiException, AuthenticationException {
+    public Device getFullDeviceById(final String deviceId) throws IOException, ApiException, AuthenticationException {
         // LOCATIONS
         final List<Location> locationList = getLocations();
         final Map<String, Location> locationMap = new HashMap<>();
@@ -596,7 +596,7 @@ public class InnogyClient {
         d.setDeviceState(deviceState);
 
         // messages
-        if (ml.size() > 0) {
+        if (!ml.isEmpty()) {
             d.setMessageList(ml);
             for (final Message m : d.getMessageList()) {
                 switch (m.getType()) {
@@ -633,7 +633,8 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public State getDeviceStateByDeviceId(String deviceId) throws IOException, ApiException, AuthenticationException {
+    public State getDeviceStateByDeviceId(final String deviceId)
+            throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading device states for device id {}...", deviceId);
         final ContentResponse response = executeGet(API_URL_DEVICE_ID_STATE.replace("{id}", deviceId));
 
@@ -662,7 +663,7 @@ public class InnogyClient {
      * @throws IOException
      * @throws ApiException
      */
-    public List<Capability> getCapabilitiesForDevice(String deviceId)
+    public List<Capability> getCapabilitiesForDevice(final String deviceId)
             throws IOException, ApiException, AuthenticationException {
         logger.debug("Loading capabilities for device {}...", deviceId);
         final ContentResponse response = executeGet(API_URL_DEVICE_CAPABILITIES.replace("{id}", deviceId));
@@ -722,7 +723,7 @@ public class InnogyClient {
     /**
      * @param configVersion the configVersion to set
      */
-    public void setConfigVersion(String configVersion) {
+    public void setConfigVersion(final String configVersion) {
         this.configVersion = configVersion;
     }
 }

@@ -199,7 +199,7 @@ public class CapabilityConfig {
     /**
      * @param name the name to set
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -213,7 +213,7 @@ public class CapabilityConfig {
     /**
      * @param activityLogActive the activityLogActive to set
      */
-    public void setActivityLogActive(Boolean activityLogActive) {
+    public void setActivityLogActive(final Boolean activityLogActive) {
         this.activityLogActive = activityLogActive;
     }
 
@@ -227,7 +227,7 @@ public class CapabilityConfig {
     /**
      * @param pushButtons the pushButtons to set
      */
-    public void setPushButtons(Integer pushButtons) {
+    public void setPushButtons(final Integer pushButtons) {
         this.pushButtons = pushButtons;
     }
 
@@ -241,7 +241,7 @@ public class CapabilityConfig {
     /**
      * @param valveIndex the valveIndex to set
      */
-    public void setValveIndex(Integer valveIndex) {
+    public void setValveIndex(final Integer valveIndex) {
         this.valveIndex = valveIndex;
     }
 
@@ -255,7 +255,7 @@ public class CapabilityConfig {
     /**
      * @param valveType the valveType to set
      */
-    public void setValveType(String valveType) {
+    public void setValveType(final String valveType) {
         this.valveType = valveType;
     }
 
@@ -269,7 +269,7 @@ public class CapabilityConfig {
     /**
      * @param controlMode the controlMode to set
      */
-    public void setControlMode(String controlMode) {
+    public void setControlMode(final String controlMode) {
         this.controlMode = controlMode;
     }
 
@@ -283,7 +283,7 @@ public class CapabilityConfig {
     /**
      * @param technicalMaxValue the technicalMaxValue to set
      */
-    public void setTechnicalMaxValue(Integer technicalMaxValue) {
+    public void setTechnicalMaxValue(final Integer technicalMaxValue) {
         this.technicalMaxValue = technicalMaxValue;
     }
 
@@ -297,7 +297,7 @@ public class CapabilityConfig {
     /**
      * @param technicalMinValue the technicalMinValue to set
      */
-    public void setTechnicalMinValue(Integer technicalMinValue) {
+    public void setTechnicalMinValue(final Integer technicalMinValue) {
         this.technicalMinValue = technicalMinValue;
     }
 
@@ -311,7 +311,7 @@ public class CapabilityConfig {
     /**
      * @param timeFullUp the timeFullUp to set
      */
-    public void setTimeFullUp(Integer timeFullUp) {
+    public void setTimeFullUp(final Integer timeFullUp) {
         this.timeFullUp = timeFullUp;
     }
 
@@ -325,7 +325,7 @@ public class CapabilityConfig {
     /**
      * @param timeFullDown the timeFullDown to set
      */
-    public void setTimeFullDown(Integer timeFullDown) {
+    public void setTimeFullDown(final Integer timeFullDown) {
         this.timeFullDown = timeFullDown;
     }
 
@@ -339,7 +339,7 @@ public class CapabilityConfig {
     /**
      * @param isCalibrating the isCalibrating to set
      */
-    public void setIsCalibrating(Boolean isCalibrating) {
+    public void setIsCalibrating(final Boolean isCalibrating) {
         this.isCalibrating = isCalibrating;
     }
 
@@ -353,7 +353,7 @@ public class CapabilityConfig {
     /**
      * @param sensingBehavior the sensingBehavior to set
      */
-    public void setSensingBehavior(String sensingBehavior) {
+    public void setSensingBehavior(final String sensingBehavior) {
         this.sensingBehavior = sensingBehavior;
     }
 
@@ -367,7 +367,7 @@ public class CapabilityConfig {
     /**
      * @param maxTemperature the maxTemperature to set
      */
-    public void setMaxTemperature(Double maxTemperature) {
+    public void setMaxTemperature(final Double maxTemperature) {
         this.maxTemperature = maxTemperature;
     }
 
@@ -381,7 +381,7 @@ public class CapabilityConfig {
     /**
      * @param minTemperature the minTemperature to set
      */
-    public void setMinTemperature(Double minTemperature) {
+    public void setMinTemperature(final Double minTemperature) {
         this.minTemperature = minTemperature;
     }
 
@@ -395,7 +395,7 @@ public class CapabilityConfig {
     /**
      * @param childLock the childLock to set
      */
-    public void setChildLock(Boolean childLock) {
+    public void setChildLock(final Boolean childLock) {
         this.childLock = childLock;
     }
 
@@ -409,7 +409,7 @@ public class CapabilityConfig {
     /**
      * @param windowOpenTemperature the windowOpenTemperature to set
      */
-    public void setWindowOpenTemperature(Double windowOpenTemperature) {
+    public void setWindowOpenTemperature(final Double windowOpenTemperature) {
         this.windowOpenTemperature = windowOpenTemperature;
     }
 
@@ -423,7 +423,7 @@ public class CapabilityConfig {
     /**
      * @param vRCCSetPoint the vRCCSetPoint to set
      */
-    public void setvRCCSetPoint(String vRCCSetPoint) {
+    public void setvRCCSetPoint(final String vRCCSetPoint) {
         this.vRCCSetPoint = vRCCSetPoint;
     }
 
@@ -437,7 +437,7 @@ public class CapabilityConfig {
     /**
      * @param isFreezeProtectionActivated the isFreezeProtectionActivated to set
      */
-    public void setIsFreezeProtectionActivated(Boolean isFreezeProtectionActivated) {
+    public void setIsFreezeProtectionActivated(final Boolean isFreezeProtectionActivated) {
         this.isFreezeProtectionActivated = isFreezeProtectionActivated;
     }
 
@@ -451,7 +451,7 @@ public class CapabilityConfig {
     /**
      * @param freezeProtection the freezeProtection to set
      */
-    public void setFreezeProtection(Double freezeProtection) {
+    public void setFreezeProtection(final Double freezeProtection) {
         this.freezeProtection = freezeProtection;
     }
 
@@ -465,7 +465,7 @@ public class CapabilityConfig {
     /**
      * @param vRCCTemperature the vRCCTemperature to set
      */
-    public void setvRCCTemperature(String vRCCTemperature) {
+    public void setvRCCTemperature(final String vRCCTemperature) {
         this.vRCCTemperature = vRCCTemperature;
     }
 
@@ -479,7 +479,7 @@ public class CapabilityConfig {
     /**
      * @param isMoldProtectionActivated the isMoldProtectionActivated to set
      */
-    public void setIsMoldProtectionActivated(Boolean isMoldProtectionActivated) {
+    public void setIsMoldProtectionActivated(final Boolean isMoldProtectionActivated) {
         this.isMoldProtectionActivated = isMoldProtectionActivated;
     }
 
@@ -493,7 +493,7 @@ public class CapabilityConfig {
     /**
      * @param humidityMoldProtection the humidityMoldProtection to set
      */
-    public void setHumidityMoldProtection(Double humidityMoldProtection) {
+    public void setHumidityMoldProtection(final Double humidityMoldProtection) {
         this.humidityMoldProtection = humidityMoldProtection;
     }
 
@@ -507,7 +507,7 @@ public class CapabilityConfig {
     /**
      * @param vRCCHumidity the vRCCHumidity to set
      */
-    public void setvRCCHumidity(String vRCCHumidity) {
+    public void setvRCCHumidity(final String vRCCHumidity) {
         this.vRCCHumidity = vRCCHumidity;
     }
 
@@ -521,7 +521,7 @@ public class CapabilityConfig {
     /**
      * @param alarmSoundId the alarmSoundId to set
      */
-    public void setAlarmSoundId(String alarmSoundId) {
+    public void setAlarmSoundId(final String alarmSoundId) {
         this.alarmSoundId = alarmSoundId;
     }
 
@@ -535,7 +535,7 @@ public class CapabilityConfig {
     /**
      * @param notificationSoundId the notificationSoundId to set
      */
-    public void setNotificationSoundId(String notificationSoundId) {
+    public void setNotificationSoundId(final String notificationSoundId) {
         this.notificationSoundId = notificationSoundId;
     }
 
@@ -549,7 +549,7 @@ public class CapabilityConfig {
     /**
      * @param feedbackSoundId the feedbackSoundId to set
      */
-    public void setFeedbackSoundId(String feedbackSoundId) {
+    public void setFeedbackSoundId(final String feedbackSoundId) {
         this.feedbackSoundId = feedbackSoundId;
     }
 
@@ -563,7 +563,7 @@ public class CapabilityConfig {
     /**
      * @param underlyingCapabilityIds the underlyingCapabilityIds to set
      */
-    public void setUnderlyingCapabilityIds(String underlyingCapabilityIds) {
+    public void setUnderlyingCapabilityIds(final String underlyingCapabilityIds) {
         this.underlyingCapabilityIds = underlyingCapabilityIds;
     }
 
@@ -577,7 +577,7 @@ public class CapabilityConfig {
     /**
      * @param eventFilterTime the eventFilterTime to set
      */
-    public void setEventFilterTime(Integer eventFilterTime) {
+    public void setEventFilterTime(final Integer eventFilterTime) {
         this.eventFilterTime = eventFilterTime;
     }
 
@@ -591,7 +591,7 @@ public class CapabilityConfig {
     /**
      * @param windowOpenThreshold the windowOpenThreshold to set
      */
-    public void setWindowOpenThreshold(Integer windowOpenThreshold) {
+    public void setWindowOpenThreshold(final Integer windowOpenThreshold) {
         this.windowOpenThreshold = windowOpenThreshold;
     }
 
@@ -605,7 +605,7 @@ public class CapabilityConfig {
     /**
      * @param windowOpenTimer the windowOpenTimer to set
      */
-    public void setWindowOpenTimer(Integer windowOpenTimer) {
+    public void setWindowOpenTimer(final Integer windowOpenTimer) {
         this.windowOpenTimer = windowOpenTimer;
     }
 
@@ -619,7 +619,7 @@ public class CapabilityConfig {
     /**
      * @param sensitivityControl the sensitivityControl to set
      */
-    public void setSensitivityControl(Integer sensitivityControl) {
+    public void setSensitivityControl(final Integer sensitivityControl) {
         this.sensitivityControl = sensitivityControl;
     }
 
@@ -633,456 +633,7 @@ public class CapabilityConfig {
     /**
      * @param shockDetectorThreshold the shockDetectorThreshold to set
      */
-    public void setShockDetectorThreshold(Integer shockDetectorThreshold) {
+    public void setShockDetectorThreshold(final Integer shockDetectorThreshold) {
         this.shockDetectorThreshold = shockDetectorThreshold;
     }
-
-    // /**
-    // * @return the protocolId
-    // */
-    // public String getProtocolId() {
-    // return protocolId;
-    // }
-    //
-    // /**
-    // * @param protocolId the protocolId to set
-    // */
-    // public void setProtocolId(String protocolId) {
-    // this.protocolId = protocolId;
-    // }
-    //
-    //
-    // /**
-    // * @return the timeOfAcceptance
-    // */
-    // public String getTimeOfAcceptance() {
-    // return timeOfAcceptance;
-    // }
-    //
-    // /**
-    // * @param timeOfAcceptance the timeOfAcceptance to set
-    // */
-    // public void setTimeOfAcceptance(String timeOfAcceptance) {
-    // this.timeOfAcceptance = timeOfAcceptance;
-    // }
-    //
-    // /**
-    // * @return the timeOfDiscovery
-    // */
-    // public String getTimeOfDiscovery() {
-    // return timeOfDiscovery;
-    // }
-    //
-    // /**
-    // * @param timeOfDiscovery the timeOfDiscovery to set
-    // */
-    // public void setTimeOfDiscovery(String timeOfDiscovery) {
-    // this.timeOfDiscovery = timeOfDiscovery;
-    // }
-    //
-    // /**
-    // * @return the hardwareVersion
-    // */
-    // public String getHardwareVersion() {
-    // return hardwareVersion;
-    // }
-    //
-    // /**
-    // * @param hardwareVersion the hardwareVersion to set
-    // */
-    // public void setHardwareVersion(String hardwareVersion) {
-    // this.hardwareVersion = hardwareVersion;
-    // }
-    //
-    // /**
-    // * @return the softwareVersion
-    // */
-    // public String getSoftwareVersion() {
-    // return softwareVersion;
-    // }
-    //
-    // /**
-    // * @param softwareVersion the softwareVersion to set
-    // */
-    // public void setSoftwareVersion(String softwareVersion) {
-    // this.softwareVersion = softwareVersion;
-    // }
-    //
-    // /**
-    // * @return the firmwareVersion
-    // */
-    // public String getFirmwareVersion() {
-    // return firmwareVersion;
-    // }
-    //
-    // /**
-    // * @param firmwareVersion the firmwareVersion to set
-    // */
-    // public void setFirmwareVersion(String firmwareVersion) {
-    // this.firmwareVersion = firmwareVersion;
-    // }
-    //
-    // /**
-    // * @return the hostName
-    // */
-    // public String getHostName() {
-    // return hostName;
-    // }
-    //
-    // /**
-    // * @param hostName the hostName to set
-    // */
-    // public void setHostName(String hostName) {
-    // this.hostName = hostName;
-    // }
-    //
-    // /**
-    // * @return the activityLogEnabled
-    // */
-    // public Boolean getActivityLogEnabled() {
-    // return activityLogEnabled;
-    // }
-    //
-    // /**
-    // * @param activityLogEnabled the activityLogEnabled to set
-    // */
-    // public void setActivityLogEnabled(Boolean activityLogEnabled) {
-    // this.activityLogEnabled = activityLogEnabled;
-    // }
-    //
-    // /**
-    // * @return the configurationState
-    // */
-    // public String getConfigurationState() {
-    // return configurationState;
-    // }
-    //
-    // /**
-    // * @param configurationState the configurationState to set
-    // */
-    // public void setConfigurationState(String configurationState) {
-    // this.configurationState = configurationState;
-    // }
-    //
-    // /**
-    // * @return the geoLocation
-    // */
-    // public String getGeoLocation() {
-    // return geoLocation;
-    // }
-    //
-    // /**
-    // * @param geoLocation the geoLocation to set
-    // */
-    // public void setGeoLocation(String geoLocation) {
-    // this.geoLocation = geoLocation;
-    // }
-    //
-    // /**
-    // * @return the timeZone
-    // */
-    // public String getTimeZone() {
-    // return timeZone;
-    // }
-    //
-    // /**
-    // * @param timeZone the timeZone to set
-    // */
-    // public void setTimeZone(String timeZone) {
-    // this.timeZone = timeZone;
-    // }
-    //
-    // /**
-    // * @return the currentUTCOffset
-    // */
-    // public Integer getCurrentUTCOffset() {
-    // return currentUTCOffset;
-    // }
-    //
-    // /**
-    // * @param currentUTCOffset the currentUTCOffset to set
-    // */
-    // public void setCurrentUTCOffset(Integer currentUTCOffset) {
-    // this.currentUTCOffset = currentUTCOffset;
-    // }
-    //
-    // /**
-    // * @return the iPAddress
-    // */
-    // public String getIPAddress() {
-    // return IPAddress;
-    // }
-    //
-    // /**
-    // * @param iPAddress the iPAddress to set
-    // */
-    // public void setIPAddress(String iPAddress) {
-    // IPAddress = iPAddress;
-    // }
-    //
-    // /**
-    // * @return the mACAddress
-    // */
-    // public String getMACAddress() {
-    // return MACAddress;
-    // }
-    //
-    // /**
-    // * @param mACAddress the mACAddress to set
-    // */
-    // public void setMACAddress(String mACAddress) {
-    // MACAddress = mACAddress;
-    // }
-    //
-    // /**
-    // * @return the shcType
-    // */
-    // public String getShcType() {
-    // return shcType;
-    // }
-    //
-    // /**
-    // * @param shcType the shcType to set
-    // */
-    // public void setShcType(String shcType) {
-    // this.shcType = shcType;
-    // }
-    //
-    // /**
-    // * @return the backendConnectionMonitored
-    // */
-    // public Boolean getBackendConnectionMonitored() {
-    // return backendConnectionMonitored;
-    // }
-    //
-    // /**
-    // * @param backendConnectionMonitored the backendConnectionMonitored to set
-    // */
-    // public void setBackendConnectionMonitored(Boolean backendConnectionMonitored) {
-    // this.backendConnectionMonitored = backendConnectionMonitored;
-    // }
-    //
-    // /**
-    // * @return the rFCommFailureNotification
-    // */
-    // public Boolean getRFCommFailureNotification() {
-    // return RFCommFailureNotification;
-    // }
-    //
-    // /**
-    // * @param rFCommFailureNotification the rFCommFailureNotification to set
-    // */
-    // public void setRFCommFailureNotification(Boolean rFCommFailureNotification) {
-    // RFCommFailureNotification = rFCommFailureNotification;
-    // }
-    //
-    // /**
-    // * @return the postCode
-    // */
-    // public String getPostCode() {
-    // return postCode;
-    // }
-    //
-    // /**
-    // * @param postCode the postCode to set
-    // */
-    // public void setPostCode(String postCode) {
-    // this.postCode = postCode;
-    // }
-    //
-    // /**
-    // * @return the city
-    // */
-    // public String getCity() {
-    // return city;
-    // }
-    //
-    // /**
-    // * @param city the city to set
-    // */
-    // public void setCity(String city) {
-    // this.city = city;
-    // }
-    //
-    // /**
-    // * @return the street
-    // */
-    // public String getStreet() {
-    // return street;
-    // }
-    //
-    // /**
-    // * @param street the street to set
-    // */
-    // public void setStreet(String street) {
-    // this.street = street;
-    // }
-    //
-    // /**
-    // * @return the houseNumber
-    // */
-    // public String getHouseNumber() {
-    // return houseNumber;
-    // }
-    //
-    // /**
-    // * @param houseNumber the houseNumber to set
-    // */
-    // public void setHouseNumber(String houseNumber) {
-    // this.houseNumber = houseNumber;
-    // }
-    //
-    // /**
-    // * @return the country
-    // */
-    // public String getCountry() {
-    // return country;
-    // }
-    //
-    // /**
-    // * @param country the country to set
-    // */
-    // public void setCountry(String country) {
-    // this.country = country;
-    // }
-    //
-    // /**
-    // * @return the householdType
-    // */
-    // public String getHouseholdType() {
-    // return householdType;
-    // }
-    //
-    // /**
-    // * @param householdType the householdType to set
-    // */
-    // public void setHouseholdType(String householdType) {
-    // this.householdType = householdType;
-    // }
-    //
-    // /**
-    // * @return the numberOfPersons
-    // */
-    // public Integer getNumberOfPersons() {
-    // return numberOfPersons;
-    // }
-    //
-    // /**
-    // * @param numberOfPersons the numberOfPersons to set
-    // */
-    // public void setNumberOfPersons(Integer numberOfPersons) {
-    // this.numberOfPersons = numberOfPersons;
-    // }
-    //
-    // /**
-    // * @return the numberOfFloors
-    // */
-    // public Integer getNumberOfFloors() {
-    // return numberOfFloors;
-    // }
-    //
-    // /**
-    // * @param numberOfFloors the numberOfFloors to set
-    // */
-    // public void setNumberOfFloors(Integer numberOfFloors) {
-    // this.numberOfFloors = numberOfFloors;
-    // }
-    //
-    // /**
-    // * @return the livingArea
-    // */
-    // public Integer getLivingArea() {
-    // return livingArea;
-    // }
-    //
-    // /**
-    // * @param livingArea the livingArea to set
-    // */
-    // public void setLivingArea(Integer livingArea) {
-    // this.livingArea = livingArea;
-    // }
-    //
-    // /**
-    // * @return the registrationTime
-    // */
-    // public String getRegistrationTime() {
-    // return registrationTime;
-    // }
-    //
-    // /**
-    // * @param registrationTime the registrationTime to set
-    // */
-    // public void setRegistrationTime(String registrationTime) {
-    // this.registrationTime = registrationTime;
-    // }
-    //
-    // /**
-    // * @return the displayCurrentTemperature
-    // */
-    // public String getDisplayCurrentTemperature() {
-    // return displayCurrentTemperature;
-    // }
-    //
-    // /**
-    // * @param displayCurrentTemperature the displayCurrentTemperature to set
-    // */
-    // public void setDisplayCurrentTemperature(String displayCurrentTemperature) {
-    // this.displayCurrentTemperature = displayCurrentTemperature;
-    // }
-    //
-    // /**
-    // * @return the underlyingDeviceIds
-    // */
-    // public String getUnderlyingDeviceIds() {
-    // return underlyingDeviceIds;
-    // }
-    //
-    // /**
-    // * @param underlyingDeviceIds the underlyingDeviceIds to set
-    // */
-    // public void setUnderlyingDeviceIds(String underlyingDeviceIds) {
-    // this.underlyingDeviceIds = underlyingDeviceIds;
-    // }
-    //
-    // /**
-    // * @return the meterId
-    // */
-    // public String getMeterId() {
-    // return meterId;
-    // }
-    //
-    // /**
-    // * @param meterId the meterId to set
-    // */
-    // public void setMeterId(String meterId) {
-    // this.meterId = meterId;
-    // }
-    //
-    // /**
-    // * @return the meterFirmwareVersion
-    // */
-    // public String getMeterFirmwareVersion() {
-    // return meterFirmwareVersion;
-    // }
-    //
-    // /**
-    // * @param meterFirmwareVersion the meterFirmwareVersion to set
-    // */
-    // public void setMeterFirmwareVersion(String meterFirmwareVersion) {
-    // this.meterFirmwareVersion = meterFirmwareVersion;
-    // }
-    //
-    // /**
-    // * @return the deviceType
-    // */
-    // public String getDeviceType() {
-    // return deviceType;
-    // }
-    //
-    // /**
-    // * @param deviceType the deviceType to set
-    // */
-    // public void setDeviceType(String deviceType) {
-    // this.deviceType = deviceType;
-    // }
 }
