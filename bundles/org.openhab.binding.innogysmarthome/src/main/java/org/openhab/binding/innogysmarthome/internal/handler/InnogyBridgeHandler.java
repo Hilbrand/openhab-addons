@@ -29,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -871,7 +872,11 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
         } else if (e instanceof AuthenticationException) {
             logger.debug("OAuthenticaton error, refreshing tokens: {}", e.getMessage());
             try {
-                oAuthService.refreshToken();
+                OAuthClientService localOAuthService = this.oAuthService;
+
+                if (localOAuthService != null) {
+                    oAuthService.refreshToken();
+                }
             } catch (IOException | OAuthResponseException | OAuthException e1) {
                 logger.debug("Could not refresh tokens", e);
             }
@@ -882,6 +887,9 @@ public class InnogyBridgeHandler extends BaseBridgeHandler
         } else if (e instanceof ApiException) {
             logger.warn("Unexcepted API error: {}", e.getMessage(), e);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+        } else if (e instanceof TimeoutException) {
+            logger.debug("WebSocket timeout: {}", e.getMessage());
+            reinitialize = REINITIALIZE_DELAY_ON_TIMEOUT_SECONDS;
         } else if (e instanceof SocketTimeoutException) {
             logger.debug("Socket timeout: {}", e.getMessage());
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
