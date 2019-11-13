@@ -41,7 +41,7 @@ public class State {
     private StringState firmwareVersion;
 
     @SerializedName("WHRating")
-    private DoubleState WHRating;
+    private DoubleState wHRating;
 
     /** SHC device states */
     private StringState updateAvailable;
@@ -51,18 +51,18 @@ public class State {
     private IntegerState memoryLoad;
 
     @SerializedName("CPULoad")
-    private IntegerState CPULoad;
+    private IntegerState cpuLoad;
 
     @SerializedName("LBDongleAttached")
-    private BooleanState LBDongleAttached;
+    private BooleanState lBDongleAttached;
 
     @SerializedName("MBusDongleAttached")
-    private BooleanState MBusDongleAttached;
+    private BooleanState mBusDongleAttached;
 
     private IntegerState configVersion;
 
     @SerializedName("OSState")
-    private StringState OSState;
+    private StringState oSState;
 
     private IntegerState wifiSignalStrength;
 
@@ -164,14 +164,14 @@ public class State {
      * @return the wHRating
      */
     public DoubleState getWHRating() {
-        return WHRating;
+        return wHRating;
     }
 
     /**
      * @param wHRating the wHRating to set
      */
     public void setWHRating(DoubleState wHRating) {
-        WHRating = wHRating;
+        this.wHRating = wHRating;
     }
 
     /**
@@ -220,42 +220,42 @@ public class State {
      * @return the cPULoad
      */
     public IntegerState getCPULoad() {
-        return CPULoad;
+        return cpuLoad;
     }
 
     /**
-     * @param cPULoad the cPULoad to set
+     * @param cpuLoad the cPULoad to set
      */
-    public void setCPULoad(IntegerState cPULoad) {
-        CPULoad = cPULoad;
+    public void setCPULoad(IntegerState cpuLoad) {
+        this.cpuLoad = cpuLoad;
     }
 
     /**
      * @return the lBDongleAttached
      */
     public BooleanState getLBDongleAttached() {
-        return LBDongleAttached;
+        return lBDongleAttached;
     }
 
     /**
      * @param lBDongleAttached the lBDongleAttached to set
      */
     public void setLBDongleAttached(BooleanState lBDongleAttached) {
-        LBDongleAttached = lBDongleAttached;
+        this.lBDongleAttached = lBDongleAttached;
     }
 
     /**
      * @return the mBusDongleAttached
      */
     public BooleanState getMBusDongleAttached() {
-        return MBusDongleAttached;
+        return mBusDongleAttached;
     }
 
     /**
      * @param mBusDongleAttached the mBusDongleAttached to set
      */
     public void setMBusDongleAttached(BooleanState mBusDongleAttached) {
-        MBusDongleAttached = mBusDongleAttached;
+        this.mBusDongleAttached = mBusDongleAttached;
     }
 
     /**
@@ -276,14 +276,14 @@ public class State {
      * @return the oSState
      */
     public StringState getOSState() {
-        return OSState;
+        return oSState;
     }
 
     /**
      * @param oSState the oSState to set
      */
     public void setOSState(StringState oSState) {
-        OSState = oSState;
+        this.oSState = oSState;
     }
 
     /**

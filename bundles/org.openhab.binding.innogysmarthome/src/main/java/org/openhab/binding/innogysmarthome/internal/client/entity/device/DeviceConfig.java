@@ -46,10 +46,10 @@ public class DeviceConfig {
     private String configurationState;
 
     @SerializedName("IPAddress")
-    private String IPAddress;
+    private String ipAddress;
 
     @SerializedName("MACAddress")
-    private String MACAddress;
+    private String macAddress;
 
     private String registrationTime;
 
@@ -64,7 +64,7 @@ public class DeviceConfig {
     private Boolean backendConnectionMonitored;
 
     @SerializedName("RFCommFailureNotification")
-    private Boolean RFCommFailureNotification;
+    private Boolean rfCommFailureNotification;
 
     private String displayCurrentTemperature;
 
@@ -229,28 +229,28 @@ public class DeviceConfig {
      * @return the iPAddress
      */
     public String getIPAddress() {
-        return IPAddress;
+        return ipAddress;
     }
 
     /**
-     * @param iPAddress the iPAddress to set
+     * @param ipAddress the ipAddress to set
      */
-    public void setIPAddress(String iPAddress) {
-        IPAddress = iPAddress;
+    public void setIPAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
     }
 
     /**
      * @return the mACAddress
      */
     public String getMACAddress() {
-        return MACAddress;
+        return macAddress;
     }
 
     /**
      * @param mACAddress the mACAddress to set
      */
     public void setMACAddress(String mACAddress) {
-        MACAddress = mACAddress;
+        this.macAddress = mACAddress;
     }
 
     /**
@@ -344,14 +344,14 @@ public class DeviceConfig {
      * @return the rFCommFailureNotification
      */
     public Boolean getRFCommFailureNotification() {
-        return RFCommFailureNotification;
+        return rfCommFailureNotification;
     }
 
     /**
      * @param rFCommFailureNotification the rFCommFailureNotification to set
      */
     public void setRFCommFailureNotification(Boolean rFCommFailureNotification) {
-        RFCommFailureNotification = rFCommFailureNotification;
+        rfCommFailureNotification = rFCommFailureNotification;
     }
 
     /**

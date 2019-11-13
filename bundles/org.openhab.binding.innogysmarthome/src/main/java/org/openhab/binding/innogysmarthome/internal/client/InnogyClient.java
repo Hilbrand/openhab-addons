@@ -85,8 +85,8 @@ public class InnogyClient {
      * date format as used in json in API. Example: 2016-07-11T10:55:52.3863424Z
      */
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-    private final Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
 
+    private final Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
     private final OAuthClientService oAuthService;
     private final HttpClient httpClient;
     private @Nullable Gateway bridgeDetails;

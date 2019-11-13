@@ -12,12 +12,15 @@
  */
 package org.openhab.binding.innogysmarthome.internal.client.exception;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * Thrown, if an authentication error is given.
  *
  * @author Hilbrand Bouwkamp - Initial contribution
  *
  */
+@NonNullByDefault
 public class AuthenticationException extends Exception {
 
     private static final long serialVersionUID = 1L;

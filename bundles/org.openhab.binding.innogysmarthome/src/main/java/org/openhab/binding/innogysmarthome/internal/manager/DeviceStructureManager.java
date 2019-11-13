@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.innogysmarthome.internal.InnogyBindingConstants;
 import org.openhab.binding.innogysmarthome.internal.client.InnogyClient;
 import org.openhab.binding.innogysmarthome.internal.client.entity.capability.Capability;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
  * @author Oliver Kuhl - Initial contribution
  *
  */
+@NonNullByDefault
 public class DeviceStructureManager {
 
     private final Logger logger = LoggerFactory.getLogger(DeviceStructureManager.class);
@@ -45,7 +48,7 @@ public class DeviceStructureManager {
     private final InnogyClient client;
     private final Map<String, Device> deviceMap;
     private final Map<String, Device> capabilityIdToDeviceMap;
-    private String bridgeDeviceId;
+    private String bridgeDeviceId = "";
 
     /**
      * Constructs the {@link DeviceStructureManager}.
@@ -201,7 +204,7 @@ public class DeviceStructureManager {
      * @param messageId the id of the {@link Message}
      * @return the {@link Device} or null if none found
      */
-    public Device getDeviceWithMessageId(String messageId) {
+    public @Nullable Device getDeviceWithMessageId(String messageId) {
         logger.trace("Getting Device with MessageId '{}'", messageId);
         for (Device d : getDeviceMap().values()) {
             if (d.hasMessages()) {
@@ -222,7 +225,7 @@ public class DeviceStructureManager {
      * @param capabilityType
      * @return the id of the found {@link Capability} or null
      */
-    public String getCapabilityId(String deviceId, String capabilityType) {
+    public @Nullable String getCapabilityId(String deviceId, String capabilityType) {
         Device device = getDeviceMap().get(deviceId);
         for (Capability c : device.getCapabilityMap().values()) {
             if (c.getType().equals(capabilityType)) {

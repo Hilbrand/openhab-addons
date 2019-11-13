@@ -47,7 +47,6 @@ public class InnogyBindingConstants {
     public static final String CONFIG_REFRESH_TOKEN = "refreshtoken";
     public static final String CONFIG_WEBSOCKET_IDLE_TIMEOUT = "websocketidletimeout";
 
-    public static final long REINITIALIZE_DELAY_ON_TIMEOUT_SECONDS = 3;
     public static final long REINITIALIZE_DELAY_SECONDS = 30;
     public static final long REINITIALIZE_DELAY_LONG_SECONDS = 120;
 

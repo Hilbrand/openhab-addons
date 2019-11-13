@@ -26,7 +26,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  *
  */
 @NonNullByDefault
-public class Constants {
+public final class Constants {
 
     // devices
     public static final Set<String> BATTERY_POWERED_DEVICES = Collections.unmodifiableSet(
@@ -60,4 +60,8 @@ public class Constants {
 
     // others
     public static final String FORMAT_DATETIME = "dd.MM.yyyy HH:mm:ss";
+
+    private Constants() {
+        // Constants class
+    }
 }

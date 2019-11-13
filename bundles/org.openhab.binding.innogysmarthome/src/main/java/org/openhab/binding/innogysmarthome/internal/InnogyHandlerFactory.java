@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.smarthome.core.auth.client.oauth2.OAuthFactory;
 import org.eclipse.smarthome.core.thing.Bridge;
@@ -41,6 +43,7 @@ import org.slf4j.LoggerFactory;
  * @author Hilbrand Bouwkamp - Refactored to use openHAB http and oauth2 libraries
  */
 @Component(service = ThingHandlerFactory.class, configurationPid = "binding.innogysmarthome")
+@NonNullByDefault
 public class InnogyHandlerFactory extends BaseThingHandlerFactory implements ThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Stream
@@ -65,7 +68,7 @@ public class InnogyHandlerFactory extends BaseThingHandlerFactory implements Thi
     }
 
     @Override
-    protected ThingHandler createHandler(Thing thing) {
+    protected @Nullable ThingHandler createHandler(Thing thing) {
         if (InnogyBridgeHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {
             return new InnogyBridgeHandler((Bridge) thing, oAuthFactory, httpClient);
         } else if (InnogyDeviceHandler.SUPPORTED_THING_TYPES.contains(thing.getThingTypeUID())) {

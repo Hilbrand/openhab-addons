@@ -97,7 +97,6 @@ public class InnogyDeviceHandler extends BaseThingHandler implements DeviceStatu
             return;
         }
 
-        // TODO: add devices
         // SWITCH
         if (channelUID.getId().equals(CHANNEL_SWITCH)) {
             // DEBUGGING HELPER

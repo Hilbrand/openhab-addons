@@ -37,7 +37,6 @@ public class Link {
      *         {@link #LINK_TYPE_SHC} or {@link #LINK_TYPE_UNKNOWN}
      */
     public static String getLinkType(String link) {
-
         if (link.startsWith(LINK_TYPE_CAPABILITY)) {
             return LINK_TYPE_CAPABILITY;
         } else if (link.startsWith(LINK_TYPE_DEVICE)) {
