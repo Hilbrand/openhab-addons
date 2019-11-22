@@ -53,6 +53,7 @@
 /bundles/org.openhab.binding.fsinternetradio/ @paphko
 /bundles/org.openhab.binding.ftpupload/ @paulianttila
 /bundles/org.openhab.binding.gardena/ @gerrieg
+/bundles/org.openhab.binding.genericbinding/ @Hilbrand
 /bundles/org.openhab.binding.globalcache/ @mhilbush
 /bundles/org.openhab.binding.gpstracker/ @gbicskei
 /bundles/org.openhab.binding.groheondus/ @FlorianSW
