@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<binding:binding id="samppee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:binding="https://openhab.org/schemas/binding/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/binding/v1.0.0 https://openhab.org/schemas/binding-1.0.0.xsd">
+
+	<name>Smappee Binding</name>
+	<description>The smappee binding connects to the smappee API to obtain energy consumption / gain of your home</description>
+	<author>Niko Tanghe</author>
+
+</binding:binding>
