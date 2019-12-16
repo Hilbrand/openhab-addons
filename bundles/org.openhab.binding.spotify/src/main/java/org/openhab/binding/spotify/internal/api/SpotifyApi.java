@@ -61,8 +61,8 @@ public class SpotifyApi {
     private static final char AMP = '&';
     private static final char QSM = '?';
     private static final CurrentlyPlayingContext EMPTY_CURRENTLYPLAYINGCONTEXT = new CurrentlyPlayingContext();
-    private static final String PLAY_TRACK_URIS = "{\"uris\":[%s],\"offset\":{\"position\":0}}";
-    private static final String PLAY_TRACK_CONTEXT_URI = "{\"context_uri\":\"%s\",\"offset\":{\"position\":0}}";
+    private static final String PLAY_TRACK_URIS = "{\"uris\":[%s],\"position_ms\":%d}";
+    private static final String PLAY_TRACK_CONTEXT_URI = "{\"context_uri\":\"%s\",\"offset\":{\"position\":%d}}";
     private static final String TRANSFER_PLAY = "{\"device_ids\":[\"%s\"],\"play\":%b}";
 
     private final Logger logger = LoggerFactory.getLogger(SpotifyApi.class);
@@ -76,8 +76,8 @@ public class SpotifyApi {
      * @param authorizer The authorizer used to refresh the access token when expired
      * @param connector The Spotify connector handling the Web Api calls to Spotify
      */
-    public SpotifyApi(OAuthClientService oAuthClientService, ScheduledExecutorService scheduler,
-            HttpClient httpClient) {
+    public SpotifyApi(final OAuthClientService oAuthClientService, final ScheduledExecutorService scheduler,
+            final HttpClient httpClient) {
         this.oAuthClientService = oAuthClientService;
         connector = new SpotifyConnector(scheduler, httpClient);
     }
@@ -96,17 +96,23 @@ public class SpotifyApi {
      * the active device.
      *
      * @param deviceId device to play on or empty if play on the active device
-     * @param trackId id of the track to play
+     * @param uri id of the track, album, artist or playlist to play
      */
-    public void playTrack(String deviceId, String trackId) {
+    public void playTrack(final String deviceId, final String uri) {
         final String url = "play" + optionalDeviceId(deviceId, QSM);
+        final int offsetIndex = uri.indexOf("#");
+        final int position = offsetIndex < 0 ? 0 : Integer.parseInt(uri.substring(offsetIndex));
+        final String trackId = offsetIndex < 0 ? uri : uri.substring(0, offsetIndex);
         final String play;
+
         if (trackId.contains(":track:")) {
-            play = String.format(PLAY_TRACK_URIS, Arrays.asList(trackId.split(",")).stream().map(t -> '"' + t + '"')
-                    .collect(Collectors.joining(",")));
+            play = String.format(PLAY_TRACK_URIS,
+                    Arrays.asList(trackId.split(",")).stream().map(t -> '"' + t + '"').collect(Collectors.joining(",")),
+                    position);
         } else {
-            play = String.format(PLAY_TRACK_CONTEXT_URI, trackId);
+            play = String.format(PLAY_TRACK_CONTEXT_URI, trackId, position);
         }
+
         requestPlayer(PUT, url, play);
     }
 
@@ -115,7 +121,7 @@ public class SpotifyApi {
      *
      * @param deviceId device to play on or empty if play on the active device
      */
-    public void play(String deviceId) {
+    public void play(final String deviceId) {
         requestPlayer(PUT, "play" + optionalDeviceId(deviceId, QSM));
     }
 
@@ -125,7 +131,7 @@ public class SpotifyApi {
      * @param deviceId device to play on. It can not be empty.
      * @param play if true transfers and starts to play, else transfers but pauses.
      */
-    public void transferPlay(String deviceId, boolean play) {
+    public void transferPlay(final String deviceId, final boolean play) {
         requestPlayer(PUT, "", String.format(TRANSFER_PLAY, deviceId, play));
     }
 
@@ -134,7 +140,7 @@ public class SpotifyApi {
      *
      * @param deviceId device to pause on or empty if pause on the active device
      */
-    public void pause(String deviceId) {
+    public void pause(final String deviceId) {
         requestPlayer(PUT, "pause" + optionalDeviceId(deviceId, QSM));
     }
 
@@ -144,7 +150,7 @@ public class SpotifyApi {
      *
      * @param deviceId device to play next track on or empty if play next track on the active device
      */
-    public void next(String deviceId) {
+    public void next(final String deviceId) {
         requestPlayer(POST, "next" + optionalDeviceId(deviceId, QSM));
     }
 
@@ -154,7 +160,7 @@ public class SpotifyApi {
      *
      * @param deviceId device to play previous track on or empty if play previous track on the active device
      */
-    public void previous(String deviceId) {
+    public void previous(final String deviceId) {
         requestPlayer(POST, "previous" + optionalDeviceId(deviceId, QSM));
     }
 
@@ -164,7 +170,7 @@ public class SpotifyApi {
      * @param deviceId device to set the Volume on or empty if set volume on the active device
      * @param volumePercent volume percentage value to set
      */
-    public void setVolume(String deviceId, int volumePercent) {
+    public void setVolume(final String deviceId, final int volumePercent) {
         requestPlayer(PUT, String.format("volume?volume_percent=%1d", volumePercent) + optionalDeviceId(deviceId, AMP));
     }
 
@@ -175,7 +181,7 @@ public class SpotifyApi {
      * @param deviceId device to set repeat state on or empty if set repeat on the active device
      * @param repeateState set the spotify repeat state
      */
-    public void setRepeatState(String deviceId, String repeateState) {
+    public void setRepeatState(final String deviceId, final String repeateState) {
         requestPlayer(PUT, String.format("repeat?state=%s", repeateState) + optionalDeviceId(deviceId, AMP));
     }
 
@@ -186,7 +192,7 @@ public class SpotifyApi {
      * @param deviceId device to set shuffle state on or empty if set shuffle on the active device
      * @param state the shuffle state to set
      */
-    public void setShuffleState(String deviceId, OnOffType state) {
+    public void setShuffleState(final String deviceId, final OnOffType state) {
         requestPlayer(PUT, String.format("shuffle?state=%s", state == OnOffType.OFF ? "false" : "true")
                 + optionalDeviceId(deviceId, AMP));
     }
@@ -199,7 +205,7 @@ public class SpotifyApi {
      * @param prefix char to prefix to the deviceId string if present
      * @return empty string or query string part for device id
      */
-    private String optionalDeviceId(String deviceId, char prefix) {
+    private String optionalDeviceId(final String deviceId, final char prefix) {
         return deviceId.isEmpty() ? "" : String.format("%cdevice_id=%s", prefix, deviceId);
     }
 
@@ -244,7 +250,7 @@ public class SpotifyApi {
      * @param url url path to call to spotify
      * @return the response give by Spotify
      */
-    private ContentResponse requestPlayer(HttpMethod method, String url) {
+    private ContentResponse requestPlayer(final HttpMethod method, final String url) {
         return requestPlayer(method, url, "");
     }
 
@@ -257,7 +263,7 @@ public class SpotifyApi {
      * @param requestData data to pass along with the call as content
      * @return the response give by Spotify
      */
-    private ContentResponse requestPlayer(HttpMethod method, String url, String requestData) {
+    private ContentResponse requestPlayer(final HttpMethod method, final String url, final String requestData) {
         return request(method, SPOTIFY_API_PLAYER_URL + (url.isEmpty() ? "" : ('/' + url)), requestData);
     }
 
@@ -269,7 +275,7 @@ public class SpotifyApi {
      * @param requestData data to pass along with the call as content
      * @return the response give by Spotify
      */
-    private ContentResponse request(HttpMethod method, String url, String requestData) {
+    private ContentResponse request(final HttpMethod method, final String url, final String requestData) {
         logger.debug("Request: ({}) {} - {}", method, url, requestData);
         final Function<HttpClient, Request> call = httpClient -> httpClient.newRequest(url).method(method)
                 .header("Accept", CONTENT_TYPE).content(new StringContentProvider(requestData), CONTENT_TYPE);
@@ -283,7 +289,7 @@ public class SpotifyApi {
             } else {
                 return requestWithRetry(call, accessToken);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new SpotifyException(e.getMessage(), e);
         } catch (OAuthException | OAuthResponseException e) {
             throw new SpotifyAuthorizationException(e.getMessage(), e);
@@ -294,7 +300,7 @@ public class SpotifyApi {
             throws OAuthException, IOException, OAuthResponseException {
         try {
             return connector.request(call, BEARER + accessToken);
-        } catch (SpotifyTokenExpiredException e) {
+        } catch (final SpotifyTokenExpiredException e) {
             // Retry with new access token
             return connector.request(call, BEARER + oAuthClientService.refreshToken().getAccessToken());
         }
