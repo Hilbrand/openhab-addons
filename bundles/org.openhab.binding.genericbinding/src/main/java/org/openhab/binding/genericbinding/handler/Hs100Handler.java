@@ -1,9 +1,12 @@
 package org.openhab.binding.genericbinding.handler;
 
+import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.smarthome.core.cache.ExpiringCache;
 import org.eclipse.smarthome.core.library.types.HSBType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.PercentType;
@@ -14,36 +17,46 @@ import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
+import org.eclipse.smarthome.core.types.RefreshType;
 import org.eclipse.smarthome.core.types.State;
+import org.eclipse.smarthome.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @NonNullByDefault
-public abstract class Hs100Handler extends BaseThingHandler {
+public abstract class Hs100Handler extends BaseThingHandler implements Hs100HandleCommands {
 
-    private final Logger logger = LoggerFactory.getLogger(Hs100Handler.class);
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected @NonNullByDefault({}) SwitchConfiguration configuration;
 
     private @NonNullByDefault({}) ScheduledFuture<?> scheduledRefresh;
 
-    public Hs100Handler(Thing thing) {
+    private final ExpiringCache<Hs100Data> data = new ExpiringCache<Hs100Data>(Duration.ofSeconds(3),
+            this::refreshData);
+
+    public Hs100Handler(final Thing thing) {
         super(thing);
     }
 
     @Override
     public void initialize() {
         configuration = getConfigAs(SwitchConfiguration.class);
-        if (initialize(configuration)) {
-            scheduledRefresh = scheduler.scheduleWithFixedDelay(this::safeRefresh, configuration.refresh,
-                    configuration.refresh, TimeUnit.SECONDS);
-        }
+        scheduler.execute(() -> {
+            if (initialize(configuration)) {
+                scheduledRefresh = scheduler.scheduleWithFixedDelay(this::safeRefresh, configuration.refresh,
+                        configuration.refresh, TimeUnit.SECONDS);
+            }
+        });
     }
 
     protected abstract boolean initialize(SwitchConfiguration configuration);
 
     @Override
-    public void handleCommand(ChannelUID channelUID, Command command) {
+    public void handleCommand(final ChannelUID channelUID, final Command command) {
+        if (command instanceof RefreshType) {
+            handleRefresh(channelUID);
+        }
         switch (channelUID.getId()) {
             case "switch":
                 handleSwitch(command == OnOffType.ON);
@@ -58,21 +71,55 @@ public abstract class Hs100Handler extends BaseThingHandler {
                 }
                 break;
             case "led":
-                handleLed((OnOffType) command);
+                if (command instanceof OnOffType) {
+                    handleLed(command == OnOffType.ON);
+                }
                 break;
         }
     }
 
-    protected abstract void handleColorOnOff(boolean on);
+    protected abstract @Nullable Hs100Data refreshData();
 
-    protected abstract void handleColorDimmer(int percentage);
+    protected abstract void handleRefresh(ChannelUID channelUID);
 
-    protected abstract void handleColor(HSBType hsbType);
+    private void x(final ChannelUID channelUID) {
+        final Hs100Data value = data.getValue();
+        final State state;
+
+        if (value == null) {
+            state = UnDefType.UNDEF;
+        } else {
+            switch (channelUID.getId()) {
+                case "switch":
+                    state = OnOffType.from(value.getSwitchState());
+                    break;
+                default:
+                    state = UnDefType.UNDEF;
+                    break;
+            }
+        }
+        updateState(channelUID, state);
+    }
 
     private void safeRefresh() {
         try {
-            refresh();
-        } catch (RuntimeException e) {
+            final Hs100Data data = refreshData();
+            if (data == null) {
+
+            } else {
+                for (final Channel channel : getThing().getChannels()) {
+                    if (isLinked(channel.getUID())) {
+                        State state = UnDefType.UNDEF;
+                        switch (channel.getUID().getId()) {
+                            case "switch":
+                                state = OnOffType.from(data.getSwitchState());
+                                break;
+                        }
+                        updateState(channel.getUID(), state);
+                    }
+                }
+            }
+        } catch (final RuntimeException e) {
             logger.debug("Refresh crashed with exception: ", e);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.NONE, e.getMessage());
         }
@@ -80,20 +127,16 @@ public abstract class Hs100Handler extends BaseThingHandler {
 
     protected abstract void refresh();
 
-    protected abstract void handleSwitch(boolean on);
-
-    protected abstract void handleLed(OnOffType onOff);
-
-    protected void setColorDimmer(int percentage) {
+    protected void setColorDimmer(final int percentage) {
         safeUpdateState("color", new PercentType(percentage));
     }
 
-    protected void setSwitchState(boolean state) {
+    protected void setSwitchState(final boolean state) {
         safeUpdateState("switch", OnOffType.from(state));
     }
 
-    private void safeUpdateState(String channelId, State state) {
-        Channel channel = getThing().getChannel(channelId);
+    private void safeUpdateState(final String channelId, final State state) {
+        final Channel channel = getThing().getChannel(channelId);
 
         if (channel != null) {
             updateState(channel.getUID(), state);
