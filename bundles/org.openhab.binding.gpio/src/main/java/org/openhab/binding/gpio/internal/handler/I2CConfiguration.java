@@ -10,9 +10,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.gpio.internal.extension;
+package org.openhab.binding.gpio.internal.handler;
 
-public class I2CConfiguration {
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
+/**
+ *
+ * @author Hilbrand Bouwkamp - Initial contribution
+ */
+@NonNullByDefault
+public class I2CConfiguration extends GpioConfiguration {
 
     private final String address = "20";
     private final int busNumber = 1;

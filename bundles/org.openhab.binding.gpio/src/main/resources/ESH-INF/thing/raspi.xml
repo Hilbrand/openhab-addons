@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="gpio"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="raspi">
+		<label>Raspberry Pi</label>
+		<description>Thing for Raspberry Pi GPIO ports</description>
+
+		<channel-groups>
+			<channel-group id="in" typeId="raspi-in" />
+			<channel-group id="out" typeId="raspi-out" />
+		</channel-groups>
+
+		<config-description-ref uri="thing-type:raspi:config"/>
+	</thing-type>
+
+	<channel-group-type id="raspi-in">
+		<label>Input Pins</label>
+		<description>Pins operating in input mode.</description>
+		<channels>
+			<channel id="0" typeId="input-switch" />
+			<channel id="1" typeId="input-switch" />
+			<channel id="2" typeId="input-switch" />
+			<channel id="3" typeId="input-switch" />
+			<channel id="4" typeId="input-switch" />
+			<channel id="5" typeId="input-switch" />
+			<channel id="6" typeId="input-switch" />
+			<channel id="7" typeId="input-switch" />
+			<channel id="8" typeId="input-switch" />
+			<channel id="9" typeId="input-switch" />
+			<channel id="10" typeId="input-switch" />
+			<channel id="11" typeId="input-switch" />
+			<channel id="12" typeId="input-switch" />
+			<channel id="13" typeId="input-switch" />
+			<channel id="14" typeId="input-switch" />
+			<channel id="15" typeId="input-switch" />
+			<channel id="16" typeId="input-switch" />
+			<channel id="17" typeId="input-switch" />
+			<channel id="18" typeId="input-switch" />
+			<channel id="19" typeId="input-switch" />
+			<channel id="20" typeId="input-switch" />
+			<channel id="21" typeId="input-switch" />
+			<channel id="22" typeId="input-switch" />
+			<channel id="23" typeId="input-switch" />
+			<channel id="24" typeId="input-switch" />
+			<channel id="25" typeId="input-switch" />
+			<channel id="26" typeId="input-switch" />
+			<channel id="27" typeId="input-switch" />
+			<channel id="28" typeId="input-switch" />
+			<channel id="29" typeId="input-switch" />
+			<channel id="30" typeId="input-switch" />
+			<channel id="31" typeId="input-switch" />
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="raspi-out">
+		<label>Output Pins</label>
+		<description>Pins operating in output mode.</description>
+		<channels>
+			<channel id="0" typeId="output-switch" />
+			<channel id="1" typeId="output-switch" />
+			<channel id="2" typeId="output-switch" />
+			<channel id="3" typeId="output-switch" />
+			<channel id="4" typeId="output-switch" />
+			<channel id="5" typeId="output-switch" />
+			<channel id="6" typeId="output-switch" />
+			<channel id="7" typeId="output-switch" />
+			<channel id="8" typeId="output-switch" />
+			<channel id="9" typeId="output-switch" />
+			<channel id="10" typeId="output-switch" />
+			<channel id="11" typeId="output-switch" />
+			<channel id="12" typeId="output-switch" />
+			<channel id="13" typeId="output-switch" />
+			<channel id="14" typeId="output-switch" />
+			<channel id="15" typeId="output-switch" />
+			<channel id="16" typeId="output-switch" />
+			<channel id="17" typeId="output-switch" />
+			<channel id="18" typeId="output-switch" />
+			<channel id="19" typeId="output-switch" />
+			<channel id="20" typeId="output-switch" />
+			<channel id="21" typeId="output-switch" />
+			<channel id="22" typeId="output-switch" />
+			<channel id="23" typeId="output-switch" />
+			<channel id="24" typeId="output-switch" />
+			<channel id="25" typeId="output-switch" />
+			<channel id="26" typeId="output-switch" />
+			<channel id="27" typeId="output-switch" />
+			<channel id="28" typeId="output-switch" />
+			<channel id="29" typeId="output-switch" />
+			<channel id="30" typeId="output-switch" />
+			<channel id="31" typeId="output-switch" />
+		</channels>
+	</channel-group-type>
+
+</thing:thing-descriptions>

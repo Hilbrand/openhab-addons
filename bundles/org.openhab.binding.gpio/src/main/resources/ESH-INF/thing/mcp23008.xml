@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="gpio"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="mcp23008">
+		<label>MCP23008</label>
+		<description>Thing for mcp23008 integrated circuit</description>
+
+		<channel-groups>
+			<channel-group id="in" typeId="mcp23008-in"/>
+			<channel-group id="out" typeId="mcp23008-out"/>
+		</channel-groups>
+
+		<config-description-ref uri="thing-type:i2c:config"/>
+	</thing-type>
+
+	<channel-group-type id="mcp23008-in">
+		<label>Input Pins</label>
+		<description>Pins operating in input mode.</description>
+		<channels>
+			<channel id="GP0" typeId="input-switch"/>
+			<channel id="GP1" typeId="input-switch"/>
+			<channel id="GP2" typeId="input-switch"/>
+			<channel id="GP3" typeId="input-switch"/>
+			<channel id="GP4" typeId="input-switch"/>
+			<channel id="GP5" typeId="input-switch"/>
+			<channel id="GP6" typeId="input-switch"/>
+			<channel id="GP7" typeId="input-switch"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="mcp23008-out">
+		<label>Output Pins</label>
+		<description>Pins operating in output mode.</description>
+		<channels>
+			<channel id="GP0" typeId="output-switch"/>
+			<channel id="GP1" typeId="output-switch"/>
+			<channel id="GP2" typeId="output-switch"/>
+			<channel id="GP3" typeId="output-switch"/>
+			<channel id="GP4" typeId="output-switch"/>
+			<channel id="GP5" typeId="output-switch"/>
+			<channel id="GP6" typeId="output-switch"/>
+			<channel id="GP7" typeId="output-switch"/>
+		</channels>
+	</channel-group-type>
+
+</thing:thing-descriptions>

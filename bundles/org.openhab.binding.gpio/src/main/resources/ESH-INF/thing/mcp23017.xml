@@ -1,13 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<thing:thing-descriptions bindingId="pigpio" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
-    xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+<thing:thing-descriptions bindingId="gpio"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-    <thing-type id="mcp23017" extensible="input-contact, output-switch">
-        <label>MCP23017</label>
-        <description>Thing for mcp23017 integrated circuit</description>
+	<thing-type id="mcp23017">
+		<label>MCP23017</label>
+		<description>Thing for mcp23017 integrated circuit</description>
 
-        <config-description-ref uri="thing-type:i2c:config" />
-    </thing-type>
+		<channel-groups>
+			<channel-group id="in" typeId="mcp23017-in"/>
+			<channel-group id="out" typeId="mcp23017-out"/>
+		</channel-groups>
+
+		<config-description-ref uri="thing-type:i2c:config"/>
+	</thing-type>
+
+	<channel-group-type id="mcp23017-in">
+		<label>Input Pins</label>
+		<description>Pins operating in input mode.</description>
+		<channels>
+			<channel id="A0" typeId="input-switch" />
+			<channel id="A1" typeId="input-switch" />
+			<channel id="A2" typeId="input-switch"/>
+			<channel id="A3" typeId="input-switch"/>
+			<channel id="A4" typeId="input-switch"/>
+			<channel id="A5" typeId="input-switch"/>
+			<channel id="A6" typeId="input-switch"/>
+			<channel id="A7" typeId="input-switch"/>
+			<channel id="B0" typeId="input-switch"/>
+			<channel id="B1" typeId="input-switch"/>
+			<channel id="B2" typeId="input-switch"/>
+			<channel id="B3" typeId="input-switch"/>
+			<channel id="B4" typeId="input-switch"/>
+			<channel id="B5" typeId="input-switch"/>
+			<channel id="B6" typeId="input-switch"/>
+			<channel id="B7" typeId="input-switch"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="mcp23017-out">
+		<label>Output Pins</label>
+		<description>Pins operating in output mode.</description>
+		<channels>
+			<channel id="A0" typeId="output-switch"/>
+			<channel id="A1" typeId="output-switch"/>
+			<channel id="A2" typeId="output-switch"/>
+			<channel id="A3" typeId="output-switch"/>
+			<channel id="A4" typeId="output-switch"/>
+			<channel id="A5" typeId="output-switch"/>
+			<channel id="A6" typeId="output-switch"/>
+			<channel id="A7" typeId="output-switch"/>
+			<channel id="B0" typeId="output-switch"/>
+			<channel id="B1" typeId="output-switch"/>
+			<channel id="B2" typeId="output-switch"/>
+			<channel id="B3" typeId="output-switch"/>
+			<channel id="B4" typeId="output-switch"/>
+			<channel id="B5" typeId="output-switch"/>
+			<channel id="B6" typeId="output-switch"/>
+			<channel id="B7" typeId="output-switch"/>
+		</channels>
+	</channel-group-type>
 
 </thing:thing-descriptions>

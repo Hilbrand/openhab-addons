@@ -10,17 +10,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.gpio.internal;
+package org.openhab.binding.gpio.internal.handler;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link GPIOConfiguration} class contains fields mapping thing configuration parameters.
- *
  * @author Hilbrand Bouwkamp - Initial contribution
+ *
  */
-public class GPIOConfiguration {
-
-    /**
-     * Sample configuration parameter. Replace with your own.
-     */
-    public String config1;
+@NonNullByDefault
+public class GpioConfiguration {
+    public int refresh = 30;
 }
