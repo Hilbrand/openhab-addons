@@ -69,6 +69,7 @@
 /bundles/org.openhab.binding.ftpupload/ @paulianttila
 /bundles/org.openhab.binding.gardena/ @gerrieg
 /bundles/org.openhab.binding.globalcache/ @mhilbush
+/bundles/org.openhab.binding.gpio/ @Hilbrand
 /bundles/org.openhab.binding.gpstracker/ @gbicskei
 /bundles/org.openhab.binding.groheondus/ @FlorianSW
 /bundles/org.openhab.binding.harmonyhub/ @digitaldan

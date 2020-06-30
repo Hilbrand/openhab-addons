@@ -105,6 +105,7 @@
     <module>org.openhab.binding.gardena</module>
     <module>org.openhab.binding.goecharger</module>
     <module>org.openhab.binding.globalcache</module>
+    <module>org.openhab.binding.gpio</module>
     <module>org.openhab.binding.gpstracker</module>
     <module>org.openhab.binding.groheondus</module>
     <module>org.openhab.binding.harmonyhub</module>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="pigpio" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+    xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+    <thing-type id="mcp23017" extensible="input-contact, output-switch">
+        <label>MCP23017</label>
+        <description>Thing for mcp23017 integrated circuit</description>
+
+        <config-description-ref uri="thing-type:i2c:config" />
+    </thing-type>
+
+</thing:thing-descriptions>

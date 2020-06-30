@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-description:config-descriptions
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:config-description="https://openhab.org/schemas/config-description/v1.0.0"
+    xsi:schemaLocation="https://openhab.org/schemas/config-description/v1.0.0 https://openhab.org/schemas/config-description-1.0.0.xsd">
+
+    <!--  -->
+    <config-description uri="thing-type:i2c:config">
+        <parameter name="address" type="text" required="true">
+            <label>I2C Device Address</label>
+            <description>I2C Bus device address in HEX</description>
+            <default>20</default>
+        </parameter>
+        <parameter name="bus_number" type="integer" required="true">
+            <label>I2C BUS Number</label>
+            <description>I2C Bus number (0,1)</description>
+            <options>
+                <option value="0">0</option>
+                <option value="1">1</option>
+            </options>
+            <default>1</default>
+        </parameter>
+    </config-description>
+
+    <config-description uri="channel-type:input-pin:config">
+        <parameter name="pull_mode" type="text" required="true">
+            <label>PullResistor Mode</label>
+            <description>Input pull resistor mode</description>
+            <options>
+                <option value="OFF">OFF</option>
+                <option value="PULL_UP">Internal PULL_UP</option>
+            </options>
+            <default>OFF</default>
+        </parameter>
+        <parameter name="active_low" type="boolean">
+	        <label>Active Low</label>
+	        <description>If true a value active is handled as a low value</description>
+        </parameter>
+    </config-description>
+
+    <config-description uri="channel-type:output-pin:config">
+        <parameter name="default_state" type="text" required="true">
+            <label>Default State</label>
+            <description>Pin default state (LOW, HIGH)</description>
+            <options>
+                <option value="LOW">LOW</option>
+                <option value="HIGH">HIGH</option>
+            </options>
+            <default>LOW</default>
+        </parameter>
+    </config-description>
+
+</config-description:config-descriptions>
+        
