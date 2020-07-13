@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="pigpio"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="pcf8574">
+		<label>PCF8574</label>
+		<description>Thing for pcf8574 integrated circuit</description>
+
+		<channel-groups>
+			<channel-group id="in" typeId="pcf8574-in"/>
+			<channel-group id="out" typeId="pcf8574-out"/>
+		</channel-groups>
+
+		<config-description-ref uri="thing-type:i2c:config"/>
+	</thing-type>
+
+	<channel-group-type id="pcf8574-in">
+		<label>Input Pins</label>
+		<description>Pins operating in input mode.</description>
+		<channels>
+			<channel id="0" typeId="input-switch"/>
+			<channel id="1" typeId="input-switch"/>
+			<channel id="2" typeId="input-switch"/>
+			<channel id="3" typeId="input-switch"/>
+			<channel id="4" typeId="input-switch"/>
+			<channel id="5" typeId="input-switch"/>
+			<channel id="6" typeId="input-switch"/>
+			<channel id="7" typeId="input-switch"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="pcf8574-out">
+		<label>Output Pins</label>
+		<description>Pins operating in output mode.</description>
+		<channels>
+			<channel id="0" typeId="output-switch"/>
+			<channel id="1" typeId="output-switch"/>
+			<channel id="2" typeId="output-switch"/>
+			<channel id="3" typeId="output-switch"/>
+			<channel id="4" typeId="output-switch"/>
+			<channel id="5" typeId="output-switch"/>
+			<channel id="6" typeId="output-switch"/>
+			<channel id="7" typeId="output-switch"/>
+		</channels>
+	</channel-group-type>
+
+</thing:thing-descriptions>

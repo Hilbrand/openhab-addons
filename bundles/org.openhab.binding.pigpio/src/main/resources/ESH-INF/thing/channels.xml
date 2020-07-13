@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="pigpio"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<channel-type id="input-contact">
+		<item-type>Contact</item-type>
+		<label>Contact</label>
+		<description>Input channel acts as Contact</description>
+		<state readOnly="true"/>
+		<config-description-ref uri="channel-type:input-pin:config"/>
+	</channel-type>
+
+	<channel-type id="input-number">
+		<item-type>Number</item-type>
+		<label>Analog Input</label>
+		<description>Analog input channel</description>
+		<state readOnly="true"/>
+		<config-description-ref uri="channel-type:input-pin:config"/>
+	</channel-type>
+
+	<channel-type id="input-switch">
+		<item-type>Switch</item-type>
+		<label>Switch Input</label>
+		<description>Input channel acts as a Switch</description>
+		<state readOnly="true"/>
+		<config-description-ref uri="channel-type:input-pin:config"/>
+	</channel-type>
+
+	<channel-type id="output-number">
+		<item-type>Number</item-type>
+		<label>Analog Output</label>
+		<description>Analog Output channel</description>
+		<config-description-ref uri="channel-type:output-pin:config"/>
+	</channel-type>
+
+	<channel-type id="output-switch">
+		<item-type>Switch</item-type>
+		<label>Switch</label>
+		<description>Output channel</description>
+		<config-description-ref uri="channel-type:output-pin:config"/>
+	</channel-type>
+
+</thing:thing-descriptions>
