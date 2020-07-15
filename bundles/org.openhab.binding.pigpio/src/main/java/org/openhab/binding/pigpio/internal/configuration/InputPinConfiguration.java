@@ -26,11 +26,6 @@ public class InputPinConfiguration {
     public String pullMode = PullMode.OFF.name();
     public boolean activeLow;
 
-    @Override
-    public String toString() {
-        return "InputPinConfiguration [pullResistance=" + pullMode + ", active_low=" + activeLow + "]";
-    }
-
     public PinPullResistance getPullMode() {
         try {
             return PullMode.valueOf(pullMode).pullResistance;
@@ -38,6 +33,11 @@ public class InputPinConfiguration {
             return PullMode.OFF.pullResistance;
         }
 
+    }
+
+    @Override
+    public String toString() {
+        return "InputPinConfiguration [pullResistance=" + pullMode + ", active_low=" + activeLow + "]";
     }
 
     private enum PullMode {

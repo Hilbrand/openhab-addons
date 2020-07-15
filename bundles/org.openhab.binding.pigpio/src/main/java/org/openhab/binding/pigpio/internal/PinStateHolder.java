@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.Future;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -95,7 +96,11 @@ public class PinStateHolder<T> {
         if (outputPin == null) {
             logger.warn("Could not find pin to set state for channel {}", channelUID);
             newState = UnDefType.UNDEF;
+        } else if (state && outputPin.delay > 0) {
+            blink(channelUID, outputPin.delay, 0);
+            newState = getState(channelUID);
         } else {
+            outputPin.cleanUpOutputPin();
             controller.setState(state ^ outputPin.activeLow, outputPin.pin);
             newState = getState(channelUID);
         }
@@ -111,30 +116,48 @@ public class PinStateHolder<T> {
             final InputPinConfiguration configuration) {
         final String channelId = channelUID.getIdWithoutGroup();
         final Pin pin = handlerProvider.getPin(channelId);
-        logger.debug("Initializing input pin for channel {}:{} {} with configuration: {}", channelUID, channelId,
-                pin.getName(), configuration);
+        logger.debug("Initializing input pin for channel {}, pin {} with configuration: {}", channelUID, pin.getName(),
+                configuration);
         final GpioPinDigitalInput gpioPin = controller.provisionDigitalInputPin(provider, pin, channelId,
                 configuration.getPullMode());
 
-        inputPins.put(channelUID, new ChannelPin<>(gpioPin, configuration.activeLow));
+        inputPins.put(channelUID, new ChannelPin<>(gpioPin, configuration.activeLow, 0));
         return gpioPin;
     }
 
     public synchronized GpioPinDigitalOutput initializeOutputPin(final ChannelUID channelUID,
             final OutputPinConfiguration configuration) {
-        logger.debug("Initializing output pin for channel {}", channelUID);
         final String channelId = channelUID.getIdWithoutGroup();
         final Pin pin = handlerProvider.getPin(channelId);
-        final PinState pinState = PinState.getState(configuration.state);
+        logger.debug("Initializing output pin for channel {}, pin  {} with configuration: {}", channelUID, pin.getName(),
+                configuration);
+        final PinState pinState = PinState.getState(configuration.defaultState);
         final GpioPinDigitalOutput gpioPin = controller.provisionDigitalOutputPin(provider, pin, channelId, pinState);
-        logger.debug("Bound digital output for PIN: {}, channel: {}, pinState: {}", pin, channelId, pinState);
-        outputPins.put(channelUID, new ChannelPin<>(gpioPin, configuration.active_low));
+
+        outputPins.put(channelUID, new ChannelPin<>(gpioPin, configuration.activeLow, configuration.delay));
         return gpioPin;
     }
 
     /**
+     * Sends a blink command to the given channels output pin.
      *
+     * @param delay blinking speed
+     * @param duration duration of the blinking. If 0 no limit
      */
+    public void blink(final ChannelUID channelUID, final long delay, final long duration) {
+        final ChannelPin<GpioPinDigitalOutput> outputPin = outputPins.get(channelUID);
+
+        if (outputPin == null) {
+            logger.info("No output channel configured for channel {}", channelUID);
+        } else {
+            if (duration > 0) {
+                outputPin.taskFuture = outputPin.pin.blink(delay, duration);
+            } else {
+                outputPin.taskFuture = outputPin.pin.blink(delay);
+            }
+        }
+    }
+
     public void shutdown() {
         unBindGpioPins();
         final GpioProvider provider = this.provider;
@@ -164,10 +187,20 @@ public class PinStateHolder<T> {
     public static class ChannelPin<P extends GpioPin> {
         public final P pin;
         public final boolean activeLow;
+        public final int delay;
+        public @Nullable Future<?> taskFuture;
 
-        public ChannelPin(final P pin, final boolean activeLow) {
+        public ChannelPin(final P pin, final boolean activeLow, final int delay) {
             this.pin = pin;
             this.activeLow = activeLow;
+            this.delay = delay;
+        }
+
+        public synchronized void cleanUpOutputPin() {
+            if (taskFuture != null) {
+                taskFuture.cancel(true);
+                taskFuture = null;
+            }
         }
 
         /**

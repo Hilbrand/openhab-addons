@@ -20,14 +20,14 @@
 		<label>Input Pins</label>
 		<description>Pins operating in input mode.</description>
 		<channels>
-			<channel id="GP0" typeId="input-switch"/>
-			<channel id="GP1" typeId="input-switch"/>
-			<channel id="GP2" typeId="input-switch"/>
-			<channel id="GP3" typeId="input-switch"/>
-			<channel id="GP4" typeId="input-switch"/>
-			<channel id="GP5" typeId="input-switch"/>
-			<channel id="GP6" typeId="input-switch"/>
-			<channel id="GP7" typeId="input-switch"/>
+			<channel id="0" typeId="input-switch"/>
+			<channel id="1" typeId="input-switch"/>
+			<channel id="2" typeId="input-switch"/>
+			<channel id="3" typeId="input-switch"/>
+			<channel id="4" typeId="input-switch"/>
+			<channel id="5" typeId="input-switch"/>
+			<channel id="6" typeId="input-switch"/>
+			<channel id="7" typeId="input-switch"/>
 		</channels>
 	</channel-group-type>
 
@@ -35,14 +35,14 @@
 		<label>Output Pins</label>
 		<description>Pins operating in output mode.</description>
 		<channels>
-			<channel id="GP0" typeId="output-switch"/>
-			<channel id="GP1" typeId="output-switch"/>
-			<channel id="GP2" typeId="output-switch"/>
-			<channel id="GP3" typeId="output-switch"/>
-			<channel id="GP4" typeId="output-switch"/>
-			<channel id="GP5" typeId="output-switch"/>
-			<channel id="GP6" typeId="output-switch"/>
-			<channel id="GP7" typeId="output-switch"/>
+			<channel id="0" typeId="output-switch"/>
+			<channel id="1" typeId="output-switch"/>
+			<channel id="2" typeId="output-switch"/>
+			<channel id="3" typeId="output-switch"/>
+			<channel id="4" typeId="output-switch"/>
+			<channel id="5" typeId="output-switch"/>
+			<channel id="6" typeId="output-switch"/>
+			<channel id="7" typeId="output-switch"/>
 		</channels>
 	</channel-group-type>
 

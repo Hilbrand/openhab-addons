@@ -25,35 +25,42 @@ import org.openhab.binding.pigpio.internal.handler.MCP23008HandlerProvider;
 import org.openhab.binding.pigpio.internal.handler.MCP23017HandlerProvider;
 import org.openhab.binding.pigpio.internal.handler.PCF8574HandlerProvider;
 import org.openhab.binding.pigpio.internal.handler.RasPiHandlerProvider;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.impl.GpioControllerImpl;
 import com.pi4j.wiringpi.GpioUtil;
 
 /**
- * The {@link GPIOHandlerFactory} is responsible for creating things and thing
+ * The {@link PiGPIOHandlerFactory} is responsible for creating things and thing
  * handlers.
  *
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-@Component(configurationPid = "binding.gpio", service = ThingHandlerFactory.class)
-public class GPIOHandlerFactory extends BaseThingHandlerFactory {
+@Component(configurationPid = "binding.pigpio", service = ThingHandlerFactory.class)
+public class PiGPIOHandlerFactory extends BaseThingHandlerFactory {
 
-    public final GpioController controller;
+    private final Logger logger = LoggerFactory.getLogger(PiGPIOHandlerFactory.class);
+
+    private final GpioController controller;
 
     @Activate
-    public GPIOHandlerFactory() {
+    public PiGPIOHandlerFactory() {
+        logger.debug("PiGPIO Activated");
         GpioUtil.enableNonPrivilegedAccess();
         controller = new GpioControllerImpl();
     }
 
-    @Deactivate
-    public void deactivate() {
+    @Override
+    protected void deactivate(final ComponentContext componentContext) {
+        logger.debug("PiGPIO Deactivated");
         controller.shutdown();
+        super.deactivate(componentContext);
     }
 
     @Override

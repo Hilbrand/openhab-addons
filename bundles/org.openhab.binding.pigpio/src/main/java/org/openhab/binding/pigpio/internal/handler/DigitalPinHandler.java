@@ -15,6 +15,8 @@ package org.openhab.binding.pigpio.internal.handler;
 import static org.openhab.binding.pigpio.internal.GPIOBindingConstants.GROUP_IN;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
@@ -30,6 +32,7 @@ import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
+import org.eclipse.smarthome.core.thing.binding.ThingHandlerService;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
 import org.openhab.binding.pigpio.internal.HandlerProvider;
@@ -65,6 +68,15 @@ public class DigitalPinHandler<T extends @Nullable GpioConfiguration> extends Ba
         super(thing);
         pinStateHolder = new PinStateHolder<T>(controller, handlerProvider);
         configurationClass = handlerProvider.getConfigurationClass();
+    }
+
+    public void blink(final String channel, final long delay, final long duration) {
+        pinStateHolder.blink(new ChannelUID(getThing().getUID(), channel), delay, duration);
+    }
+
+    @Override
+    public Collection<Class<? extends ThingHandlerService>> getServices() {
+        return Collections.singleton(PiGpioActions.class);
     }
 
     @Override

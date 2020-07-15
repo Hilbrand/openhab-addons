@@ -21,6 +21,13 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 @NonNullByDefault
 public class OutputPinConfiguration {
 
-    public boolean state;
-    public boolean active_low;
+    public boolean defaultState;
+    public boolean activeLow;
+    public int delay = 0;
+
+    @Override
+    public String toString() {
+        return "OutputPinConfiguration [defaultState=" + defaultState + ", activeLow=" + activeLow + ", delay=" + delay
+                + "]";
+    }
 }

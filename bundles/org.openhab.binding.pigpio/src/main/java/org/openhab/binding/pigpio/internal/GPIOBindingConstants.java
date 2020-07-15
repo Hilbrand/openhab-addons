@@ -26,9 +26,9 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-public class GPIOBindingConstants {
+public final class GPIOBindingConstants {
 
-    private static final String BINDING_ID = "gpio";
+    public static final String BINDING_ID = "pigpio";
     public static final String RASPBERRY_PI_ID = "raspi";
     public static final String MCP23017_ID = "mcp23017";
     public static final String MCP23008_ID = "mcp23008";
@@ -56,21 +56,4 @@ public class GPIOBindingConstants {
     // List of all Channel ids
     public static final String GROUP_IN = "in";
     public static final String GROUP_OUT = "out";
-
-    // public static final String CHANNEL_A0 = "A0";
-    // public static final String CHANNEL_A1 = "A1";
-    // public static final String CHANNEL_A2 = "A2";
-    // public static final String CHANNEL_A3 = "A3";
-    // public static final String CHANNEL_A4 = "A4";
-    // public static final String CHANNEL_A5 = "A5";
-    // public static final String CHANNEL_A6 = "A6";
-    // public static final String CHANNEL_A7 = "A7";
-    // public static final String CHANNEL_B0 = "B0";
-    // public static final String CHANNEL_B1 = "B1";
-    // public static final String CHANNEL_B2 = "B2";
-    // public static final String CHANNEL_B3 = "B3";
-    // public static final String CHANNEL_B4 = "B4";
-    // public static final String CHANNEL_B5 = "B5";
-    // public static final String CHANNEL_B6 = "B6";
-    // public static final String CHANNEL_B7 = "B7";
 }

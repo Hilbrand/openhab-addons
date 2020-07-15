@@ -69,6 +69,11 @@
 			<label>Active Low</label>
 			<description>When true a OFF state is will be a low value</description>
 		</parameter>
+		<parameter name="delay" type="integer" unit="ms">
+			<label>Delay</label>
+			<description>When large than 0 it will blink the output channel with the given delay</description>
+			<default>0</default>
+		</parameter>
 	</config-description>
 
 </config-description:config-descriptions>
