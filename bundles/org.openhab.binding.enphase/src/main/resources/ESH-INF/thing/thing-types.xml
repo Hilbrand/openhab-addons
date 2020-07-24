@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="enphase"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+
+	<bridge-type id="envoy">
+		<label>Envoy</label>
+		<description>Envoy gateway</description>
+
+		<channel-groups>
+			<channel-group id="production" typeId="envoy-data">
+				<label>Production</label>
+				<description>Production data from the solar panels</description>
+			</channel-group>
+			<channel-group id="consumption" typeId="envoy-data">
+				<label>Consumption</label>
+				<description>Consumption data from the solar panels</description>
+			</channel-group>
+		</channel-groups>
+
+		<representation-property>serialnumber</representation-property>
+
+		<config-description>
+			<parameter name="serialnumber" type="text" required="true">
+				<label>Serial Number</label>
+				<description>The serial number of the Envoy gateway which can be found on the gateway</description>
+			</parameter>
+			<parameter name="hostname" type="text">
+				<label>Host Name / IP Address</label>
+				<description>The host name/ip address of the Envoy gateway. Leave empty to auto detect</description>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="username" type="text">
+				<label>User Name</label>
+				<description>The user name to the Envoy gateway. Leave empty when using the default user name</description>
+				<default>envoy</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="password" type="text">
+				<context>password</context>
+				<label>Password</label>
+				<description>The password to the Envoy gateway. Leave empty when using the default password</description>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="refresh" type="integer" unit="min">
+				<label>Refresh Period</label>
+				<description>Period between data updates. The default is the same 15 minutes the data is actual refreshed on the
+					Envoy
+				</description>
+				<default>15</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="consumption" type="boolean">
+				<label>Has Consumption</label>
+				<description>Set to true to also read consumption data. Not always available. Default false</description>
+				<default>false</default>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+
+	<thing-type id="inverter">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="envoy"/>
+		</supported-bridge-type-refs>
+
+		<label>Inverter</label>
+		<description>Inverter</description>
+
+		<channels>
+			<channel id="lastReportWatts" typeId="last-report-watts"/>
+			<channel id="maxReportWatts" typeId="max-report-watts"/>
+			<channel id="lastReportDate" typeId="last-report-date"/>
+		</channels>
+
+		<representation-property>serialnumber</representation-property>
+
+		<config-description>
+			<parameter name="serialnumber" type="text" required="true">
+				<label>Serial Number</label>
+				<description>The serial number of the inverter</description>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<!-- Envoy gateway channels -->
+	<channel-group-type id="envoy-data">
+		<label>Envoy Data</label>
+		<channels>
+			<channel id="wattHoursToday" typeId="watt-hours-today"/>
+			<channel id="wattHoursSevenDays" typeId="watt-hours-seven-days"/>
+			<channel id="wattHoursLifetime" typeId="watt-hours-lifetime"/>
+			<channel id="wattsNow" typeId="watts-now"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-type id="watt-hours-today">
+		<item-type>Number:Energy</item-type>
+		<label>Watt Hours Today</label>
+		<description>Watt hours today</description>
+		<state pattern="%d %unit%" readOnly="true"/>
+	</channel-type>
+	<channel-type id="watt-hours-seven-days">
+		<item-type>Number:Energy</item-type>
+		<label>Watt Hours 7 Days</label>
+		<description>Watt Hours of the last 7 days</description>
+		<state pattern="%d %unit%" readOnly="true"/>
+	</channel-type>
+	<channel-type id="watt-hours-lifetime">
+		<item-type>Number:Energy</item-type>
+		<label>Watt hours lifetime</label>
+		<description>Watt Hours Lifetime</description>
+		<state pattern="%d %unit%" readOnly="true"/>
+	</channel-type>
+	<channel-type id="watts-now">
+		<item-type>Number:Power</item-type>
+		<label>Watt Now</label>
+		<description>Watt Now</description>
+		<state pattern="%d %unit%" readOnly="true"/>
+	</channel-type>
+
+	<!-- Inverter channels -->
+	<channel-type id="last-report-watts">
+		<item-type>Number:Power</item-type>
+		<label>Last Report</label>
+		<description>Last reported power delivery</description>
+		<state pattern="%d %unit%" readOnly="true"/>
+	</channel-type>
+	<channel-type id="max-report-watts">
+		<item-type>Number:Power</item-type>
+		<label>Max Report</label>
+		<description>Maximum reported power</description>
+		<state pattern="%d %unit%" readOnly="true"/>
+	</channel-type>
+	<channel-type id="last-report-date">
+		<item-type>DateTime</item-type>
+		<label>Last Report Date</label>
+		<description>Date of last reported power delivery</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+</thing:thing-descriptions>
