@@ -61,15 +61,14 @@ class EnvoyConnector {
     private static final String PRODUCTION_URL = "/api/v1/production";
     private static final String CONSUMPTION_URL = "/api/v1/consumption";
     private static final String INVERTERS_URL = PRODUCTION_URL + "/inverters";
-    private static final String REALM = "enphaseenergy.com";
-    private static final long CONNECT_TIMEOUT_SECONDS = 3;
+    private static final long CONNECT_TIMEOUT_SECONDS = 5;
 
     private final Logger logger = LoggerFactory.getLogger(EnvoyConnector.class);
     private final Gson gson = new GsonBuilder().create();
     private final HttpClient httpClient;
     private String hostname = "";
     private @Nullable DigestAuthentication envoyAuthn;
-    private @Nullable URI invetersURI;
+    private @Nullable URI invertersURI;
 
     public EnvoyConnector(final HttpClient httpClient) {
         this.httpClient = httpClient;
@@ -95,8 +94,8 @@ class EnvoyConnector {
         if (envoyAuthn != null) {
             store.removeAuthentication(envoyAuthn);
         }
-        invetersURI = URI.create(HTTP + hostname + INVERTERS_URL);
-        envoyAuthn = new DigestAuthentication(invetersURI, Authentication.ANY_REALM, username, password);
+        invertersURI = URI.create(HTTP + hostname + INVERTERS_URL);
+        envoyAuthn = new DigestAuthentication(invertersURI, Authentication.ANY_REALM, username, password);
         store.addAuthentication(envoyAuthn);
     }
 
@@ -122,11 +121,7 @@ class EnvoyConnector {
      * @return Returns the production/consumption data from the Envoy gateway.
      */
     public ProductionJsonDTO getProductionJson() throws EnvoyConnectionException, EnvoyNoHostnameException {
-        return retrieveData(PRODUCTION_JSON_URL, this::jsonToEnvoyProductionJson);
-    }
-
-    private @Nullable ProductionJsonDTO jsonToEnvoyProductionJson(final String json) {
-        return gson.fromJson(json, ProductionJsonDTO.class);
+        return retrieveData(PRODUCTION_JSON_URL, json -> gson.fromJson(json, ProductionJsonDTO.class));
     }
 
     /**
@@ -149,17 +144,13 @@ class EnvoyConnector {
     public List<InverterDTO> getInverters() throws EnvoyConnectionException, EnvoyNoHostnameException {
         synchronized (this) {
             final AuthenticationStore store = httpClient.getAuthenticationStore();
-            final Result invertersResult = store.findAuthenticationResult(invetersURI);
+            final Result invertersResult = store.findAuthenticationResult(invertersURI);
 
             if (invertersResult != null) {
                 store.removeAuthenticationResult(invertersResult);
             }
         }
-        return retrieveData(INVERTERS_URL, this::jsonToEnvoyInverters);
-    }
-
-    private List<InverterDTO> jsonToEnvoyInverters(final String json) {
-        return Arrays.asList(gson.fromJson(json, InverterDTO[].class));
+        return retrieveData(INVERTERS_URL, json -> Arrays.asList(gson.fromJson(json, InverterDTO[].class)));
     }
 
     private synchronized <T> T retrieveData(final String urlPath, final Function<String, T> jsonConverter)

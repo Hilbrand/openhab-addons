@@ -166,7 +166,8 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
         } catch (final EnvoyNoHostnameException e) {
             // ignore hostname exception here. It's already handled by others.
         } catch (final EnvoyConnectionException e) {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+            logger.trace("refreshInverters connection problem", e);
+            // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
         }
         return null;
     }
@@ -243,10 +244,13 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
      */
     public synchronized void updateData() {
         try {
-            updateEnvoy();
             updateInverters();
+            updateEnvoy();
             updateDevices();
         } catch (final EnvoyNoHostnameException e) {
+            scheduleHostnameUpdate(false);
+        } catch (final EnvoyConnectionException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
             scheduleHostnameUpdate(false);
         } catch (final RuntimeException e) {
             logger.debug("Unexpected error in Enphase {}: ", getThing().getUID(), e);
@@ -254,18 +258,13 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
         }
     }
 
-    private void updateEnvoy() throws EnvoyNoHostnameException {
-        try {
-            productionDTO = connector.getProduction();
-            setConsumptionDTOData();
-            getThing().getChannels().stream().map(Channel::getUID).filter(this::isLinked).forEach(this::refresh);
-            if (isInitialized() && (getThing().getStatus() != ThingStatus.ONLINE
-                    || getThing().getStatusInfo().getStatusDetail() != ThingStatusDetail.NONE)) {
-                updateStatus(ThingStatus.ONLINE);
-            }
-        } catch (final EnvoyConnectionException e) {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
-            scheduleHostnameUpdate(false);
+    private void updateEnvoy() throws EnvoyNoHostnameException, EnvoyConnectionException {
+        productionDTO = connector.getProduction();
+        setConsumptionDTOData();
+        getThing().getChannels().stream().map(Channel::getUID).filter(this::isLinked).forEach(this::refresh);
+        if (isInitialized() && (getThing().getStatus() != ThingStatus.ONLINE
+                || getThing().getStatusInfo().getStatusDetail() != ThingStatusDetail.NONE)) {
+            updateStatus(ThingStatus.ONLINE);
         }
     }
 

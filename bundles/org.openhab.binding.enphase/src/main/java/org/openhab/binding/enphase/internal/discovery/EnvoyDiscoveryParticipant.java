@@ -39,8 +39,7 @@ import org.slf4j.LoggerFactory;
 /**
  * MDNS discovery participant for discovering Envoy gateways.
  * This service also keeps track of any discovered envoys host name to provide this information for existing Envoy
- * bridges
- * so the bridge cat get the host name/ip address if that is unknown.
+ * bridges so the bridge cat get the host name/ip address if that is unknown.
  *
  * @author Thomas Hentschel - Initial contribution
  * @author Hilbrand Bouwkamp - Initial contribution

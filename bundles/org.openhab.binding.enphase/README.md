@@ -4,7 +4,7 @@ This is the binding for the [Enphase](https://enphase.com/) Envoy Solar Panel ga
 The binding uses the local api of the Envoy gateway.
 Some calls can be made without authentication and some use a user name and password.
 The default user name is `envoy` and the default password is the last 6 numbers of the serial number.
-The Envoy gateway updates the data every 15 minutes.
+The Envoy gateway updates the data every 5 minutes.
 Therefore using a refresh rate shorter doesn't provide more information.
 
 ## Supported Things
@@ -110,5 +110,4 @@ DateTime     i1LastReportDate  "Last Report Date [%1$tY-%1$tm-%1$td %1$tH:%1$tM]
 Number:Power i2LastReportWatts "Last Report [%d %unit%]"                          { channel="enphase:inverter:789012:223456:lastReportWatts" }
 Number:Power i21MaxReportWatts "Max Report [%d %unit%]"                           { channel="enphase:inverter:789012:223456:maxReportWatts" }
 DateTime     i2LastReportDate  "Last Report Date [%1$tY-%1$tm-%1$td %1$tH:%1$tM]" { channel="enphase:inverter:789012:223456:lastReportDate" }
-
 ```

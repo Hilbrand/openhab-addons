@@ -5,6 +5,5 @@
 
 	<name>Enphase Envoy Binding</name>
 	<description>This is the binding for Enphase Envoy solar panels.</description>
-	<author>Hilbrand Bouwkamp</author>
 
 </binding:binding>
