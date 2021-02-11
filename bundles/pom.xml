@@ -17,6 +17,9 @@
   <name>openHAB Add-ons :: Bundles</name>
 
   <modules>
+    <!-- addonservice marketplace -->
+    <module>org.openhab.addonservice.marketplace</module>
+    <!-- <module>org.openhab.addonservice.marketplace.automation</module> -->
     <!-- io -->
     <module>org.openhab.io.homekit</module>
     <module>org.openhab.io.hueemulation</module>
