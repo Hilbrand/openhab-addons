@@ -32,6 +32,8 @@ import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.HSBType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
+import org.openhab.core.library.types.QuantityType;
+import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
@@ -141,7 +143,7 @@ public class BulbDevice extends SmartHomeDevice {
                 state = lightState.getOnOff();
                 break;
             case CHANNEL_ENERGY_POWER:
-                state = new DecimalType(deviceState.getRealtime().getPower());
+                state = new QuantityType<>(deviceState.getRealtime().getPower(), Units.WATT);
                 break;
             default:
                 state = UnDefType.UNDEF;
