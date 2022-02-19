@@ -12,7 +12,9 @@
  */
 package org.openhab.binding.upnpcontrol.internal.discovery;
 
-import static org.openhab.binding.upnpcontrol.internal.UpnpControlBindingConstants.*;
+import static org.openhab.binding.upnpcontrol.internal.UpnpControlBindingConstants.SUPPORTED_THING_TYPES_UIDS;
+import static org.openhab.binding.upnpcontrol.internal.UpnpControlBindingConstants.THING_TYPE_RENDERER;
+import static org.openhab.binding.upnpcontrol.internal.UpnpControlBindingConstants.THING_TYPE_SERVER;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -42,28 +44,30 @@ public class UpnpControlDiscoveryParticipant implements UpnpDiscoveryParticipant
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private int removalGracePeriodSeconds;
+
     @Override
     public Set<ThingTypeUID> getSupportedThingTypeUIDs() {
         return SUPPORTED_THING_TYPES_UIDS;
     }
 
     @Override
-    public @Nullable DiscoveryResult createResult(RemoteDevice device) {
+    public @Nullable DiscoveryResult createResult(final RemoteDevice device) {
         DiscoveryResult result = null;
-        ThingUID thingUid = getThingUID(device);
+        final ThingUID thingUid = getThingUID(device);
         if (thingUid != null) {
-            String label = device.getDetails().getFriendlyName().isEmpty() ? device.getDisplayString()
+            final String label = device.getDetails().getFriendlyName().isEmpty() ? device.getDisplayString()
                     : device.getDetails().getFriendlyName();
-            Map<String, Object> properties = new HashMap<>();
-            URL descriptorURL = device.getIdentity().getDescriptorURL();
+            final Map<String, Object> properties = new HashMap<>();
+            final URL descriptorURL = device.getIdentity().getDescriptorURL();
             properties.put("ipAddress", descriptorURL.getHost());
             properties.put("udn", device.getIdentity().getUdn().getIdentifierString());
             properties.put("deviceDescrURL", descriptorURL.toString());
-            URL baseURL = device.getDetails().getBaseURL();
+            final URL baseURL = device.getDetails().getBaseURL();
             if (baseURL != null) {
                 properties.put("baseURL", device.getDetails().getBaseURL().toString());
             }
-            for (RemoteService service : device.getServices()) {
+            for (final RemoteService service : device.getServices()) {
                 properties.put(service.getServiceType().getType() + "DescrURI", service.getDescriptorURI().toString());
             }
             result = DiscoveryResultBuilder.create(thingUid).withLabel(label).withProperties(properties)
@@ -73,26 +77,35 @@ public class UpnpControlDiscoveryParticipant implements UpnpDiscoveryParticipant
     }
 
     @Override
-    public @Nullable ThingUID getThingUID(RemoteDevice device) {
+    public @Nullable ThingUID getThingUID(final RemoteDevice device) {
         ThingUID result = null;
-        String deviceType = device.getType().getType();
-        String manufacturer = device.getDetails().getManufacturerDetails().getManufacturer();
-        String model = device.getDetails().getModelDetails().getModelName();
-        String serialNumber = device.getDetails().getSerialNumber();
-        String udn = device.getIdentity().getUdn().getIdentifierString();
+        final String deviceType = device.getType().getType();
+        final String manufacturer = device.getDetails().getManufacturerDetails().getManufacturer();
+        final String model = device.getDetails().getModelDetails().getModelName();
+        final String serialNumber = device.getDetails().getSerialNumber();
+        final String udn = device.getIdentity().getUdn().getIdentifierString();
 
         logger.debug("Device type {}, manufacturer {}, model {}, SN# {}, UDN {}", deviceType, manufacturer, model,
                 serialNumber, udn);
 
-        if (deviceType.equalsIgnoreCase("MediaRenderer")) {
+        if ("MediaRenderer".equalsIgnoreCase(deviceType)) {
             this.logger.debug("Media renderer found: {}, {}", manufacturer, model);
-            ThingTypeUID thingTypeUID = THING_TYPE_RENDERER;
+            final ThingTypeUID thingTypeUID = THING_TYPE_RENDERER;
             result = new ThingUID(thingTypeUID, device.getIdentity().getUdn().getIdentifierString());
-        } else if (deviceType.equalsIgnoreCase("MediaServer")) {
+        } else if ("MediaServer".equalsIgnoreCase(deviceType)) {
             this.logger.debug("Media server found: {}, {}", manufacturer, model);
-            ThingTypeUID thingTypeUID = THING_TYPE_SERVER;
+            final ThingTypeUID thingTypeUID = THING_TYPE_SERVER;
             result = new ThingUID(thingTypeUID, device.getIdentity().getUdn().getIdentifierString());
         }
         return result;
+    }
+
+    public void setRemovalGracePeriodSeconds(final int removalGracePeriodSeconds) {
+        this.removalGracePeriodSeconds = removalGracePeriodSeconds;
+    }
+
+    @Override
+    public long getRemovalGracePeriodSeconds(final RemoteDevice device) {
+        return removalGracePeriodSeconds;
     }
 }

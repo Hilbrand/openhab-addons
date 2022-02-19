@@ -12,5 +12,11 @@
 			<description>Folder path for playlists and favourites. If not set, it will default to $OPENHAB_USERDATA/upnpcontrol.
 				The folder will be created on first use when it does not exist.</description>
 		</parameter>
+		<parameter name="removalGracePeriod" type="integer" unit="s">
+			<label>Removal Grace Period</label>
+			<description>The additional grace period delay in seconds before the device will be removed from the Inbox.</description>
+			<default>0</default>
+			<advanced>true</advanced>
+		</parameter>
 	</config-description>
 </binding:binding>

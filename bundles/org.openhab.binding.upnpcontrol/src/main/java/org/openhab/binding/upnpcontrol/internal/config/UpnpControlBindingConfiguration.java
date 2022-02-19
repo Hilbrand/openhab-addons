@@ -33,7 +33,9 @@ public class UpnpControlBindingConfiguration {
 
     public String path = DEFAULT_PATH;
 
-    public void update(UpnpControlBindingConfiguration newConfig) {
+    public int removalGracePeriod = 0;
+
+    public void update(final UpnpControlBindingConfiguration newConfig) {
         String newPath = newConfig.path;
 
         if (newPath.isEmpty()) {
