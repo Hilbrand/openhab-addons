@@ -13,8 +13,6 @@
 package org.openhab.binding.tplinksmarthome.internal;
 
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
@@ -64,17 +62,24 @@ public final class TPLinkSmartHomeBindingConstants {
     public static final String CHANNEL_COLOR_TEMPERATURE = "colorTemperature";
     public static final String CHANNEL_COLOR_TEMPERATURE_ABS = "colorTemperatureAbs";
 
-    public static final Set<String> CHANNELS_BULB_SWITCH = Stream.of(CHANNEL_BRIGHTNESS, CHANNEL_COLOR,
-            CHANNEL_COLOR_TEMPERATURE, CHANNEL_COLOR_TEMPERATURE_ABS, CHANNEL_SWITCH).collect(Collectors.toSet());
+    public static final Set<String> CHANNELS_BULB_SWITCH = Set.of(CHANNEL_BRIGHTNESS, CHANNEL_COLOR,
+            CHANNEL_COLOR_TEMPERATURE, CHANNEL_COLOR_TEMPERATURE_ABS, CHANNEL_SWITCH);
 
     // List of all energy channel ids
     public static final String CHANNEL_ENERGY_POWER = "power";
     public static final String CHANNEL_ENERGY_TOTAL = "energyUsage";
     public static final String CHANNEL_ENERGY_VOLTAGE = "voltage";
     public static final String CHANNEL_ENERGY_CURRENT = "current";
-    public static final Set<String> CHANNELS_ENERGY = Stream
-            .of(CHANNEL_ENERGY_POWER, CHANNEL_ENERGY_TOTAL, CHANNEL_ENERGY_VOLTAGE, CHANNEL_ENERGY_CURRENT)
-            .collect(Collectors.toSet());
+    public static final Set<String> CHANNELS_ENERGY = Set.of(CHANNEL_ENERGY_POWER, CHANNEL_ENERGY_TOTAL,
+            CHANNEL_ENERGY_VOLTAGE, CHANNEL_ENERGY_CURRENT);
+
+    // List of all motion activated channels ids
+    public static final String CHANNEL_MOTION_SENSOR = "pir";
+    public static final String CHANNEL_MOTION_SENSOR_RANGE = "pirRange";
+    public static final String CHANNEL_AMBIENT_LIGHT_SENSOR = "las";
+    public static final String CHANNEL_CURRENT_AMBIANCE = "ambiance";
+    public static final Set<String> CHANNELS_MOTION_ACTIVATED_CHANNELS = Set.of(CHANNEL_MOTION_SENSOR,
+            CHANNEL_MOTION_SENSOR_RANGE, CHANNEL_AMBIENT_LIGHT_SENSOR, CHANNEL_CURRENT_AMBIANCE);
 
     // List of all misc channel ids
     public static final String CHANNEL_RSSI = "rssi";

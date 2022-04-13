@@ -22,6 +22,7 @@ import org.openhab.binding.tplinksmarthome.internal.model.Realtime;
 import org.openhab.binding.tplinksmarthome.internal.model.SetBrightness;
 import org.openhab.binding.tplinksmarthome.internal.model.SetLedOff;
 import org.openhab.binding.tplinksmarthome.internal.model.SetLightState;
+import org.openhab.binding.tplinksmarthome.internal.model.SetPIR;
 import org.openhab.binding.tplinksmarthome.internal.model.SetRelayState;
 import org.openhab.binding.tplinksmarthome.internal.model.SetSwitchState;
 import org.openhab.binding.tplinksmarthome.internal.model.Sysinfo;
@@ -52,6 +53,9 @@ public class Commands {
     private static final String GET_REALTIME_AND_SYSINFO = "{" + SYSTEM_GET_SYSINFO + ", " + REALTIME + "}";
     private static final String GET_REALTIME_BULB_AND_SYSINFO = "{" + SYSTEM_GET_SYSINFO
             + ", \"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}";
+    private static final String SET_PIR_ENABLE = "smartlife.iot.PIR\":{\"set_enable\":{\"enable\":%d}}}";
+    private static final String SET_PIR_TRIGGER_SENS = "{\"smartlife.iot.PIR\":{\"set_trigger_sens\":{\"index\":%d}}}";
+    private static final String SET_LAS_ENABLE = "smartlife.iot.LAS\":{\"set_enable\":{\"enable\":%d}}}";
 
     private final Gson gson = GsonUtil.createGson();
     private final Gson gsonWithExpose = GsonUtil.createGsonWithExpose();
@@ -185,6 +189,30 @@ public class Commands {
      */
     public @Nullable HasErrorResponse setDimmerBrightnessResponse(final String dimmerBrightnessResponse) {
         return gsonWithExpose.fromJson(dimmerBrightnessResponse, SetBrightness.class);
+    }
+
+    public String setMotionSensor(final OnOffType onOff) {
+        return String.format(SET_PIR_ENABLE, onOff == OnOffType.ON ? 1 : 0);
+    }
+
+    public @Nullable HasErrorResponse setMotionSensorResponse(final String motionSensorResponse) {
+        return gsonWithExpose.fromJson(motionSensorResponse, SetPIR.class);
+    }
+
+    public String setMotionSensorRange(final int triggerSense) {
+        return String.format(SET_PIR_TRIGGER_SENS, triggerSense);
+    }
+
+    public @Nullable HasErrorResponse setMotionSensorRangeResponse(final String motionSensorRangeResponse) {
+        return null;// gsonWithExpose.fromJson(motionSensorRangeResponse, .class);
+    }
+
+    public String setAmbientLightSensor(final OnOffType onOff) {
+        return String.format(SET_LAS_ENABLE, onOff == OnOffType.ON ? 1 : 0);
+    }
+
+    public @Nullable HasErrorResponse setAmbientLightSensorResponse(final String ambientLightSensorResponse) {
+        return null;// gsonWithExpose.fromJson(ambientLightSensorResponse, .class);
     }
 
     /**

@@ -12,7 +12,11 @@
  */
 package org.openhab.binding.tplinksmarthome.internal.device;
 
-import static org.openhab.binding.tplinksmarthome.internal.TPLinkSmartHomeBindingConstants.*;
+import static org.openhab.binding.tplinksmarthome.internal.TPLinkSmartHomeBindingConstants.CHANNELS_ENERGY;
+import static org.openhab.binding.tplinksmarthome.internal.TPLinkSmartHomeBindingConstants.CHANNEL_ENERGY_CURRENT;
+import static org.openhab.binding.tplinksmarthome.internal.TPLinkSmartHomeBindingConstants.CHANNEL_ENERGY_POWER;
+import static org.openhab.binding.tplinksmarthome.internal.TPLinkSmartHomeBindingConstants.CHANNEL_ENERGY_TOTAL;
+import static org.openhab.binding.tplinksmarthome.internal.TPLinkSmartHomeBindingConstants.CHANNEL_ENERGY_VOLTAGE;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.tplinksmarthome.internal.Commands;
@@ -37,7 +41,7 @@ public class EnergySwitchDevice extends SwitchDevice {
     }
 
     @Override
-    public State updateChannel(ChannelUID channelUid, DeviceState deviceState) {
+    public State updateChannel(final ChannelUID channelUid, final DeviceState deviceState) {
         final State state;
         final String matchChannelId = channelUid.isInGroup() ? channelUid.getIdWithoutGroup() : channelUid.getId();
 

@@ -68,9 +68,10 @@ public enum TPLinkSmartHomeThingType {
     // Switch Thing Type UIDs
     HS200("hs200", DeviceType.SWITCH),
     HS210("hs210", DeviceType.SWITCH),
+    KS200("ks200m", DeviceType.MOTION_ACTIVATED_DIMMER),
 
     // Dimmer Thing Type UIDs
-    ES20M("es20m", DeviceType.DIMMER),
+    ES20M("es20m", DeviceType.MOTION_ACTIVATED_DIMMER),
     HS220("hs220", DeviceType.DIMMER),
     KS230("ks230", DeviceType.DIMMER),
 
@@ -183,6 +184,10 @@ public enum TPLinkSmartHomeThingType {
          * Light Strip device.
          */
         LIGHT_STRIP,
+        /**
+         * Motion Activated Dimmer/Switch device.
+         */
+        MOTION_ACTIVATED_DIMMER,
         /**
          * Plug device.
          */
