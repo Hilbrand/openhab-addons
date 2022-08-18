@@ -102,11 +102,17 @@ import com.google.gson.JsonObject;
  *
  * @author Lennert Coopman - Initial contribution
  * @author Florian Hotze - Add volume in decibel
+ * @author Hilbrand Bouwkamp -
  */
 @NonNullByDefault
 public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMusiccastUdpMessageHandler {
     private final Gson gson = new Gson();
     private final Logger logger = LoggerFactory.getLogger(YamahaMusiccastHandler.class);
+
+    private final YamahaMusiccastStateDescriptionProvider stateDescriptionProvider;
+    private final MakeRequest makeRequest = new MakeRequest();
+    private YamahaMusiccastConfiguration configuration = new YamahaMusiccastConfiguration();
+
     private @Nullable ScheduledFuture<?> generalHousekeepingTask;
     private @Nullable String tmpString = "";
     private int volumePercent = 0;
@@ -133,13 +139,10 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
     private String action = "";
     private int zoneNum = 0;
     private @Nullable String groupId = "";
-    private @Nullable String host;
     public @Nullable String deviceId = "";
 
-    private final YamahaMusiccastStateDescriptionProvider stateDescriptionProvider;
-    private final MakeRequest makeRequest = new MakeRequest();
 
-    public YamahaMusiccastHandler(Thing thing, YamahaMusiccastStateDescriptionProvider stateDescriptionProvider) {
+    public YamahaMusiccastHandler(final Thing thing, final YamahaMusiccastStateDescriptionProvider stateDescriptionProvider) {
         super(thing);
         this.stateDescriptionProvider = stateDescriptionProvider;
     }
@@ -148,7 +151,6 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
     public void handleCommand(final ChannelUID channelUID, final Command command) {
         String localValueToCheck = "";
         String localRole = "";
-        boolean localSyncVolume;
         String localDefaultAfterMCLink = "";
         String localRoleSelectedThing = "";
         if (command != RefreshType.REFRESH) {
@@ -217,8 +219,7 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
                     volumePercent = Integer.parseInt(command.toString().replace(".0", ""));
                     volumeAbsValue = (maxVolumeState * volumePercent) / 100;
                     makeRequest.setVolume(volumeAbsValue, zone);
-                    localSyncVolume = Boolean.parseBoolean(getThing().getConfiguration().get("syncVolume").toString());
-                    if (localSyncVolume == Boolean.TRUE) {
+                    if (configuration.syncVolume) {
                         tmpString = makeRequest.getDistributionInfo();
                         distributioninfo = gson.fromJson(tmpString, DistributionInfo.class);
                         if (distributioninfo != null) {
@@ -237,8 +238,7 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
                     volumeAbsValue = Integer.parseInt(command.toString().replace(".0", ""));
                     volumePercent = (volumeAbsValue / maxVolumeState) * 100;
                     makeRequest.setVolume(volumeAbsValue, zone);
-                    localSyncVolume = Boolean.parseBoolean(getThing().getConfiguration().get("syncVolume").toString());
-                    if (localSyncVolume == Boolean.TRUE) {
+                    if (configuration.syncVolume) {
                         tmpString = makeRequest.getDistributionInfo();
                         distributioninfo = gson.fromJson(tmpString, DistributionInfo.class);
                         if (distributioninfo != null) {
@@ -255,8 +255,7 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
                     break;
                 case CHANNEL_VOLUMEDB:
                     setVolumeDb(((QuantityType<?>) command).floatValue(), zone);
-                    localSyncVolume = Boolean.parseBoolean(getThing().getConfiguration().get("syncVolume").toString());
-                    if (localSyncVolume == Boolean.TRUE) {
+                    if (configuration.syncVolume) {
                         tmpString = makeRequest.getDistributionInfo();
                         distributioninfo = gson.fromJson(tmpString, DistributionInfo.class);
                         if (distributioninfo != null) {
@@ -366,18 +365,16 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
                                     if (!"".equals(mclinkSetupServer)) {
                                         // Step 2. remove client from server
                                         json = "{\"group_id\":\"" + groupId
-                                                + "\", \"type\":\"remove\", \"client_list\":[\"" + host + "\"]}";
+                                                + "\", \"type\":\"remove\", \"client_list\":[\"" + configuration.host + "\"]}";
                                         httpResponse = makeRequest.setClientServerInfo(mclinkSetupServer, json,
                                                 "setServerInfo");
                                         // Step 3. reflect changes to master
                                         httpResponse = makeRequest.startDistribution(mclinkSetupServer);
-                                        localDefaultAfterMCLink = getThing().getConfiguration()
-                                                .get("defaultAfterMCLink").toString();
+                                        localDefaultAfterMCLink = configuration.defaultAfterMCLink;
                                         httpResponse = makeRequest.setInput(localDefaultAfterMCLink.toString(), zone);
                                     } else if ("".equals(mclinkSetupServer)) {
                                         // fallback in case client is removed from group by ending group on server side
-                                        localDefaultAfterMCLink = getThing().getConfiguration()
-                                                .get("defaultAfterMCLink").toString();
+                                        localDefaultAfterMCLink = configuration.defaultAfterMCLink;
                                         httpResponse = makeRequest.setInput(localDefaultAfterMCLink.toString(), zone);
                                     }
                                 }
@@ -386,7 +383,7 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
                             if (localRole != null) {
                                 if ("none".equals(localRole)) {
                                     json = "{\"group_id\":\"" + groupId + "\", \"zone\":\"" + mclinkSetupZone
-                                            + "\", \"type\":\"add\", \"client_list\":[\"" + host + "\"]}";
+                                            + "\", \"type\":\"add\", \"client_list\":[\"" + configuration.host + "\"]}";
                                     logger.trace("setServerInfo json: {}", json);
                                     httpResponse = makeRequest.setClientServerInfo(mclinkSetupServer, json,
                                             "setServerInfo");
@@ -435,8 +432,11 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
     public void initialize() {
         thingLabel = thing.getLabel();
         updateStatus(ThingStatus.UNKNOWN);
-        final String host = getThing().getConfiguration().get("host").toString();
-        if (!"".equals(host)) {
+        final YamahaMusiccastConfiguration configuration = getConfigAs(YamahaMusiccastConfiguration.class);
+        this.configuration = configuration;
+        final String host = configuration.host;
+
+        if (host != null && !host.isBlank()) {
             makeRequest.setHost(host);
             zoneNum = getNumberOfZones();
             logger.trace("Zones found: {} - {}", zoneNum, thingLabel);
@@ -892,7 +892,7 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
                 updateState(testchannel, StringType.valueOf(albumState));
                 testchannel = new ChannelUID(getThing().getUID(), "playerControls", CHANNEL_ALBUMART);
                 if (!"".equals(albumArtUrlState)) {
-                    albumArtUrlState = HTTP + host + albumArtUrlState;
+                    albumArtUrlState = HTTP + configuration.host + albumArtUrlState;
                 }
                 updateState(testchannel, StringType.valueOf(albumArtUrlState));
                 testchannel = new ChannelUID(getThing().getUID(), "playerControls", CHANNEL_REPEAT);
@@ -928,7 +928,6 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
         DistributionInfo distributioninfo = new DistributionInfo();
         String remotehost = "";
         String result = "";
-        String localHost = "";
         remotehost = thing.getConfiguration().get("host").toString();
         tmpString = makeRequest.getDistributionInfo(remotehost);
         distributioninfo = gson.fromJson(tmpString, DistributionInfo.class);
@@ -938,8 +937,7 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
             if ("server".equals(localRole)) {
                 for (final JsonElement ip : distributioninfo.getClientList()) {
                     final JsonObject clientObject = ip.getAsJsonObject();
-                    localHost = getThing().getConfiguration().get("host").toString();
-                    if (localHost.equals(clientObject.get("ip_address").getAsString())) {
+                    if (configuration.host != null && configuration.host.equals(clientObject.get("ip_address").getAsString())) {
                         result = remotehost;
                         break;
                     }
@@ -1224,20 +1222,13 @@ public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMu
      * @param host hostname or ip address
      * @return HTTP request
      */
-    private @Nullable String setVolumeDb(float value, @Nullable final String zone) {
-        final float volumeDbMin = Float.parseFloat(getThing().getConfiguration().get("volumeDbMin").toString());
-        final float volumeDbMax = Float.parseFloat(getThing().getConfiguration().get("volumeDbMax").toString());
-        if (value < volumeDbMin) {
-            value = volumeDbMin;
-        }
-        if (value > volumeDbMax) {
-            value = volumeDbMax;
-        }
+    private @Nullable String setVolumeDb(final float value, @Nullable final String zone) {
+        final float actualVolumeDB = Math.min(configuration.volumeDbMax, Math.max(configuration.volumeDbMin, value));
 
         // Yamaha accepts only integer values with .0 or .5 at the end only (-20.5dB, -20.0dB) - at least on RX-S601D.
         // The order matters here. We want to cast to integer first and then scale by 10.
         // Effectively we're only allowing dB values with .0 at the end.
-        logger.trace("setVolumeDb: {} dB", value);
-        return makeRequest.setVolumeDb(value, zone);
+        logger.trace("setVolumeDb: {} dB", actualVolumeDB);
+        return makeRequest.setVolumeDb(actualVolumeDB, zone);
     }
 }

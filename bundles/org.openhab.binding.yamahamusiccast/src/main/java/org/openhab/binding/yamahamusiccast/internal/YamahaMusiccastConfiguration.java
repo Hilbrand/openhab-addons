@@ -22,10 +22,10 @@ import org.eclipse.jdt.annotation.Nullable;
  * @author Florian Hotze - Add volume in decibel
  */
 @NonNullByDefault
-public class YamahaMusiccastConfiguration {
+class YamahaMusiccastConfiguration {
 
     public @Nullable String host;
-    public @Nullable Boolean syncVolume;
+    public boolean syncVolume;
     public @Nullable String defaultAfterMCLink;
 
     /**
