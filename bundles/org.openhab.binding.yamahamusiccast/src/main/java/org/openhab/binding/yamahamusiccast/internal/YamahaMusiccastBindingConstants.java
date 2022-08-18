@@ -69,5 +69,4 @@ public class YamahaMusiccastBindingConstants {
     public static final int CONNECTION_TIMEOUT_MILLISEC = 5000;
     public static final int LONG_CONNECTION_TIMEOUT_MILLISEC = 60000;
     public static final String HTTP = "http://";
-    public static final String YAMAHA_EXTENDED_CONTROL = "/YamahaExtendedControl/v1/";
 }
