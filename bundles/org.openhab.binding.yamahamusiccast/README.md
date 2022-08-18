@@ -23,13 +23,15 @@ UDP events are captured to reflect changes in the binding for
 
 ## Supported Things
 
-Each model (AV Receiver, ...) is a Thing (Thing Type ID: yamahamusiccast:device). Things are linked to a Bridge (Thing Type ID: yamahamusiccast:bridge) for receiving UDP events.
+Each model (AV Receiver, ...) is a Thing (Thing Type ID: `yamahamusiccast:device`).
 
 ## Discovery
 
 No auto discovery
 
 ## Thing Configuration
+
+The thing `device` represents a Yamaha Musiccast devices and has the following configuration options:
 
 | Parameter          | Type    | Description                                             | Advanced | Required      |
 |--------------------|---------|---------------------------------------------------------|----------|---------------|
@@ -39,8 +41,8 @@ No auto discovery
 | volumeDbMin        | Number  | Lowest volume in dB.                                    | true     | false         |
 | volumeDbMax        | Number  | Highest volume in dB.                                   | true     | false         |
 
-Default value for *defaultAfterMCLink* is *NET RADIO* (as *net_radio*) as most of the models have this on board.
-You can also use *RADIO / TUNER* (as *tuner*).
+Default value for `defaultAfterMCLink` is `NET RADIO` (as `net_radio`) as most of the models have this on board.
+You can also use `RADIO / TUNER` (as `tuner`).
 
 ## Channels
 
@@ -105,35 +107,33 @@ mono_movie / movie / enhanced / 2ch_stereo / 5ch_stereo / 7ch_stereo / 9ch_stere
 
 ## Full Example
 
-### Bridge & Thing(s)
+### Thing(s)
 
 ```
-Bridge yamahamusiccast:bridge:virtual "YXC Bridge" {
-    Thing device Living "YXC Living" [host="1.2.3.4", defaultAfterMCLink="none", syncVolume=false, volumeDbMin=-80, volumeDbMax=-10]
-}
+Thing device Living "YXC Living" [host="1.2.3.4", defaultAfterMCLink="none", syncVolume=false, volumeDbMin=-80, volumeDbMax=-10]
 ```
 
 ### Basic setup
 
 ```
-Switch YamahaPower "" {channel="yamahamusiccast:device:virtual:Living:main#power"}
-Switch YamahaMute "" {channel="yamahamusiccast:device:virtual:Living:main#mute"}
-Dimmer YamahaVolume "" {channel="yamahamusiccast:device:virtual:Living:main#volume"}
-Number YamahaVolumeAbs "" {channel="yamahamusiccast:device:virtual:Living:main#volumeAbs"}
-Number:Dimensionless YamahaVolumeDb  "" {channel="yamahamusiccast:device:virtual:Living:main#volumeDB"}
-String YamahaInput "" {channel="yamahamusiccast:device:virtual:Living:main#input"}
-String YamahaSelectPreset "" {channel="yamahamusiccast:device:virtual:Living:main#selectPreset"}
-String YamahaSoundProgram "" {channel="yamahamusiccast:device:virtual:Living:main#soundProgram"}
+Switch YamahaPower "" {channel="yamahamusiccast:device:Living:main#power"}
+Switch YamahaMute "" {channel="yamahamusiccast:device:Living:main#mute"}
+Dimmer YamahaVolume "" {channel="yamahamusiccast:device:Living:main#volume"}
+Number YamahaVolumeAbs "" {channel="yamahamusiccast:device:Living:main#volumeAbs"}
+Number:Dimensionless YamahaVolumeDb  "" {channel="yamahamusiccast:device:Living:main#volumeDB"}
+String YamahaInput "" {channel="yamahamusiccast:device:Living:main#input"}
+String YamahaSelectPreset "" {channel="yamahamusiccast:device:Living:main#selectPreset"}
+String YamahaSoundProgram "" {channel="yamahamusiccast:device:Living:main#soundProgram"}
 ```
 
 ### Player controls
 
 ```
-Player YamahaPlayer "" {channel="yamahamusiccast:device:virtual:Living:playerControls#player"}
-String YamahaArt "" {channel="yamahamusiccast:device:virtual:Living:playerControls#albumArt"}
-String YamahaArtist "" {channel="yamahamusiccast:device:virtual:Living:playerControls#artist"}
-String YamahaTrack "" {channel="yamahamusiccast:device:virtual:Living:playerControls#track"}
-String YamahaAlbum "" {channel="yamahamusiccast:device:virtual:Living:playerControls#album"}
+Player YamahaPlayer "" {channel="yamahamusiccast:device:Living:playerControls#player"}
+String YamahaArt "" {channel="yamahamusiccast:device:Living:playerControls#albumArt"}
+String YamahaArtist "" {channel="yamahamusiccast:device:Living:playerControls#artist"}
+String YamahaTrack "" {channel="yamahamusiccast:device:Living:playerControls#track"}
+String YamahaAlbum "" {channel="yamahamusiccast:device:Living:playerControls#album"}
 ```
 
 ### MusicCast setup

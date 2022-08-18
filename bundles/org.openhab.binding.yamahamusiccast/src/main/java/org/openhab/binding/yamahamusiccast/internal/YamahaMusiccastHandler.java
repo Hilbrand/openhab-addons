@@ -12,7 +12,40 @@
  */
 package org.openhab.binding.yamahamusiccast.internal;
 
-import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.*;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_ALBUM;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_ALBUMART;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_ARTIST;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_INPUT;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_MCLINKSTATUS;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_MUTE;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_PLAYER;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_PLAYTIME;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_POWER;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_RECALLSCENE;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_REPEAT;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_SELECTPRESET;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_SHUFFLE;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_SLEEP;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_SOUNDPROGRAM;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TOTALTIME;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TRACK;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_INPUT;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_MCLINKSTATUS;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_MUTE;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_POWER;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_RECALLSCENE;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_SELECTPRESET;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_SLEEP;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_SOUNDPROGRAM;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_VOLUME;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_VOLUMEABS;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_TYPE_UID_VOLUMEDB;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_VOLUME;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_VOLUMEABS;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.CHANNEL_VOLUMEDB;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.HTTP;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.LONG_CONNECTION_TIMEOUT_MILLISEC;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.YAMAHA_EXTENDED_CONTROL;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastUdpService.YamahaMusiccastUdpMessageHandler;
 import org.openhab.binding.yamahamusiccast.internal.dto.ActualVolume;
 import org.openhab.binding.yamahamusiccast.internal.dto.DeviceInfo;
 import org.openhab.binding.yamahamusiccast.internal.dto.DistributionInfo;
@@ -49,7 +83,6 @@ import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.RewindFastforwardType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.Units;
-import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -59,6 +92,7 @@ import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
 import org.openhab.core.thing.binding.builder.ThingBuilder;
 import org.openhab.core.thing.type.ChannelTypeUID;
+import org.openhab.core.thing.util.ThingHandlerHelper;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.openhab.core.types.StateOption;
@@ -78,9 +112,9 @@ import com.google.gson.JsonObject;
  * @author Florian Hotze - Add volume in decibel
  */
 @NonNullByDefault
-public class YamahaMusiccastHandler extends BaseThingHandler {
-    private Gson gson = new Gson();
-    private Logger logger = LoggerFactory.getLogger(YamahaMusiccastHandler.class);
+public class YamahaMusiccastHandler extends BaseThingHandler implements YamahaMusiccastUdpMessageHandler {
+    private final Gson gson = new Gson();
+    private final Logger logger = LoggerFactory.getLogger(YamahaMusiccastHandler.class);
     private @Nullable ScheduledFuture<?> generalHousekeepingTask;
     private @Nullable String httpResponse;
     private @Nullable String tmpString = "";
@@ -504,29 +538,34 @@ public class YamahaMusiccastHandler extends BaseThingHandler {
         updateState(channel, StringType.valueOf("-"));
     }
 
-    public void processUDPEvent(String json, String trackingID) {
-        logger.trace("UDP package: {} (Tracking: {})", json, trackingID);
-        @Nullable
-        UdpMessage targetObject = gson.fromJson(json, UdpMessage.class);
-        if (targetObject != null) {
-            if (Objects.nonNull(targetObject.getMain())) {
-                updateStateFromUDPEvent("main", targetObject);
-            }
-            if (Objects.nonNull(targetObject.getZone2())) {
-                updateStateFromUDPEvent("zone2", targetObject);
-            }
-            if (Objects.nonNull(targetObject.getZone3())) {
-                updateStateFromUDPEvent("zone3", targetObject);
-            }
-            if (Objects.nonNull(targetObject.getZone4())) {
-                updateStateFromUDPEvent("zone4", targetObject);
-            }
-            if (Objects.nonNull(targetObject.getNetUSB())) {
-                updateStateFromUDPEvent("netusb", targetObject);
-            }
-            if (Objects.nonNull(targetObject.getDist())) {
-                updateStateFromUDPEvent("dist", targetObject);
-            }
+    @Override
+    public boolean isDeviceId(final String updDeviceId) {
+        return updDeviceId.equals(deviceId);
+    }
+
+    @Override
+    public void processUDPEvent(final UdpMessage udpMessage, final String trackingID) {
+        if (!ThingHandlerHelper.isHandlerInitialized(getThing())) {
+            return;
+        }
+        logger.trace("{}: UDP package: {} (Tracking: {})", getThing().getUID(), json, trackingID);
+        if (Objects.nonNull(udpMessage.getMain())) {
+            updateStateFromUDPEvent("main", udpMessage);
+        }
+        if (Objects.nonNull(udpMessage.getZone2())) {
+            updateStateFromUDPEvent("zone2", udpMessage);
+        }
+        if (Objects.nonNull(udpMessage.getZone3())) {
+            updateStateFromUDPEvent("zone3", udpMessage);
+        }
+        if (Objects.nonNull(udpMessage.getZone4())) {
+            updateStateFromUDPEvent("zone4", udpMessage);
+        }
+        if (Objects.nonNull(udpMessage.getNetUSB())) {
+            updateStateFromUDPEvent("netusb", udpMessage);
+        }
+        if (Objects.nonNull(udpMessage.getDist())) {
+            updateStateFromUDPEvent("dist", udpMessage);
         }
     }
 
@@ -891,26 +930,22 @@ public class YamahaMusiccastHandler extends BaseThingHandler {
 
     private String connectedServer() {
         DistributionInfo distributioninfo = new DistributionInfo();
-        Bridge bridge = getBridge();
         String remotehost = "";
         String result = "";
         String localHost = "";
-        if (bridge != null) {
-            for (Thing thing : bridge.getThings()) {
-                remotehost = thing.getConfiguration().get("host").toString();
-                tmpString = getDistributionInfo(remotehost);
-                distributioninfo = gson.fromJson(tmpString, DistributionInfo.class);
-                if (distributioninfo != null) {
-                    String localRole = distributioninfo.getRole();
-                    if ("server".equals(localRole)) {
-                        for (JsonElement ip : distributioninfo.getClientList()) {
-                            JsonObject clientObject = ip.getAsJsonObject();
-                            localHost = getThing().getConfiguration().get("host").toString();
-                            if (localHost.equals(clientObject.get("ip_address").getAsString())) {
-                                result = remotehost;
-                                break;
-                            }
-                        }
+        remotehost = thing.getConfiguration().get("host").toString();
+        tmpString = getDistributionInfo(remotehost);
+        distributioninfo = gson.fromJson(tmpString, DistributionInfo.class);
+
+        if (distributioninfo != null) {
+            final String localRole = distributioninfo.getRole();
+            if ("server".equals(localRole)) {
+                for (final JsonElement ip : distributioninfo.getClientList()) {
+                    final JsonObject clientObject = ip.getAsJsonObject();
+                    localHost = getThing().getConfiguration().get("host").toString();
+                    if (localHost.equals(clientObject.get("ip_address").getAsString())) {
+                        result = remotehost;
+                        break;
                     }
                 }
             }
@@ -919,7 +954,6 @@ public class YamahaMusiccastHandler extends BaseThingHandler {
     }
 
     private void fillOptionsForMCLink() {
-        Bridge bridge = getBridge();
         String host = "";
         String label = "";
         int zonesPerHost = 1;
@@ -936,28 +970,24 @@ public class YamahaMusiccastHandler extends BaseThingHandler {
         options.add(new StateOption("server", "Server: " + clients + " clients"));
         options.add(new StateOption("client", "Client"));
 
-        if (bridge != null) {
-            for (Thing thing : bridge.getThings()) {
-                label = thing.getLabel();
-                host = thing.getConfiguration().get("host").toString();
-                logger.trace("Thing found on Bridge: {} - {}", label, host);
-                zonesPerHost = getNumberOfZones(host);
-                for (int i = 1; i <= zonesPerHost; i++) {
-                    switch (i) {
-                        case 1:
-                            options.add(new StateOption(host + "***main", label + " - main (" + host + ")"));
-                            break;
-                        case 2:
-                            options.add(new StateOption(host + "***zone2", label + " - zone2 (" + host + ")"));
-                            break;
-                        case 3:
-                            options.add(new StateOption(host + "***zone3", label + " - zone3 (" + host + ")"));
-                            break;
-                        case 4:
-                            options.add(new StateOption(host + "***zone4", label + " - zone4 (" + host + ")"));
-                            break;
-                    }
-                }
+        label = thing.getLabel();
+        host = thing.getConfiguration().get("host").toString();
+        logger.trace("Thing found on Bridge: {} - {}", label, host);
+        zonesPerHost = getNumberOfZones(host);
+        for (int i = 1; i <= zonesPerHost; i++) {
+            switch (i) {
+                case 1:
+                    options.add(new StateOption(host + "***main", label + " - main (" + host + ")"));
+                    break;
+                case 2:
+                    options.add(new StateOption(host + "***zone2", label + " - zone2 (" + host + ")"));
+                    break;
+                case 3:
+                    options.add(new StateOption(host + "***zone3", label + " - zone3 (" + host + ")"));
+                    break;
+                case 4:
+                    options.add(new StateOption(host + "***zone4", label + " - zone4 (" + host + ")"));
+                    break;
 
             }
         }

@@ -12,13 +12,13 @@
  */
 package org.openhab.binding.yamahamusiccast.internal;
 
-import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.*;
+import static org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastBindingConstants.THING_DEVICE;
 
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.thing.Bridge;
+import org.openhab.binding.yamahamusiccast.internal.YamahaMusiccastUdpService.YamahaMusiccastUdpMessageHandler;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
@@ -39,29 +39,41 @@ import org.osgi.service.component.annotations.Reference;
 public class YamahaMusiccastHandlerFactory extends BaseThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set
-            .of(YamahaMusiccastBindingConstants.THING_DEVICE, YamahaMusiccastBindingConstants.THING_TYPE_BRIDGE);
+            .of(YamahaMusiccastBindingConstants.THING_DEVICE);
 
     private final YamahaMusiccastStateDescriptionProvider stateDescriptionProvider;
+    private final YamahaMusiccastUdpService udpService;
 
     @Activate
-    public YamahaMusiccastHandlerFactory(@Reference YamahaMusiccastStateDescriptionProvider stateDescriptionProvider) {
+    public YamahaMusiccastHandlerFactory(
+            @Reference final YamahaMusiccastStateDescriptionProvider stateDescriptionProvider,
+            @Reference final YamahaMusiccastUdpService udpService) {
         this.stateDescriptionProvider = stateDescriptionProvider;
+        this.udpService = udpService;
     }
 
     @Override
-    public boolean supportsThingType(ThingTypeUID thingTypeUID) {
+    public boolean supportsThingType(final ThingTypeUID thingTypeUID) {
         return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
     }
 
     @Override
-    protected @Nullable ThingHandler createHandler(Thing thing) {
-        ThingTypeUID thingTypeUID = thing.getThingTypeUID();
+    protected @Nullable ThingHandler createHandler(final Thing thing) {
+        final ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (thingTypeUID.equals(THING_TYPE_BRIDGE)) {
-            return new YamahaMusiccastBridgeHandler((Bridge) thing);
-        } else if (THING_DEVICE.equals(thingTypeUID)) {
-            return new YamahaMusiccastHandler(thing, stateDescriptionProvider);
+        if (THING_DEVICE.equals(thingTypeUID)) {
+            final YamahaMusiccastHandler handler = new YamahaMusiccastHandler(thing, stateDescriptionProvider);
+
+            udpService.addHandler(handler);
+            return handler;
         }
         return null;
+    }
+
+    @Override
+    protected void removeHandler(final ThingHandler thingHandler) {
+        if (thingHandler instanceof YamahaMusiccastHandler) {
+            udpService.removeHandler((YamahaMusiccastUdpMessageHandler) thingHandler);
+        }
     }
 }
