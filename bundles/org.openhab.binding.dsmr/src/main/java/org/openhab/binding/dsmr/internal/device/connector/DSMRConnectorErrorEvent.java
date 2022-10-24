@@ -12,6 +12,8 @@
  */
 package org.openhab.binding.dsmr.internal.device.connector;
 
+import java.util.Locale;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
@@ -26,12 +28,13 @@ public enum DSMRConnectorErrorEvent {
     IN_USE,
     INTERNAL_ERROR,
     NOT_COMPATIBLE,
+    PARSE_ERROR,
     READ_ERROR;
 
     /**
      * @return the event details
      */
     public String getEventDetails() {
-        return "@text/error.connector." + name().toLowerCase();
+        return "@text/binding.dsmr.error.connector." + name().toLowerCase(Locale.ROOT);
     }
 }

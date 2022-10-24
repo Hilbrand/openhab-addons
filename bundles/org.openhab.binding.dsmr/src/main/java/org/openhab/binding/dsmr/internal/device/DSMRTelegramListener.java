@@ -13,7 +13,6 @@
 package org.openhab.binding.dsmr.internal.device;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.dsmr.internal.device.connector.DSMRConnectorErrorEvent;
@@ -76,8 +75,8 @@ public class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorLi
     }
 
     @Override
-    public void handleErrorEvent(final DSMRConnectorErrorEvent portEvent) {
-        dsmrEventListener.handleErrorEvent(portEvent);
+    public void handleErrorEvent(final DSMRConnectorErrorEvent portEvent, final String message) {
+        dsmrEventListener.handleErrorEvent(portEvent, message);
         parser.reset();
     }
 
@@ -94,14 +93,12 @@ public class DSMRTelegramListener implements P1TelegramListener, DSMRConnectorLi
         if (logger.isTraceEnabled()) {
             logger.trace("Received {} Cosem Objects with state: '{}'", cosemObjects.size(), telegramState);
         }
-        if (telegramState == TelegramState.OK || telegramState == TelegramState.INVALID_ENCRYPTION_KEY) {
-            dsmrEventListener.handleTelegramReceived(telegram);
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Telegram received with error state '{}': {}", telegramState,
-                        cosemObjects.stream().map(CosemObject::toString).collect(Collectors.joining(",")));
-            }
-        }
+        dsmrEventListener.handleTelegramReceived(telegram);
+    }
+
+    @Override
+    public void onTelegramError(final TelegramState state, final String message) {
+        dsmrEventListener.handleErrorEvent(DSMRConnectorErrorEvent.PARSE_ERROR, message);
     }
 
     /**

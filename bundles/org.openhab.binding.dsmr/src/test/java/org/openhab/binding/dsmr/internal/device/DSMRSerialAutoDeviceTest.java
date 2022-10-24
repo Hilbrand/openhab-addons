@@ -92,7 +92,7 @@ public class DSMRSerialAutoDeviceTest {
             }
 
             @Override
-            public void handleErrorEvent(DSMRConnectorErrorEvent connectorErrorEvent) {
+            public void handleErrorEvent(DSMRConnectorErrorEvent connectorErrorEvent, String message) {
                 fail("No handleErrorEvent Expected" + connectorErrorEvent);
             }
         };
@@ -125,7 +125,7 @@ public class DSMRSerialAutoDeviceTest {
             }
 
             @Override
-            public void handleErrorEvent(DSMRConnectorErrorEvent connectorErrorEvent) {
+            public void handleErrorEvent(DSMRConnectorErrorEvent connectorErrorEvent, String message) {
                 eventRef.set(connectorErrorEvent);
             }
         };

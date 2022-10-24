@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.dsmr.internal.device;
 
+import java.util.Optional;
 import java.util.concurrent.Semaphore;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -45,7 +46,7 @@ public class DSMRDeviceRunnable implements Runnable {
      * @param device the device to control
      * @param eventListener listener to used ot report errors.
      */
-    public DSMRDeviceRunnable(DSMRDevice device, DSMREventListener eventListener) {
+    public DSMRDeviceRunnable(final DSMRDevice device, final DSMREventListener eventListener) {
         this.device = device;
         this.portEventListener = eventListener;
     }
@@ -83,10 +84,11 @@ public class DSMRDeviceRunnable implements Runnable {
                 }
             }
             logger.trace("Device shutdown");
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             logger.warn("DSMRDeviceRunnable stopped with a RuntimeException", e);
-            portEventListener.handleErrorEvent(DSMRConnectorErrorEvent.READ_ERROR);
-        } catch (InterruptedException e) {
+            portEventListener.handleErrorEvent(DSMRConnectorErrorEvent.READ_ERROR,
+                    Optional.ofNullable(e.getMessage()).orElse(""));
+        } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
             device.stop();

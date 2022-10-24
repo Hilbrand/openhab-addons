@@ -14,6 +14,7 @@ package org.openhab.binding.dsmr.internal.device.p1telegram;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map.Entry;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -35,21 +36,20 @@ public class P1Telegram {
         /**
          * OK. Telegram was successful received and CRC16 checksum is verified (CRC16 only for DSMR V4 and up)
          */
-        OK("P1 telegram received OK"),
+        OK,
         /**
          * CRC_ERROR. CRC16 checksum failed (only DSMR V4 and up)
          */
-        CRC_ERROR("CRC checksum failed for received P1 telegram"),
+        CRC_ERROR,
         /**
          * DATA_CORRUPTION. The P1 telegram has syntax errors.
          */
-        DATA_CORRUPTION("Received P1 telegram is corrupted"),
+        DATA_CORRUPTION,
         /**
          * P1TelegramListener. The smarty telegram was successful received but could not be decoded because of an
-         * invalid
-         * encryption key.
+         * invalid encryption key.
          */
-        INVALID_ENCRYPTION_KEY("Failed to decrypt P1 telegram due to invalid encryption key");
+        INVALID_ENCRYPTION_KEY;
 
         /**
          * public accessible state details
@@ -58,11 +58,9 @@ public class P1Telegram {
 
         /**
          * Constructs a new TelegramState enum
-         *
-         * @param stateDetails String containing the details of this TelegramState
          */
-        private TelegramState(String stateDetails) {
-            this.stateDetails = stateDetails;
+        private TelegramState() {
+            this.stateDetails = "@text/binding.dsmr.telegram_state." + name().toLowerCase(Locale.ROOT);
         }
     }
 
@@ -71,12 +69,12 @@ public class P1Telegram {
     private final String rawTelegram;
     private final List<Entry<String, String>> unknownCosemObjects;
 
-    public P1Telegram(List<CosemObject> cosemObjects, TelegramState telegramState) {
+    public P1Telegram(final List<CosemObject> cosemObjects, final TelegramState telegramState) {
         this(cosemObjects, telegramState, "", Collections.emptyList());
     }
 
-    public P1Telegram(List<CosemObject> cosemObjects, TelegramState telegramState, String rawTelegram,
-            List<Entry<String, String>> unknownCosemObjects) {
+    public P1Telegram(final List<CosemObject> cosemObjects, final TelegramState telegramState, final String rawTelegram,
+            final List<Entry<String, String>> unknownCosemObjects) {
         this.cosemObjects = cosemObjects;
         this.telegramState = telegramState;
         this.rawTelegram = rawTelegram;
