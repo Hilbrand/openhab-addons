@@ -116,7 +116,7 @@ public class P1TelegramParser implements TelegramParser {
     /**
      * Received Cosem Objects in the P1Telegram that is currently received
      */
-    private final List<CosemObject> cosemObjects = new ArrayList<>();
+    private final List<Entry<String, String>> cosemObjects = new ArrayList<>();
 
     /**
      * List of Cosem Object values that are not known to this binding.
@@ -138,11 +138,11 @@ public class P1TelegramParser implements TelegramParser {
      *
      * @param telegramListener
      */
-    public P1TelegramParser(P1TelegramListener telegramListener) {
+    public P1TelegramParser(final P1TelegramListener telegramListener) {
         this(telegramListener, false);
     }
 
-    public P1TelegramParser(P1TelegramListener telegramListener, boolean test) {
+    public P1TelegramParser(final P1TelegramListener telegramListener, final boolean test) {
         this.telegramListener = telegramListener;
         this.test = test;
 
@@ -159,7 +159,7 @@ public class P1TelegramParser implements TelegramParser {
      * @param length number of bytes to parse
      */
     @Override
-    public void parse(byte[] data, int length) {
+    public void parse(final byte[] data, final int length) {
         if (lenientMode || logger.isTraceEnabled()) {
             final String rawBlock = new String(data, 0, length, StandardCharsets.UTF_8);
 
@@ -275,7 +275,7 @@ public class P1TelegramParser implements TelegramParser {
         logger.trace("State after parsing: {}", state);
     }
 
-    private TelegramState checkCRC(TelegramState currentState) {
+    private TelegramState checkCRC(final TelegramState currentState) {
         final TelegramState telegramState;
 
         if (Pattern.matches(CRC_PATTERN, crcValue)) {
@@ -304,13 +304,29 @@ public class P1TelegramParser implements TelegramParser {
     }
 
     private P1Telegram constructTelegram() {
-        final List<CosemObject> cosemObjectsCopy = new ArrayList<>(cosemObjects);
+        final List<CosemObject> cosemObjectsCopy = new ArrayList<>();
 
+        cosemObjects.stream().forEach(e -> addCosemObject(cosemObjectsCopy, e));
         if (lenientMode) {
             return new P1Telegram(cosemObjectsCopy, telegramState, rawData.toString(),
                     unknownCosemObjects.isEmpty() ? Collections.emptyList() : new ArrayList<>(unknownCosemObjects));
         } else {
             return new P1Telegram(cosemObjectsCopy, telegramState);
+        }
+    }
+
+    private void addCosemObject(final List<CosemObject> objects, final Entry<String, String> cosemEntry) {
+        final String obisIdString = cosemEntry.getKey();
+        final String obisValueString = cosemEntry.getValue();
+        final CosemObject cosemObject = factory.getCosemObject(obisIdString, obisValueString);
+
+        if (cosemObject == null) {
+            if (lenientMode) {
+                unknownCosemObjects.add(new SimpleEntry<>(obisIdString, obisValueString));
+            }
+        } else {
+            logger.trace("Adding {} to list of Cosem Objects", cosemObject);
+            objects.add(cosemObject);
         }
     }
 
@@ -324,7 +340,7 @@ public class P1TelegramParser implements TelegramParser {
      *
      * @param c the unexpected character
      */
-    private void handleUnexpectedCharacter(char c) {
+    private void handleUnexpectedCharacter(final char c) {
         logger.debug("Unexpected character '{}' in state: {}. This P1 telegram is marked as failed", c, state);
 
         telegramState = TelegramState.DATA_CORRUPTION;
@@ -335,7 +351,7 @@ public class P1TelegramParser implements TelegramParser {
      *
      * @param c the character to process
      */
-    private void handleCharacter(char c) {
+    private void handleCharacter(final char c) {
         switch (state) {
             case WAIT_FOR_START:
                 // ignore the data
@@ -401,17 +417,7 @@ public class P1TelegramParser implements TelegramParser {
         final String obisIdString = obisId.toString();
 
         if (!obisIdString.isEmpty()) {
-            final String obisValueString = obisValue.toString();
-            final CosemObject cosemObject = factory.getCosemObject(obisIdString, obisValueString);
-
-            if (cosemObject == null) {
-                if (lenientMode) {
-                    unknownCosemObjects.add(new SimpleEntry<>(obisIdString, obisValueString));
-                }
-            } else {
-                logger.trace("Adding {} to list of Cosem Objects", cosemObject);
-                cosemObjects.add(cosemObject);
-            }
+            cosemObjects.add(new SimpleEntry<String, String>(obisIdString, obisValue.toString()));
         }
         clearObisData();
     }
@@ -419,7 +425,7 @@ public class P1TelegramParser implements TelegramParser {
     /**
      * @param newState the new state to set
      */
-    private void setState(State newState) {
+    private void setState(final State newState) {
         synchronized (state) {
             switch (newState) {
                 case HEADER:
@@ -448,7 +454,7 @@ public class P1TelegramParser implements TelegramParser {
     }
 
     @Override
-    public void setLenientMode(boolean lenientMode) {
+    public void setLenientMode(final boolean lenientMode) {
         this.lenientMode = lenientMode;
     }
 }
