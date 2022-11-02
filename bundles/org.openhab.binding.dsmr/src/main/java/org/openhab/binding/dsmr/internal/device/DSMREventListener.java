@@ -28,8 +28,9 @@ public interface DSMREventListener {
      * Callback for DSMRPortEvent events
      *
      * @param connectorErrorEvent {@link DSMRConnectorErrorEvent} that has occurred
+     * @param message Additional error message
      */
-    public void handleErrorEvent(DSMRConnectorErrorEvent connectorErrorEvent);
+    public void handleErrorEvent(DSMRConnectorErrorEvent connectorErrorEvent, String message);
 
     /**
      * Callback for received P1 telegrams

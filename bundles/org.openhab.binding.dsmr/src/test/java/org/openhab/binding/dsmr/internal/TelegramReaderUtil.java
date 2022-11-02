@@ -18,11 +18,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1Telegram;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1Telegram.TelegramState;
+import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramParser;
 
 /**
@@ -44,7 +46,7 @@ public final class TelegramReaderUtil {
      * @param telegramName name of the telegram file to read
      * @return The raw bytes of a telegram
      */
-    public static byte[] readRawTelegram(String telegramName) {
+    public static byte[] readRawTelegram(final String telegramName) {
         try (InputStream is = TelegramReaderUtil.class.getResourceAsStream(telegramName + TELEGRAM_EXT)) {
             if (is == null) {
                 fail("Could not find telegram file with name:" + telegramName + TELEGRAM_EXT);
@@ -62,16 +64,34 @@ public final class TelegramReaderUtil {
      * @param expectedTelegramState expected state of the telegram read
      * @return a P1Telegram object
      */
-    public static P1Telegram readTelegram(String telegramName, TelegramState expectedTelegramState) {
-        final AtomicReference<P1Telegram> p1Telegram = new AtomicReference<>();
+    public static P1Telegram readTelegram(final String telegramName, final TelegramState expectedTelegramState) {
         final byte[] telegram = readRawTelegram(telegramName);
-        final P1TelegramParser parser = new P1TelegramParser(p1Telegram::set, true);
+        final P1TelegramListenerImpl listener = new P1TelegramListenerImpl();
+        final P1TelegramParser parser = new P1TelegramParser(listener, true);
 
         parser.setLenientMode(true);
         parser.parse(telegram, telegram.length);
-        assertNotNull(p1Telegram.get(), "Telegram state should have been set. (Missing newline at end of message?)");
-        assertEquals(expectedTelegramState, p1Telegram.get().getTelegramState(),
-                "Expected TelegramState should be as expected");
-        return p1Telegram.get();
+        final P1Telegram p1Telegram = listener.telegram;
+
+        assertNotNull(p1Telegram, "Telegram state should have been set. (Missing newline at end of message?)");
+        assertEquals(expectedTelegramState, listener.state, "Expected TelegramState should be as expected");
+        return p1Telegram != null ? p1Telegram
+                : new P1Telegram(List.of(), TelegramState.DATA_CORRUPTION, "", List.of());
+    }
+
+    public static class P1TelegramListenerImpl implements P1TelegramListener {
+        public @Nullable P1Telegram telegram;
+        public @Nullable TelegramState state;
+
+        @Override
+        public void telegramReceived(final P1Telegram telegram) {
+            this.telegram = telegram;
+            this.state = telegram.getTelegramState();
+        }
+
+        @Override
+        public void onTelegramError(final TelegramState state, final String error) {
+            this.state = state;
+        }
     }
 }

@@ -13,6 +13,7 @@
 package org.openhab.binding.dsmr.internal.device.p1telegram;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.dsmr.internal.device.p1telegram.P1Telegram.TelegramState;
 
 /**
  * Interface for receiving CosemObjects that come from a P1 Telegram
@@ -28,5 +29,13 @@ public interface P1TelegramListener {
      *
      * @param telegram The received telegram
      */
-    public void telegramReceived(P1Telegram telegram);
+    void telegramReceived(P1Telegram telegram);
+
+    /**
+     * Called when reading the telegram failed. Passes the failed state and optional an additional error message.
+     *
+     * @param state failed state
+     * @param message optional additional message
+     */
+    void onTelegramError(TelegramState state, String message);
 }

@@ -26,8 +26,9 @@ public interface DSMRConnectorListener {
      * Callback for {@link DSMRConnectorErrorEvent} events.
      *
      * @param portEvent {@link DSMRConnectorErrorEvent} that has occurred
+     * @param message Additional error message
      */
-    public void handleErrorEvent(DSMRConnectorErrorEvent portEvent);
+    void handleErrorEvent(DSMRConnectorErrorEvent portEvent, String message);
 
     /**
      * Handle data.

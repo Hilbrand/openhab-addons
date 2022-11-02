@@ -16,7 +16,8 @@ import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Optional;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -28,7 +29,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.dsmr.internal.DSMRBindingConstants;
-import org.openhab.binding.dsmr.internal.device.p1telegram.P1Telegram;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1Telegram.TelegramState;
 import org.openhab.binding.dsmr.internal.device.p1telegram.P1TelegramListener;
 import org.openhab.binding.dsmr.internal.device.p1telegram.TelegramParser;
@@ -194,10 +194,7 @@ public class SmartyDecrypter implements TelegramParser {
         final byte[] plainText = decrypt();
 
         reset();
-        if (plainText == null) {
-            telegramListener
-                    .telegramReceived(new P1Telegram(Collections.emptyList(), TelegramState.INVALID_ENCRYPTION_KEY));
-        } else {
+        if (plainText != null) {
             parser.parse(plainText, plainText.length);
         }
     }
@@ -218,7 +215,13 @@ public class SmartyDecrypter implements TelegramParser {
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
                 | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
-            logger.warn("Decrypting smarty telegram failed: ", e);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed encrypted telegram: {}",
+                        HexUtils.bytesToHex(Arrays.copyOf(cipherText.array(), cipherText.position())));
+                logger.debug("Exception of failed decryption of telegram: ", e);
+            }
+            telegramListener.onTelegramError(TelegramState.INVALID_ENCRYPTION_KEY,
+                    Optional.ofNullable(e.getMessage()).orElse(""));
         }
         return null;
     }

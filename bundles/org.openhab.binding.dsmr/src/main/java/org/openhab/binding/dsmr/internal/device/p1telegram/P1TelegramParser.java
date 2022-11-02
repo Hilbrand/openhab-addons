@@ -257,7 +257,7 @@ public class P1TelegramParser implements TelegramParser {
                         if (telegramState == TelegramState.OK && crcValue.length() > 0) {
                             telegramState = checkCRC(telegramState);
                         }
-                        telegramListener.telegramReceived(constructTelegram());
+                        processTelegram();
                         reset();
                         if (c == '/') {
                             /*
@@ -303,6 +303,14 @@ public class P1TelegramParser implements TelegramParser {
         return telegramState;
     }
 
+    private void processTelegram() {
+        if (telegramState == TelegramState.OK) {
+            telegramListener.telegramReceived(constructTelegram());
+        } else {
+            telegramListener.onTelegramError(telegramState, "");
+        }
+    }
+
     private P1Telegram constructTelegram() {
         final List<CosemObject> cosemObjectsCopy = new ArrayList<>();
 
@@ -344,6 +352,7 @@ public class P1TelegramParser implements TelegramParser {
         logger.debug("Unexpected character '{}' in state: {}. This P1 telegram is marked as failed", c, state);
 
         telegramState = TelegramState.DATA_CORRUPTION;
+        telegramListener.onTelegramError(telegramState, "");
     }
 
     /**

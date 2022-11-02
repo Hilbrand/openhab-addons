@@ -217,8 +217,8 @@ public class DSMRBridgeDiscoveryService extends DSMRDiscoveryService implements 
     }
 
     @Override
-    public void handleErrorEvent(final DSMRConnectorErrorEvent portEvent) {
-        logger.debug("[{}] Error on port during discovery: {}", currentScannedPortName, portEvent);
+    public void handleErrorEvent(final DSMRConnectorErrorEvent portEvent, String message) {
+        logger.debug("[{}] Error on port during discovery: {} - {}", currentScannedPortName, portEvent, message);
         stopSerialPortScan();
     }
 }

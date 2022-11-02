@@ -145,7 +145,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMREventLis
 
         if (smartyMeter && (deviceConfig.decryptionKey == null || deviceConfig.decryptionKey.length() != 32)) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-                    "@text/error.configuration.invalidsmartykey");
+                    "@text/binding.dsmr.error.configuration.invalidsmartykey");
             return;
         }
 
@@ -232,7 +232,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMREventLis
             if (deltaLastReceived > receivedTimeoutNanos * OFFLINE_TIMEOUT_FACTOR) {
                 logger.trace("Setting device offline if not yet done, and reset last received time.");
                 if (getThing().getStatus() == ThingStatus.ONLINE) {
-                    deviceOffline(ThingStatusDetail.COMMUNICATION_ERROR, "@text/error.bridge.nodata");
+                    deviceOffline(ThingStatusDetail.COMMUNICATION_ERROR, "@text/binding.dsmr.error.bridge.nodata");
                 }
                 resetLastReceivedState();
             }
@@ -260,7 +260,7 @@ public class DSMRBridgeHandler extends BaseBridgeHandler implements DSMREventLis
     }
 
     @Override
-    public void handleErrorEvent(final DSMRConnectorErrorEvent portEvent) {
+    public void handleErrorEvent(final DSMRConnectorErrorEvent portEvent, String message) {
         if (portEvent != DSMRConnectorErrorEvent.READ_ERROR) {
             deviceOffline(ThingStatusDetail.CONFIGURATION_ERROR, portEvent.getEventDetails());
         }
