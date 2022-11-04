@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.enphase.internal.handler;
 
+import java.net.HttpCookie;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.DigestAuthentication;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.openhab.binding.enphase.internal.EnphaseBindingConstants;
 import org.openhab.binding.enphase.internal.EnvoyConfiguration;
 import org.openhab.binding.enphase.internal.EnvoyConnectionException;
@@ -48,14 +50,15 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
 /**
- * Methods to make API calls to the Envoy gateway.
+ * Methods to make API calls to the Envoy gateway via local https.
  *
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
 class EnvoyConnector {
 
-    private static final String HTTP = "http://";
+    private static final String HTTP = "https://";
+    private static final String LOGIN_URL = "/auth/check_jwt";
     private static final String PRODUCTION_JSON_URL = "/production.json";
     private static final String INVENTORY_JSON_URL = "/inventory.json";
     private static final String PRODUCTION_URL = "/api/v1/production";
@@ -65,13 +68,31 @@ class EnvoyConnector {
 
     private final Logger logger = LoggerFactory.getLogger(EnvoyConnector.class);
     private final Gson gson = new GsonBuilder().create();
+
     private final HttpClient httpClient;
     private String hostname = "";
+
     private @Nullable DigestAuthentication envoyAuthn;
     private @Nullable URI invertersURI;
 
-    public EnvoyConnector(final HttpClient httpClient) {
-        this.httpClient = httpClient;
+    private @Nullable String accessToken;
+    private @Nullable String sessionId;
+
+    public EnvoyConnector() {
+        // Note: Had to switch to using a locally generated httpClient as
+        // the Envoy server went to a self-signed SSL connection and this
+        // was the only way to set the client to ignore SSL errors
+
+        this.httpClient = new HttpClient(new SslContextFactory.Client(true));
+        try {
+            this.httpClient.start();
+        } catch (Exception ex) {
+            throw new IllegalStateException("Could not start HttpClient.", ex);
+        }
+    }
+
+    public void shutdown() {
+        this.httpClient.destroy();
     }
 
     /**
@@ -97,6 +118,10 @@ class EnvoyConnector {
         invertersURI = URI.create(HTTP + hostname + INVERTERS_URL);
         envoyAuthn = new DigestAuthentication(invertersURI, Authentication.ANY_REALM, username, password);
         store.addAuthentication(envoyAuthn);
+    }
+
+    public void setAccessToken(String jwt) {
+        this.accessToken = jwt;
     }
 
     /**
@@ -154,14 +179,23 @@ class EnvoyConnector {
 
     private synchronized <T> T retrieveData(final String urlPath, final Function<String, @Nullable T> jsonConverter)
             throws EnvoyConnectionException, EnvoyNoHostnameException {
-        try {
-            if (hostname.isEmpty()) {
-                throw new EnvoyNoHostnameException("No host name/ip address known (yet)");
+
+        if (hostname.isEmpty()) {
+            throw new EnvoyNoHostnameException("No host name/ip address known (yet)");
+        }
+
+        if (sessionId == null) {
+            if (!checkLogin()) {
+                throw new EnvoyConnectionException("Invalid Login Token");
             }
+        }
+
+        try {
             final URI uri = URI.create(HTTP + hostname + urlPath);
             logger.trace("Retrieving data from '{}'", uri);
-            final Request request = httpClient.newRequest(uri).method(HttpMethod.GET).timeout(CONNECT_TIMEOUT_SECONDS,
-                    TimeUnit.SECONDS);
+            final Request request = httpClient.newRequest(uri).method(HttpMethod.GET)
+                    .cookie(new HttpCookie("sessionId", this.sessionId))
+                    .timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             final ContentResponse response = request.send();
             final String content = response.getContentAsString();
 
@@ -194,4 +228,42 @@ class EnvoyConnector {
             throw new EnvoyConnectionException("Could not retrieve data: ", e.getCause());
         }
     }
+
+    private boolean checkLogin() throws EnvoyConnectionException {
+        final URI uri = URI.create(HTTP + hostname + LOGIN_URL);
+
+        // Authorization: Bearer
+        final Request request = httpClient.newRequest(uri).method(HttpMethod.GET)
+                .header("Authorization", "Bearer " + this.accessToken)
+                .timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        try {
+            final ContentResponse response = request.send();
+
+            if (response.getStatus() == 200 && response.getHeaders().containsKey("Set-Cookie")) {
+                String cookies[] = response.getHeaders().get("Set-Cookie").split(";");
+
+                for (String s : cookies) {
+                    if (s.startsWith("sessionId=")) {
+                        this.sessionId = s.replaceAll("sessionId=", "");
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new EnvoyConnectionException("Interrupted");
+        } catch (final TimeoutException e) {
+            logger.debug("TimeoutException: {}", e.getMessage());
+            throw new EnvoyConnectionException("Connection timeout: ", e);
+        } catch (final ExecutionException e) {
+            logger.debug("ExecutionException: {}", e.getMessage(), e);
+            throw new EnvoyConnectionException("Could not retrieve data: ", e.getCause());
+        }
+
+        return false;
+    }
+
 }

@@ -12,12 +12,7 @@
  */
 package org.openhab.binding.enphase.internal.handler;
 
-import static org.openhab.binding.enphase.internal.EnphaseBindingConstants.CONFIG_HOSTNAME;
-import static org.openhab.binding.enphase.internal.EnphaseBindingConstants.ENVOY_CHANNELGROUP_CONSUMPTION;
-import static org.openhab.binding.enphase.internal.EnphaseBindingConstants.ENVOY_WATTS_NOW;
-import static org.openhab.binding.enphase.internal.EnphaseBindingConstants.ENVOY_WATT_HOURS_LIFETIME;
-import static org.openhab.binding.enphase.internal.EnphaseBindingConstants.ENVOY_WATT_HOURS_SEVEN_DAYS;
-import static org.openhab.binding.enphase.internal.EnphaseBindingConstants.ENVOY_WATT_HOURS_TODAY;
+import static org.openhab.binding.enphase.internal.EnphaseBindingConstants.*;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -32,7 +27,6 @@ import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.enphase.internal.EnphaseBindingConstants;
 import org.openhab.binding.enphase.internal.EnvoyConfiguration;
 import org.openhab.binding.enphase.internal.EnvoyConnectionException;
@@ -92,10 +86,9 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
     private FeatureStatus consumptionSupported = FeatureStatus.UNKNOWN;
     private FeatureStatus jsonSupported = FeatureStatus.UNKNOWN;
 
-    public EnvoyBridgeHandler(final Bridge thing, final HttpClient httpClient,
-            final EnvoyHostAddressCache envoyHostAddressCache) {
+    public EnvoyBridgeHandler(final Bridge thing, final EnvoyHostAddressCache envoyHostAddressCache) {
         super(thing);
-        connector = new EnvoyConnector(httpClient);
+        connector = new EnvoyConnector();
         this.envoyHostnameCache = envoyHostAddressCache;
     }
 

@@ -23,6 +23,14 @@
 		<representation-property>serialNumber</representation-property>
 
 		<config-description>
+            <parameter name="versionSeven" type="boolean" required="true">
+                <label>Envoy Software Version 7</label>
+                <description>Enphase changed the login methdology in version 7 of the Envoy software. It now
+                             requires the user to retrieve a JWT from an Enphase Cloud Server that expires every
+                             24 hours. Set this field if your Envoy is running version 7 and look through advanced
+                             parameters.</description>
+                <default>false</default>
+            </parameter>
 			<parameter name="serialNumber" type="text" pattern="[0-9]{12}" required="true">
 				<label>Serial Number</label>
 				<description>The serial number of the Envoy gateway which can be found on the gateway</description>
@@ -34,14 +42,16 @@
 			</parameter>
 			<parameter name="username" type="text">
 				<label>User Name</label>
-				<description>The user name to the Envoy gateway. Leave empty when using the default user name</description>
+				<description>For versions other than 7, this is the user name to the Envoy gateway. Leave empty when using 
+                             the default user name. For version 7, this is the Enphase Cloud Login</description>
 				<default>envoy</default>
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="password" type="text">
 				<context>password</context>
 				<label>Password</label>
-				<description>The password to the Envoy gateway. Leave empty when using the default password</description>
+				<description>For versions other than 7, this is the password to the Envoy gateway. Leave empty when using 
+                             the default password. For version 7, this the Enphase Cloud Password</description>
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="refresh" type="integer" unit="min">

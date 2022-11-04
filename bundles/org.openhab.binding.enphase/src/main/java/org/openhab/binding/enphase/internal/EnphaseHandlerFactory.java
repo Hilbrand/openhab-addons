@@ -18,7 +18,6 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.enphase.internal.handler.EnphaseInverterHandler;
 import org.openhab.binding.enphase.internal.handler.EnphaseRelayHandler;
 import org.openhab.binding.enphase.internal.handler.EnvoyBridgeHandler;
@@ -49,7 +48,6 @@ public class EnphaseHandlerFactory extends BaseThingHandlerFactory {
             THING_TYPE_ENPHASE_INVERTER, THING_TYPE_ENPHASE_RELAY);
 
     private final MessageTranslator messageTranslator;
-    private final HttpClient commonHttpClient;
     private final EnvoyHostAddressCache envoyHostAddressCache;
 
     @Activate
@@ -57,7 +55,6 @@ public class EnphaseHandlerFactory extends BaseThingHandlerFactory {
             final @Reference TranslationProvider i18nProvider, final @Reference HttpClientFactory httpClientFactory,
             @Reference final EnvoyHostAddressCache envoyHostAddressCache) {
         messageTranslator = new MessageTranslator(localeProvider, i18nProvider);
-        commonHttpClient = httpClientFactory.getCommonHttpClient();
         this.envoyHostAddressCache = envoyHostAddressCache;
     }
 
@@ -71,7 +68,7 @@ public class EnphaseHandlerFactory extends BaseThingHandlerFactory {
         final ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (THING_TYPE_ENPHASE_ENVOY.equals(thingTypeUID)) {
-            return new EnvoyBridgeHandler((Bridge) thing, commonHttpClient, envoyHostAddressCache);
+            return new EnvoyBridgeHandler((Bridge) thing, envoyHostAddressCache);
         } else if (THING_TYPE_ENPHASE_INVERTER.equals(thingTypeUID)) {
             return new EnphaseInverterHandler(thing, messageTranslator);
         } else if (THING_TYPE_ENPHASE_RELAY.equals(thingTypeUID)) {
