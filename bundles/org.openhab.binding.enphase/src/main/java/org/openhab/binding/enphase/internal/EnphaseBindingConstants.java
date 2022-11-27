@@ -33,11 +33,14 @@ public class EnphaseBindingConstants {
     public static final ThingTypeUID THING_TYPE_ENPHASE_RELAY = new ThingTypeUID(BINDING_ID, "relay");
 
     // Configuration parameters
+    public static final String CONFIG_VERSION_SEVEN = "versionSeven";
     public static final String CONFIG_SERIAL_NUMBER = "serialNumber";
     public static final String CONFIG_HOSTNAME = "hostname";
     public static final String CONFIG_USERNAME = "username";
     public static final String CONFIG_PASSWORD = "password";
     public static final String CONFIG_REFRESH = "refresh";
+    public static final String CONFIG_JWT = "jwt";
+    public static final String CONFIG_AUTO_JWT = "autoJwt";
     public static final String PROPERTY_VERSION = "version";
 
     // Envoy gateway channels

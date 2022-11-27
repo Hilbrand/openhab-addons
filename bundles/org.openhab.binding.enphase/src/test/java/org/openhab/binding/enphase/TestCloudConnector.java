@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2021 Contributors to the openHAB project
+ * Copyright (c) 2010-2022 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,23 +12,18 @@
  */
 package org.openhab.binding.enphase;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
-
 
 /**
  *
  * @author Joe Inkenbrandt - Initial contribution
  *
  */
+@NonNullByDefault
 public class TestCloudConnector {
-  
-  
-  @Test
-  public void testNegateBitParsing() {
-      
-  }
-  
-  
+
+    @Test
+    public void testNegateBitParsing() {
+    }
 }

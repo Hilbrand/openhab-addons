@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2021 Contributors to the openHAB project
+ * Copyright (c) 2010-2022 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,14 +12,12 @@
  */
 package org.openhab.binding.enphase;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
+import org.openhab.binding.enphase.internal.EntrezJwt;
 import org.openhab.binding.enphase.internal.EnvoyConnectionException;
-import org.openhab.binding.enphase.internal.handler.EntrezConnector;
 
 /**
  *
@@ -28,39 +26,18 @@ import org.openhab.binding.enphase.internal.handler.EntrezConnector;
  * @author Joe Inkenbrandt - Initial contribution
  *
  */
+@NonNullByDefault
 public class TestEnlightenConnector {
 
-    private HttpClient getClient() {
-        HttpClient httpClient = new HttpClient(new SslContextFactory.Client(true));
-        try {
-            httpClient.start();
-        } catch (Exception ex) {
-            throw new IllegalStateException("Could not start HttpClient.", ex);
-        }
-
-        return httpClient;
-    }
+    // private final Logger logger = LoggerFactory.getLogger(TestEnlightenConnector.class);
 
     @Test
     public void testEnlightenConnector() throws EnvoyConnectionException {
+        EntrezJwt entrezJwt = new EntrezJwt(
+                "eyJraWQiOiI3ZDEwMDA1ZC03ODk5LTRkMGQtYmNiNC0yNDRmOThlZTE1NmIiLCJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiIxMjIxMDMwNjI0NjUiLCJpc3MiOiJFbnRyZXoiLCJlbnBoYXNlVXNlciI6Im93bmVyIiwiZXhwIjoxNjY3NzYxMTU2LCJpYXQiOjE2Njc3NTc1NTYsImp0aSI6ImQ0MDIyNWNjLWI3YTQtNGU1Yi1hZTg0LTUxNjIwZmEwZWY5ZiIsInVzZXJuYW1lIjoib3BlbmhhYkBpbmtlbmJyYW5kdC5jb20ifQ.np4ohIYsy6SHRelGkRcrsC4IkNEZ2chMMcVRDMj2n4pZTAc7h5RTTDcl_nGEDTeS0JC-sU2fXweqyZKYilGy1A");
+        assertTrue(entrezJwt.getJwt() != null);
 
-        EntrezConnector entrez = new EntrezConnector(getClient());
-        // EnvoyConnector envoy = new EnvoyConnector
-        // ec.setConfiguration(new EnvoyConfiguration());
-
-        String jwt = entrez.getJwt("joe@inkenbrandt.com", "Wsto!961", "2339377", "122103062465");
-
-        String[] parts = jwt.split("\\.", 0);
-
-        for (String part : parts) {
-            byte[] bytes = Base64.getUrlDecoder().decode(part);
-            String decodedString = new String(bytes, StandardCharsets.UTF_8);
-
-            System.out.println("Decoded: " + decodedString);
-        }
-
-        // System.out.println(ec.getSystems());
-
+        // assertTrue(entrezJwt.retrieveJwt("<your enphase login>", "<your enphase password>", "<Your Site ID>",
+        // "<Your Gateway Serial Number>"));
     }
-
 }

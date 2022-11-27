@@ -23,14 +23,16 @@
 		<representation-property>serialNumber</representation-property>
 
 		<config-description>
-            <parameter name="versionSeven" type="boolean" required="true">
-                <label>Envoy Software Version 7</label>
-                <description>Enphase changed the login methdology in version 7 of the Envoy software. It now
-                             requires the user to retrieve a JWT from an Enphase Cloud Server that expires every
-                             24 hours. Set this field if your Envoy is running version 7 and look through advanced
-                             parameters.</description>
-                <default>false</default>
-            </parameter>
+			<parameter name="versionSeven" type="boolean" required="true">
+				<label>Envoy Software Version 7</label>
+				<description>Enphase changed the login methdology in version 7 of the Envoy software. It now
+					requires the user to
+					retrieve a JWT from an Enphase Cloud Server that expires every
+					24 hours or 30 days, depending on user level. Set this field if your Envoy is running
+					version 7 and look through advanced
+					parameters.</description>
+				<default>false</default>
+			</parameter>
 			<parameter name="serialNumber" type="text" pattern="[0-9]{12}" required="true">
 				<label>Serial Number</label>
 				<description>The serial number of the Envoy gateway which can be found on the gateway</description>
@@ -42,17 +44,34 @@
 			</parameter>
 			<parameter name="username" type="text">
 				<label>User Name</label>
-				<description>For versions other than 7, this is the user name to the Envoy gateway. Leave empty when using 
-                             the default user name. For version 7, this is the Enphase Cloud Login</description>
+				<description>For versions other than 7, this is the user name to the Envoy gateway. Leave empty when using
+					the
+					default user name. For version 7, this is the Enphase Cloud Login when using Auto JWT</description>
 				<default>envoy</default>
 				<advanced>true</advanced>
 			</parameter>
 			<parameter name="password" type="text">
 				<context>password</context>
 				<label>Password</label>
-				<description>For versions other than 7, this is the password to the Envoy gateway. Leave empty when using 
-                             the default password. For version 7, this the Enphase Cloud Password</description>
+				<description>For versions other than 7, this is the password to the Envoy gateway. Leave empty when using
+					the default
+					password. For version 7, this the Enphase Cloud Password when using Auto JWT</description>
 				<advanced>true</advanced>
+			</parameter>
+            <parameter name="jwt" type="text">
+			     <label>JWT</label>
+			     <description>For version 7, this is the JWT that can be directly input </description>
+			     <advanced>true</advanced>
+			</parameter>
+			<parameter name="autoJwt" type="boolean">
+			     <label>Auto JWT</label>
+			     <description>For version 7, this tells the binding whether to attempt an auto-retrieve of the JWT</description>
+			     <advanced>true</advanced>
+			</parameter>
+			<parameter name="siteName" type="text">
+			     <label>Site Name</label>
+			     <description>For version 7 when using Auto JWT, the Site Name is required</description>
+			     <advanced>true</advanced>
 			</parameter>
 			<parameter name="refresh" type="integer" unit="min">
 				<label>Refresh Time</label>

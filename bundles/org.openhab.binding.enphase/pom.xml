@@ -14,11 +14,16 @@
 
   <name>openHAB Add-ons :: Bundles :: Enphase Binding</name>
 
+  <properties>
+    <bnd.importpackage>com.sun.nio.*;resolution:=optional,com.sun.security.*;resolution:=optional,org.apache.tools.ant.*;resolution:=optional,org.bouncycastle.*;resolution:=optional,org.joda.*;resolution:=optional,sun.management.*;resolution:=optional,sun.nio.*;resolution:=optional,jakarta.annotation;resolution:=optional</bnd.importpackage>
+    <jsoup.version>1.15.3</jsoup.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
-      <version>1.14.3</version>
+      <version>${jsoup.version}</version>
     </dependency>
   </dependencies>
 

@@ -1,3 +1,15 @@
+/**
+ * Copyright (c) 2010-2022 Contributors to the openHAB project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
 package org.openhab.binding.enphase.internal.handler;
 
 import java.net.HttpCookie;
@@ -6,6 +18,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
@@ -19,6 +32,12 @@ import org.openhab.binding.enphase.internal.EnvoyConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Connector logic for connecting to Entrez server
+ *
+ * @author Joe Inkenbrandt - Initial contribution
+ */
+@NonNullByDefault
 public class EntrezConnector {
 
     private static final String LOGIN_URL = "https://entrez.enphaseenergy.com/login";
@@ -27,7 +46,7 @@ public class EntrezConnector {
     private final Logger logger = LoggerFactory.getLogger(EntrezConnector.class);
     private final HttpClient httpClient;
 
-    private static final long CONNECT_TIMEOUT_SECONDS = 5;
+    private static final long CONNECT_TIMEOUT_SECONDS = 10;
 
     public EntrezConnector(final HttpClient httpClient) {
         this.httpClient = httpClient;
@@ -35,7 +54,6 @@ public class EntrezConnector {
 
     public String getJwt(String username, String password, String siteId, String serialNum)
             throws EnvoyConnectionException {
-
         String session = login(username, password);
 
         Fields fields = new Fields();
@@ -66,11 +84,9 @@ public class EntrezConnector {
             logger.debug("ExecutionException: {}", e.getMessage(), e);
             throw new EnvoyConnectionException("Could not retrieve data: ", e.getCause());
         }
-
     }
 
     private String login(String username, String password) throws EnvoyConnectionException {
-
         Fields fields = new Fields();
         fields.put("username", username);
         fields.put("password", password);
@@ -106,5 +122,4 @@ public class EntrezConnector {
             throw new EnvoyConnectionException("Could not retrieve data: ", e.getCause());
         }
     }
-
 }

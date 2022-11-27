@@ -34,6 +34,7 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.openhab.binding.enphase.internal.EnphaseBindingConstants;
+import org.openhab.binding.enphase.internal.EntrezJwt;
 import org.openhab.binding.enphase.internal.EnvoyConfiguration;
 import org.openhab.binding.enphase.internal.EnvoyConnectionException;
 import org.openhab.binding.enphase.internal.EnvoyNoHostnameException;
@@ -59,12 +60,13 @@ class EnvoyConnector {
 
     private static final String HTTP = "https://";
     private static final String LOGIN_URL = "/auth/check_jwt";
+    private static final String HOME_URL = "/admin/lib/network_display.json";
     private static final String PRODUCTION_JSON_URL = "/production.json";
     private static final String INVENTORY_JSON_URL = "/inventory.json";
     private static final String PRODUCTION_URL = "/api/v1/production";
     private static final String CONSUMPTION_URL = "/api/v1/consumption";
     private static final String INVERTERS_URL = PRODUCTION_URL + "/inverters";
-    private static final long CONNECT_TIMEOUT_SECONDS = 5;
+    private static final long CONNECT_TIMEOUT_SECONDS = 10;
 
     private final Logger logger = LoggerFactory.getLogger(EnvoyConnector.class);
     private final Gson gson = new GsonBuilder().create();
@@ -75,7 +77,15 @@ class EnvoyConnector {
     private @Nullable DigestAuthentication envoyAuthn;
     private @Nullable URI invertersURI;
 
-    private @Nullable String accessToken;
+    private boolean versionSeven = false;
+    private EntrezJwt accessToken = new EntrezJwt("");
+
+    private boolean autoAccessToken = false;
+    private String siteName = "";
+    private String serialNumber = "";
+    private String userName = "";
+    private String password = "";
+
     private @Nullable String sessionId;
 
     public EnvoyConnector() {
@@ -84,6 +94,7 @@ class EnvoyConnector {
         // was the only way to set the client to ignore SSL errors
 
         this.httpClient = new HttpClient(new SslContextFactory.Client(true));
+
         try {
             this.httpClient.start();
         } catch (Exception ex) {
@@ -102,6 +113,16 @@ class EnvoyConnector {
      */
     public void setConfiguration(final EnvoyConfiguration configuration) {
         hostname = configuration.hostname;
+        versionSeven = configuration.versionSeven;
+        accessToken = new EntrezJwt(configuration.jwt);
+
+        autoAccessToken = configuration.autoJwt;
+
+        siteName = configuration.serialNumber;
+        serialNumber = configuration.serialNumber;
+        userName = configuration.username;
+        password = configuration.password;
+
         if (hostname.isEmpty()) {
             return;
         }
@@ -118,10 +139,6 @@ class EnvoyConnector {
         invertersURI = URI.create(HTTP + hostname + INVERTERS_URL);
         envoyAuthn = new DigestAuthentication(invertersURI, Authentication.ANY_REALM, username, password);
         store.addAuthentication(envoyAuthn);
-    }
-
-    public void setAccessToken(String jwt) {
-        this.accessToken = jwt;
     }
 
     /**
@@ -184,18 +201,43 @@ class EnvoyConnector {
             throw new EnvoyNoHostnameException("No host name/ip address known (yet)");
         }
 
-        if (sessionId == null) {
-            if (!checkLogin()) {
-                throw new EnvoyConnectionException("Invalid Login Token");
+        if (this.versionSeven) {
+
+            // Check if we need a new session ID
+
+            if (!this.checkSessionId()) {
+
+                String errorMsg = this.getSessionId();
+
+                // If we have an error message, then we need to either get a new JWT or exit
+
+                if (errorMsg != null) {
+                    if (this.autoAccessToken) {
+                        accessToken.retrieveJwt(this.userName, password, siteName, this.serialNumber);
+                        errorMsg = this.getSessionId();
+                    }
+
+                    if (errorMsg != null) {
+                        throw new EnvoyConnectionException(errorMsg);
+                    }
+                }
+            } else {
+                logger.debug("Valid SessionID Found '{}'", this.sessionId);
             }
+
         }
 
         try {
             final URI uri = URI.create(HTTP + hostname + urlPath);
-            logger.trace("Retrieving data from '{}'", uri);
-            final Request request = httpClient.newRequest(uri).method(HttpMethod.GET)
-                    .cookie(new HttpCookie("sessionId", this.sessionId))
-                    .timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            logger.trace("Retrieving data from '{}' with sessionID '{}'", uri, this.sessionId);
+
+            Request request = httpClient.newRequest(uri).method(HttpMethod.GET).timeout(CONNECT_TIMEOUT_SECONDS,
+                    TimeUnit.SECONDS);
+
+            if (versionSeven) {
+                request = request.cookie(new HttpCookie("sessionId", this.sessionId));
+            }
+
             final ContentResponse response = request.send();
             final String content = response.getContentAsString();
 
@@ -229,29 +271,91 @@ class EnvoyConnector {
         }
     }
 
-    private boolean checkLogin() throws EnvoyConnectionException {
+    private boolean checkSessionId() {
+        final URI uri = URI.create(HTTP + hostname + HOME_URL);
+
+        if (this.sessionId == null) {
+            return false;
+        }
+
+        final Request request = httpClient.newRequest(uri).method(HttpMethod.GET)
+                .header("Authorization", "Bearer " + this.accessToken.getJwt())
+                .timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        ContentResponse response = null;
+
+        try {
+            response = request.send();
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (final TimeoutException e) {
+            logger.debug("Session ID ({}) Check TimeoutException: {}", this.sessionId, e.getMessage());
+            return false;
+        } catch (final ExecutionException e) {
+            logger.debug("Session ID ({}) ExecutionException: {}", this.sessionId, e.getMessage(), e);
+            return false;
+        }
+
+        if (response.getStatus() != 200) {
+            logger.debug("Session ID ({}) Home Response: {}", this.sessionId, response.getStatus());
+            return false;
+        }
+
+        logger.debug("Home Response: {}", response.getContentAsString());
+
+        return true;
+
+    }
+
+    private @Nullable String getSessionId() throws EnvoyConnectionException {
+        String errorMsg = null;
+
+        if (accessToken.isEmpty()) {
+            errorMsg = "Empty JWT";
+        }
+
+        else if (!accessToken.isValid()) {
+            errorMsg = "Invalid JWT";
+        }
+
+        else if (accessToken.isExpired()) {
+            errorMsg = "Expired JWT";
+        }
+
+        // If our JWT appears good, then let's try to get a sessionID. If we
+        // can't login, then we have a bad JWT
+
+        try {
+            if (errorMsg == null && !loginWithJWT()) {
+                errorMsg = "Could not login with current JWT";
+            }
+        } catch (final EnvoyConnectionException e) {
+            logger.debug("EnvoyConnectionException: {}", e.getMessage(), e);
+            throw new EnvoyConnectionException("Could not retrieve data from Entrez: ", e.getCause());
+        }
+
+        return errorMsg;
+    }
+
+    /**
+     * This function attempts to get a sessionId from the local gateway by submitting
+     * the JWT given.
+     *
+     * @return boolean whether JWT was accepted and sessionId was returned
+     */
+    private boolean loginWithJWT() throws EnvoyConnectionException {
         final URI uri = URI.create(HTTP + hostname + LOGIN_URL);
 
         // Authorization: Bearer
         final Request request = httpClient.newRequest(uri).method(HttpMethod.GET)
-                .header("Authorization", "Bearer " + this.accessToken)
+                .header("Authorization", "Bearer " + this.accessToken.getJwt())
                 .timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
+        ContentResponse response = null;
+
         try {
-            final ContentResponse response = request.send();
-
-            if (response.getStatus() == 200 && response.getHeaders().containsKey("Set-Cookie")) {
-                String cookies[] = response.getHeaders().get("Set-Cookie").split(";");
-
-                for (String s : cookies) {
-                    if (s.startsWith("sessionId=")) {
-                        this.sessionId = s.replaceAll("sessionId=", "");
-                        return true;
-                    }
-                }
-                return false;
-            }
-
+            response = request.send();
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new EnvoyConnectionException("Interrupted");
@@ -263,7 +367,19 @@ class EnvoyConnector {
             throw new EnvoyConnectionException("Could not retrieve data: ", e.getCause());
         }
 
+        if (response != null && response.getStatus() == 200 && response.getHeaders().containsKey("Set-Cookie")) {
+            String cookies[] = response.getHeaders().get("Set-Cookie").split(";");
+
+            for (String s : cookies) {
+                if (s.startsWith("sessionId=")) {
+                    this.sessionId = s.replaceAll("sessionId=", "");
+                    logger.debug("Got SessionID: {}", sessionId);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         return false;
     }
-
 }

@@ -25,15 +25,20 @@ public class EnvoyConfiguration {
     public static final String DEFAULT_USERNAME = "envoy";
     private static final int DEFAULT_REFRESH_MINUTES = 5;
 
+    public boolean versionSeven = false;
     public String serialNumber = "";
     public String hostname = "";
     public String username = DEFAULT_USERNAME;
     public String password = "";
+    public String jwt = "";
+    public boolean autoJwt = false;
+    public String siteName = "";
     public int refresh = DEFAULT_REFRESH_MINUTES;
 
     @Override
     public String toString() {
-        return "EnvoyConfiguration [serialNumber=" + serialNumber + ", hostname=" + hostname + ", username=" + username
-                + ", password=" + password + ", refresh=" + refresh + "]";
+        return "EnvoyConfiguration [versionSeven=" + versionSeven + ", serialNumber=" + serialNumber + ", hostname="
+                + hostname + ", username=" + username + ", password=" + password + ", jwt=" + jwt + ", authoJwt="
+                + autoJwt + ", siteName=" + siteName + ", refresh=" + refresh + "]";
     }
 }

@@ -244,7 +244,9 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
             scheduleHostnameUpdate(false);
         } catch (final EnvoyConnectionException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
-            scheduleHostnameUpdate(false);
+            // JWI: I commented this out because it breaks when the host is known in the configuration, but it can't
+            // connect for other reasons
+            // scheduleHostnameUpdate(false);
         } catch (final RuntimeException e) {
             logger.debug("Unexpected error in Enphase {}: ", getThing().getUID(), e);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
