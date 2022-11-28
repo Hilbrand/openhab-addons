@@ -66,7 +66,7 @@ class EnvoyConnector {
     private static final String PRODUCTION_URL = "/api/v1/production";
     private static final String CONSUMPTION_URL = "/api/v1/consumption";
     private static final String INVERTERS_URL = PRODUCTION_URL + "/inverters";
-    private static final long CONNECT_TIMEOUT_SECONDS = 10;
+    private static final long CONNECT_TIMEOUT_SECONDS = 30;
 
     private final Logger logger = LoggerFactory.getLogger(EnvoyConnector.class);
     private final Gson gson = new GsonBuilder().create();
@@ -272,15 +272,14 @@ class EnvoyConnector {
     }
 
     private boolean checkSessionId() {
-        final URI uri = URI.create(HTTP + hostname + HOME_URL);
+        final URI uri = URI.create(HTTP + hostname + LOGIN_URL);
 
         if (this.sessionId == null) {
             return false;
         }
 
         final Request request = httpClient.newRequest(uri).method(HttpMethod.GET)
-                .header("Authorization", "Bearer " + this.accessToken.getJwt())
-                .timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                .cookie(new HttpCookie("sessionId", this.sessionId)).timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         ContentResponse response = null;
 
