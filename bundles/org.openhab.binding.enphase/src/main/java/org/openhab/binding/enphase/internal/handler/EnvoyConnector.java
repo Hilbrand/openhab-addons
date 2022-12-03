@@ -12,7 +12,6 @@
  */
 package org.openhab.binding.enphase.internal.handler;
 
-import java.net.HttpCookie;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -32,17 +31,16 @@ import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.DigestAuthentication;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.openhab.binding.enphase.internal.EnphaseBindingConstants;
-import org.openhab.binding.enphase.internal.EntrezJwt;
 import org.openhab.binding.enphase.internal.EnvoyConfiguration;
-import org.openhab.binding.enphase.internal.EnvoyConnectionException;
-import org.openhab.binding.enphase.internal.EnvoyNoHostnameException;
 import org.openhab.binding.enphase.internal.dto.EnvoyEnergyDTO;
 import org.openhab.binding.enphase.internal.dto.EnvoyErrorDTO;
 import org.openhab.binding.enphase.internal.dto.InventoryJsonDTO;
 import org.openhab.binding.enphase.internal.dto.InverterDTO;
 import org.openhab.binding.enphase.internal.dto.ProductionJsonDTO;
+import org.openhab.binding.enphase.internal.exception.EnphaseException;
+import org.openhab.binding.enphase.internal.exception.EnvoyConnectionException;
+import org.openhab.binding.enphase.internal.exception.EnvoyNoHostnameException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,102 +54,89 @@ import com.google.gson.JsonSyntaxException;
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-class EnvoyConnector {
+public class EnvoyConnector {
 
-    private static final String HTTP = "https://";
-    private static final String LOGIN_URL = "/auth/check_jwt";
-    private static final String HOME_URL = "/admin/lib/network_display.json";
+    protected static final long CONNECT_TIMEOUT_SECONDS = 30;
+
+    private static final String HTTP = "http://";
     private static final String PRODUCTION_JSON_URL = "/production.json";
     private static final String INVENTORY_JSON_URL = "/inventory.json";
     private static final String PRODUCTION_URL = "/api/v1/production";
     private static final String CONSUMPTION_URL = "/api/v1/consumption";
     private static final String INVERTERS_URL = PRODUCTION_URL + "/inverters";
-    private static final long CONNECT_TIMEOUT_SECONDS = 30;
+
+    protected final HttpClient httpClient;
 
     private final Logger logger = LoggerFactory.getLogger(EnvoyConnector.class);
     private final Gson gson = new GsonBuilder().create();
-
-    private final HttpClient httpClient;
-    private String hostname = "";
+    private final String schema;
 
     private @Nullable DigestAuthentication envoyAuthn;
     private @Nullable URI invertersURI;
 
-    private boolean versionSeven = false;
-    private EntrezJwt accessToken = new EntrezJwt("");
+    protected @NonNullByDefault({}) EnvoyConfiguration configuration;
 
-    private boolean autoAccessToken = false;
-    private String siteName = "";
-    private String serialNumber = "";
-    private String userName = "";
-    private String password = "";
-
-    private @Nullable String sessionId;
-
-    public EnvoyConnector() {
-        // Note: Had to switch to using a locally generated httpClient as
-        // the Envoy server went to a self-signed SSL connection and this
-        // was the only way to set the client to ignore SSL errors
-
-        this.httpClient = new HttpClient(new SslContextFactory.Client(true));
-
-        try {
-            this.httpClient.start();
-        } catch (Exception ex) {
-            throw new IllegalStateException("Could not start HttpClient.", ex);
-        }
+    public EnvoyConnector(final HttpClient httpClient) {
+        this(httpClient, HTTP);
     }
 
-    public void shutdown() {
-        this.httpClient.destroy();
+    protected EnvoyConnector(final HttpClient httpClient, final String schema) {
+        this.httpClient = httpClient;
+        this.schema = schema;
     }
 
     /**
      * Sets the Envoy connection configuration.
      *
      * @param configuration the configuration to set
+     * @return Returns configuration error message or empty string if no configuration errors present
      */
-    public void setConfiguration(final EnvoyConfiguration configuration) {
-        hostname = configuration.hostname;
-        versionSeven = configuration.versionSeven;
-        accessToken = new EntrezJwt(configuration.jwt);
+    public String setConfiguration(final EnvoyConfiguration configuration) {
+        this.configuration = configuration;
 
-        autoAccessToken = configuration.autoJwt;
-
-        siteName = configuration.serialNumber;
-        serialNumber = configuration.serialNumber;
-        userName = configuration.username;
-        password = configuration.password;
-
-        if (hostname.isEmpty()) {
-            return;
+        if (configuration.hostname.isEmpty()) {
+            return "";
         }
         final String password = configuration.password.isEmpty()
                 ? EnphaseBindingConstants.defaultPassword(configuration.serialNumber)
                 : configuration.password;
         final String username = configuration.username.isEmpty() ? EnvoyConfiguration.DEFAULT_USERNAME
                 : configuration.username;
+
         final AuthenticationStore store = httpClient.getAuthenticationStore();
 
         if (envoyAuthn != null) {
             store.removeAuthentication(envoyAuthn);
         }
-        invertersURI = URI.create(HTTP + hostname + INVERTERS_URL);
+        invertersURI = URI.create(schema + configuration.hostname + INVERTERS_URL);
         envoyAuthn = new DigestAuthentication(invertersURI, Authentication.ANY_REALM, username, password);
         store.addAuthentication(envoyAuthn);
+        return "";
+    }
+
+    public boolean checkConnection(final String hostname) {
+        try {
+            final Request createRequest = createRequest(hostname);
+            final ContentResponse response = send(createRequest);
+
+            return response.getStatus() == HttpStatus.OK_200 || response.getStatus() == HttpStatus.UNAUTHORIZED_401;
+        } catch (EnvoyNoHostnameException | EnvoyConnectionException e) {
+            logger.trace("Error trying determine which Envoy is running.", e);
+        }
+        return false;
     }
 
     /**
      * @return Returns the production data from the Envoy gateway.
      */
-    public EnvoyEnergyDTO getProduction() throws EnvoyConnectionException, EnvoyNoHostnameException {
+    public EnvoyEnergyDTO getProduction() throws EnphaseException {
         return retrieveData(PRODUCTION_URL, this::jsonToEnvoyEnergyDTO);
     }
 
     /**
      * @return Returns the consumption data from the Envoy gateway.
      */
-    public EnvoyEnergyDTO getConsumption() throws EnvoyConnectionException, EnvoyNoHostnameException {
+    public EnvoyEnergyDTO getConsumption() throws EnphaseException {
         return retrieveData(CONSUMPTION_URL, this::jsonToEnvoyEnergyDTO);
     }
 
@@ -162,14 +147,14 @@ class EnvoyConnector {
     /**
      * @return Returns the production/consumption data from the Envoy gateway.
      */
-    public ProductionJsonDTO getProductionJson() throws EnvoyConnectionException, EnvoyNoHostnameException {
+    public ProductionJsonDTO getProductionJson() throws EnphaseException {
         return retrieveData(PRODUCTION_JSON_URL, json -> gson.fromJson(json, ProductionJsonDTO.class));
     }
 
     /**
      * @return Returns the inventory data from the Envoy gateway.
      */
-    public List<InventoryJsonDTO> getInventoryJson() throws EnvoyConnectionException, EnvoyNoHostnameException {
+    public List<InventoryJsonDTO> getInventoryJson() throws EnphaseException {
         return retrieveData(INVENTORY_JSON_URL, this::jsonToEnvoyInventoryJson);
     }
 
@@ -182,7 +167,7 @@ class EnvoyConnector {
     /**
      * @return Returns the production data for the inverters.
      */
-    public List<InverterDTO> getInverters() throws EnvoyConnectionException, EnvoyNoHostnameException {
+    public List<InverterDTO> getInverters() throws EnphaseException {
         synchronized (this) {
             final AuthenticationStore store = httpClient.getAuthenticationStore();
             final Result invertersResult = store.findAuthenticationResult(invertersURI);
@@ -195,166 +180,45 @@ class EnvoyConnector {
     }
 
     private synchronized <T> T retrieveData(final String urlPath, final Function<String, @Nullable T> jsonConverter)
-            throws EnvoyConnectionException, EnvoyNoHostnameException {
+            throws EnphaseException {
+        final Request request = createRequest(configuration.hostname + urlPath);
 
-        if (hostname.isEmpty()) {
-            throw new EnvoyNoHostnameException("No host name/ip address known (yet)");
-        }
+        constructRequest(request);
+        final ContentResponse response = send(request);
+        final String content = response.getContentAsString();
 
-        if (this.versionSeven) {
-
-            // Check if we need a new session ID
-
-            if (!this.checkSessionId()) {
-
-                String errorMsg = this.getSessionId();
-
-                // If we have an error message, then we need to either get a new JWT or exit
-
-                if (errorMsg != null) {
-                    if (this.autoAccessToken) {
-                        accessToken.retrieveJwt(this.userName, password, siteName, this.serialNumber);
-                        errorMsg = this.getSessionId();
-                    }
-
-                    if (errorMsg != null) {
-                        throw new EnvoyConnectionException(errorMsg);
-                    }
+        logger.trace("Envoy returned data for '{}' with status {}: {}", urlPath, response.getStatus(), content);
+        try {
+            if (response.getStatus() == HttpStatus.OK_200) {
+                final T result = jsonConverter.apply(content);
+                if (result == null) {
+                    throw new EnvoyConnectionException("No data received");
                 }
+                return result;
             } else {
-                logger.debug("Valid SessionID Found '{}'", this.sessionId);
+                final @Nullable EnvoyErrorDTO error = gson.fromJson(content, EnvoyErrorDTO.class);
+
+                logger.debug("Envoy returned an error: {}", error);
+                throw new EnvoyConnectionException(error == null ? response.getReason() : error.info);
             }
-
-        }
-
-        try {
-            final URI uri = URI.create(HTTP + hostname + urlPath);
-            logger.trace("Retrieving data from '{}' with sessionID '{}'", uri, this.sessionId);
-
-            Request request = httpClient.newRequest(uri).method(HttpMethod.GET).timeout(CONNECT_TIMEOUT_SECONDS,
-                    TimeUnit.SECONDS);
-
-            if (versionSeven) {
-                request = request.cookie(new HttpCookie("sessionId", this.sessionId));
-            }
-
-            final ContentResponse response = request.send();
-            final String content = response.getContentAsString();
-
-            logger.trace("Envoy returned data for '{}' with status {}: {}", urlPath, response.getStatus(), content);
-            try {
-                if (response.getStatus() == HttpStatus.OK_200) {
-                    final T result = jsonConverter.apply(content);
-                    if (result == null) {
-                        throw new EnvoyConnectionException("No data received");
-                    }
-                    return result;
-                } else {
-                    final @Nullable EnvoyErrorDTO error = gson.fromJson(content, EnvoyErrorDTO.class);
-
-                    logger.debug("Envoy returned an error: {}", error);
-                    throw new EnvoyConnectionException(error == null ? response.getReason() : error.info);
-                }
-            } catch (final JsonSyntaxException e) {
-                logger.debug("Error parsing json: {}", content, e);
-                throw new EnvoyConnectionException("Error parsing data: ", e);
-            }
-        } catch (final InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new EnvoyConnectionException("Interrupted");
-        } catch (final TimeoutException e) {
-            logger.debug("TimeoutException: {}", e.getMessage());
-            throw new EnvoyConnectionException("Connection timeout: ", e);
-        } catch (final ExecutionException e) {
-            logger.debug("ExecutionException: {}", e.getMessage(), e);
-            throw new EnvoyConnectionException("Could not retrieve data: ", e.getCause());
+        } catch (final JsonSyntaxException e) {
+            logger.debug("Error parsing json: {}", content, e);
+            throw new EnvoyConnectionException("Error parsing data: ", e);
         }
     }
 
-    private boolean checkSessionId() {
-        final URI uri = URI.create(HTTP + hostname + LOGIN_URL);
-
-        if (this.sessionId == null) {
-            return false;
-        }
-
-        final Request request = httpClient.newRequest(uri).method(HttpMethod.GET)
-                .cookie(new HttpCookie("sessionId", this.sessionId)).timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
-        ContentResponse response = null;
-
-        try {
-            response = request.send();
-        } catch (final InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
-        } catch (final TimeoutException e) {
-            logger.debug("Session ID ({}) Check TimeoutException: {}", this.sessionId, e.getMessage());
-            return false;
-        } catch (final ExecutionException e) {
-            logger.debug("Session ID ({}) ExecutionException: {}", this.sessionId, e.getMessage(), e);
-            return false;
-        }
-
-        if (response.getStatus() != 200) {
-            logger.debug("Session ID ({}) Home Response: {}", this.sessionId, response.getStatus());
-            return false;
-        }
-
-        logger.debug("Home Response: {}", response.getContentAsString());
-
-        return true;
-
-    }
-
-    private @Nullable String getSessionId() throws EnvoyConnectionException {
-        String errorMsg = null;
-
-        if (accessToken.isEmpty()) {
-            errorMsg = "Empty JWT";
-        }
-
-        else if (!accessToken.isValid()) {
-            errorMsg = "Invalid JWT";
-        }
-
-        else if (accessToken.isExpired()) {
-            errorMsg = "Expired JWT";
-        }
-
-        // If our JWT appears good, then let's try to get a sessionID. If we
-        // can't login, then we have a bad JWT
-
-        try {
-            if (errorMsg == null && !loginWithJWT()) {
-                errorMsg = "Could not login with current JWT";
-            }
-        } catch (final EnvoyConnectionException e) {
-            logger.debug("EnvoyConnectionException: {}", e.getMessage(), e);
-            throw new EnvoyConnectionException("Could not retrieve data from Entrez: ", e.getCause());
-        }
-
-        return errorMsg;
-    }
-
-    /**
-     * This function attempts to get a sessionId from the local gateway by submitting
-     * the JWT given.
-     *
-     * @return boolean whether JWT was accepted and sessionId was returned
-     */
-    private boolean loginWithJWT() throws EnvoyConnectionException {
-        final URI uri = URI.create(HTTP + hostname + LOGIN_URL);
-
-        // Authorization: Bearer
-        final Request request = httpClient.newRequest(uri).method(HttpMethod.GET)
-                .header("Authorization", "Bearer " + this.accessToken.getJwt())
+    private Request createRequest(final String urlPath) throws EnvoyNoHostnameException {
+        return httpClient.newRequest(URI.create(schema + urlPath)).method(HttpMethod.GET)
                 .timeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
 
-        ContentResponse response = null;
+    protected void constructRequest(final Request request) throws EnphaseException {
+        logger.trace("Retrieving data from '{}' ", request.getURI());
+    }
 
+    protected ContentResponse send(final Request request) throws EnvoyConnectionException {
         try {
-            response = request.send();
+            return request.send();
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new EnvoyConnectionException("Interrupted");
@@ -365,20 +229,5 @@ class EnvoyConnector {
             logger.debug("ExecutionException: {}", e.getMessage(), e);
             throw new EnvoyConnectionException("Could not retrieve data: ", e.getCause());
         }
-
-        if (response != null && response.getStatus() == 200 && response.getHeaders().containsKey("Set-Cookie")) {
-            String cookies[] = response.getHeaders().get("Set-Cookie").split(";");
-
-            for (String s : cookies) {
-                if (s.startsWith("sessionId=")) {
-                    this.sessionId = s.replaceAll("sessionId=", "");
-                    logger.debug("Got SessionID: {}", sessionId);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        return false;
     }
 }

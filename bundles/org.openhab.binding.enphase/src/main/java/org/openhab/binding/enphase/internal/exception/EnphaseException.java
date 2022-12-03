@@ -10,26 +10,26 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.enphase.internal;
+package org.openhab.binding.enphase.internal.exception;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
- * Exception thrown when a connection problem occurs to the Envoy gateway.
+ *
  *
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-public class EnvoyConnectionException extends Exception {
+public class EnphaseException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public EnvoyConnectionException(final String message) {
+    public EnphaseException(final String message) {
         super(message);
     }
 
-    public EnvoyConnectionException(final String message, final @Nullable Throwable e) {
-        super(message + (e == null ? "" : e.getMessage()), e);
+    public EnphaseException(final String message, final @Nullable Throwable throwable) {
+        super(message, throwable);
     }
 }

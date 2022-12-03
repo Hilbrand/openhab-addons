@@ -10,20 +10,21 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.enphase;
+package org.openhab.binding.enphase.internal.exception;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.junit.jupiter.api.Test;
 
 /**
+ * Exception thrown when the JWT access token is invalid.
  *
- * @author Joe Inkenbrandt - Initial contribution
- *
+ * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-public class TestCloudConnector {
+public class EntrezJwtInvalidException extends EnphaseException {
 
-    @Test
-    public void testNegateBitParsing() {
+    private static final long serialVersionUID = 1L;
+
+    public EntrezJwtInvalidException(final String message) {
+        super(message);
     }
 }

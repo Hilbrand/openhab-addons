@@ -28,7 +28,7 @@ public class EntrezJwtDTO {
             return kid;
         }
 
-        public void setKid(String kid) {
+        public void setKid(final String kid) {
             this.kid = kid;
         }
 
@@ -36,7 +36,7 @@ public class EntrezJwtDTO {
             return typ;
         }
 
-        public void setTyp(String typ) {
+        public void setTyp(final String typ) {
             this.typ = typ;
         }
 
@@ -44,7 +44,7 @@ public class EntrezJwtDTO {
             return alg;
         }
 
-        public void setAlg(String alg) {
+        public void setAlg(final String alg) {
             this.alg = alg;
         }
     }
@@ -62,7 +62,7 @@ public class EntrezJwtDTO {
             return aud;
         }
 
-        public void setAud(String aud) {
+        public void setAud(final String aud) {
             this.aud = aud;
         }
 
@@ -70,7 +70,7 @@ public class EntrezJwtDTO {
             return iss;
         }
 
-        public void setIss(String iss) {
+        public void setIss(final String iss) {
             this.iss = iss;
         }
 
@@ -78,7 +78,7 @@ public class EntrezJwtDTO {
             return enphaseUser;
         }
 
-        public void setEnphaseUser(String enphaseUser) {
+        public void setEnphaseUser(final String enphaseUser) {
             this.enphaseUser = enphaseUser;
         }
 
@@ -86,7 +86,7 @@ public class EntrezJwtDTO {
             return exp;
         }
 
-        public void setExp(Long exp) {
+        public void setExp(final Long exp) {
             this.exp = exp;
         }
 
@@ -94,7 +94,7 @@ public class EntrezJwtDTO {
             return iat;
         }
 
-        public void setIat(Long iat) {
+        public void setIat(final Long iat) {
             this.iat = iat;
         }
 
@@ -102,7 +102,7 @@ public class EntrezJwtDTO {
             return jti;
         }
 
-        public void setJti(String jti) {
+        public void setJti(final String jti) {
             this.jti = jti;
         }
 
@@ -110,8 +110,28 @@ public class EntrezJwtDTO {
             return username;
         }
 
-        public void setUsername(String username) {
+        public void setUsername(final String username) {
             this.username = username;
         }
+    }
+
+    private final EntrezJwtHeaderDTO header;
+    private final EntrezJwtBodyDTO body;
+
+    public EntrezJwtDTO(final EntrezJwtHeaderDTO header, final EntrezJwtBodyDTO body) {
+        this.header = header;
+        this.body = body;
+    }
+
+    public boolean isValid() {
+        return header == null || body == null;
+    }
+
+    public EntrezJwtBodyDTO getBody() {
+        return body;
+    }
+
+    public EntrezJwtHeaderDTO getHeader() {
+        return header;
     }
 }

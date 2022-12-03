@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.enphase.internal;
+package org.openhab.binding.enphase.internal.exception;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
@@ -20,7 +20,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  * @author Hilbrand Bouwkamp - Initial contribution
  */
 @NonNullByDefault
-public class EnvoyNoHostnameException extends Exception {
+public class EnvoyNoHostnameException extends EnphaseException {
 
     private static final long serialVersionUID = 1L;
 
