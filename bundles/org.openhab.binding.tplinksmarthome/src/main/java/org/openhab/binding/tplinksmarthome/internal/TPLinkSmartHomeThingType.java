@@ -51,6 +51,7 @@ public enum TPLinkSmartHomeThingType {
 
     // Light String thing Type UIDs.
     KL400("kl400", DeviceType.LIGHT_STRIP, ColorScales.K_2500_9000),
+    KL420("kl420", DeviceType.LIGHT_STRIP, ColorScales.K_2500_9000),
     KL430("kl430", DeviceType.LIGHT_STRIP, ColorScales.K_2500_9000),
 
     // Plug Thing Type UIDs
