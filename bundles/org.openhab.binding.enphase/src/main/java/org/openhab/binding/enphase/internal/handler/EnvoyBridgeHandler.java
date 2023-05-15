@@ -292,14 +292,18 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
      * @throws EnvoyConnectionException
      */
     private boolean checkConnection() throws EnvoyNoHostnameException, EnvoyConnectionException {
+        logger.trace("Check connection");
         if (connectorWrapper.hasConnection()) {
+            logger.trace("Has Connection");
             return true;
         }
         final String configurationError = connectorWrapper.setConnector(configuration);
 
         if (configurationError.isBlank()) {
+            logger.trace("No configuration error");
             return true;
         } else {
+            logger.debug("Configuration Error: {}", configurationError);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, configurationError);
             return false;
         }

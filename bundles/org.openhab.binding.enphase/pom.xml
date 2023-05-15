@@ -24,6 +24,8 @@
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
       <version>${jsoup.version}</version>
+      <scope>compile</scope>
+      <!-- <scope>provided</scope> -->
     </dependency>
   </dependencies>
 
