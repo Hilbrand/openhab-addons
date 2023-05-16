@@ -117,10 +117,13 @@ public class EnvoyConnector {
 
     public boolean checkConnection(final String hostname) {
         try {
-            getProduction();
-            return true;
+            final Request createRequest = createRequest(hostname + PRODUCTION_URL);
+            final ContentResponse response = send(createRequest);
+
+            logger.debug("Checkconnection status from request is: {}", response.getStatus());
+            return response.getStatus() == HttpStatus.OK_200;
         } catch (EnphaseException | HttpResponseException e) {
-            logger.trace("Exception trying to check the connection.", e);
+            logger.debug("Exception trying to check the connection.", e);
         }
         return false;
     }
