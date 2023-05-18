@@ -87,7 +87,7 @@ public class EntrezConnector {
         final Element first = elements.first();
 
         if (first == null) {
-            logger.debug("Could not select element '{}' in received data from entrez site. Recieved data: {}",
+            logger.debug("Could not select element '{}' in received data from entrez site. Received data: {}",
                     ELEMENT_ID_JWT_TOKEN, contentAsString);
             throw new EntrezConnectionException("Could not parse data from entrez site");
         }
