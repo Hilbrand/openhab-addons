@@ -76,7 +76,7 @@ public class EnvoyEntrezConnector extends EnvoyConnector {
                     .of(check(configuration.username, "Username parameter is empty"),
                             check(configuration.password, "Password parameter is empty"),
                             check(configuration.siteName, "siteName parameter is empty"))
-                    .filter(String::isEmpty).collect(Collectors.joining(", "));
+                    .filter(s -> !s.isEmpty()).collect(Collectors.joining(", "));
 
         }
         if (!message.isEmpty()) {

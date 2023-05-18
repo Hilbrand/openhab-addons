@@ -28,6 +28,7 @@ In that case after configuring the login run discovery again.
 ## Thing Configuration
 
 ### Bridge configuration
+
 Depending on the software version of the Envoy gateway thing `envoy` there are different configuration options needed.
 Newer versions of the Envoy software (> version 7) require a different authentication method.
 Because the configuration is different, different bridge things are available.

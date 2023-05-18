@@ -65,6 +65,10 @@ public class EnvoyConnector {
     private static final String PRODUCTION_URL = "/api/v1/production";
     private static final String CONSUMPTION_URL = "/api/v1/consumption";
     private static final String INVERTERS_URL = PRODUCTION_URL + "/inverters";
+    private static final String INFO_XML = "/info.xml";
+
+    private static final String INFO_SOTFWARE_BEGIN = "<software>R";
+    private static final String INFO_SOTFWARE_END = "</software>";
 
     protected final HttpClient httpClient;
 
@@ -115,17 +119,33 @@ public class EnvoyConnector {
         return "";
     }
 
-    public boolean checkConnection(final String hostname) {
+    /**
+     * Checks if data can be read from the Envoy to determine
+     *
+     * @param hostname
+     * @return
+     */
+    protected @Nullable String checkConnection(final String hostname) {
         try {
-            final Request createRequest = createRequest(hostname + PRODUCTION_URL);
+            final String url = hostname + INFO_XML;
+            logger.debug("Check connection to '{}'", url);
+            final Request createRequest = createRequest(url);
             final ContentResponse response = send(createRequest);
 
             logger.debug("Checkconnection status from request is: {}", response.getStatus());
-            return response.getStatus() == HttpStatus.OK_200;
+            if (response.getStatus() == HttpStatus.OK_200) {
+                final String content = response.getContentAsString();
+                final int begin = content.indexOf(INFO_SOTFWARE_BEGIN);
+                final int end = content.lastIndexOf(INFO_SOTFWARE_END);
+
+                if (begin > 0 && end > 0) {
+                    return content.substring(begin + INFO_SOTFWARE_BEGIN.length(), end);
+                }
+            }
         } catch (EnphaseException | HttpResponseException e) {
             logger.debug("Exception trying to check the connection.", e);
         }
-        return false;
+        return null;
     }
 
     /**

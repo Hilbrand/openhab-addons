@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +60,7 @@ import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
+import org.openhab.core.thing.binding.builder.BridgeBuilder;
 import org.openhab.core.thing.util.ThingHandlerHelper;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
@@ -155,7 +157,7 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
                 this::refreshInverters);
         devicesCache = new ExpiringCache<>(Duration.of(configuration.refresh, ChronoUnit.MINUTES),
                 this::refreshDevices);
-        connectorWrapper.setVersion(getThing().getProperties().get(PROPERTY_VERSION));
+        connectorWrapper.setVersion(getVersion());
         updataDataFuture = scheduler.scheduleWithFixedDelay(() -> updateData(false), 0, configuration.refresh,
                 TimeUnit.MINUTES);
     }
@@ -288,10 +290,9 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
      * return false.
      *
      * @return true if an active connection was found, else returns false
-     * @throws EnvoyNoHostnameException
-     * @throws EnvoyConnectionException
+     * @throws EnphaseException
      */
-    private boolean checkConnection() throws EnvoyNoHostnameException, EnvoyConnectionException {
+    private boolean checkConnection() throws EnphaseException {
         logger.trace("Check connection");
         if (connectorWrapper.hasConnection()) {
             logger.trace("Has Connection");
@@ -300,12 +301,32 @@ public class EnvoyBridgeHandler extends BaseBridgeHandler {
         final String configurationError = connectorWrapper.setConnector(configuration);
 
         if (configurationError.isBlank()) {
+            updateVersion();
             logger.trace("No configuration error");
             return true;
         } else {
             logger.debug("Configuration Error: {}", configurationError);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, configurationError);
             return false;
+        }
+    }
+
+    private @Nullable String getVersion() {
+        return getThing().getProperties().get(PROPERTY_VERSION);
+    }
+
+    private void updateVersion() {
+        if (getVersion() == null) {
+            final String version = connectorWrapper.getVersion();
+
+            if (version != null) {
+                final BridgeBuilder builder = editThing();
+                final Map<String, String> properties = new HashMap<>(thing.getProperties());
+
+                properties.put(PROPERTY_VERSION, version);
+                builder.withProperties(properties);
+                updateThing(builder.build());
+            }
         }
     }
 
