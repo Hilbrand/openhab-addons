@@ -67,7 +67,7 @@ public class EnvoyConnector {
     private static final String INVERTERS_URL = PRODUCTION_URL + "/inverters";
     private static final String INFO_XML = "/info.xml";
 
-    private static final String INFO_SOTFWARE_BEGIN = "<software>R";
+    private static final String INFO_SOTFWARE_BEGIN = "<software>";
     private static final String INFO_SOTFWARE_END = "</software>";
 
     protected final HttpClient httpClient;
@@ -139,7 +139,10 @@ public class EnvoyConnector {
                 final int end = content.lastIndexOf(INFO_SOTFWARE_END);
 
                 if (begin > 0 && end > 0) {
-                    return content.substring(begin + INFO_SOTFWARE_BEGIN.length(), end);
+                    final String version = content.substring(begin + INFO_SOTFWARE_BEGIN.length(), end);
+
+                    logger.debug("Found Envoy version number '{}' in info.xml", version);
+                    return Character.isDigit(version.charAt(0)) ? version : version.substring(1);
                 }
             }
         } catch (EnphaseException | HttpResponseException e) {
