@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="thingstatus"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Sample Thing Type -->
+	<thing-type id="thing">
+		<label>ThingStatus Binding Thing</label>
+		<description>Thing to access the Thing ThingStatus</description>
+
+		<channels>
+			<channel id="status" typeId="status-channel"/>
+			<channel id="detail" typeId="detail-channel"/>
+			<channel id="description" typeId="description-channel"/>
+		</channels>
+
+		<config-description>
+			<parameter name="thingUid" type="text" required="true">
+				<label>Thing UID</label>
+				<description>The Thing UID of thing to get the status</description>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<!-- Channel Types -->
+	<channel-type id="status-channel">
+		<item-type>String</item-type>
+		<label>Status</label>
+		<description>Status of the Thing</description>
+	</channel-type>
+	<channel-type id="detail-channel">
+		<item-type>String</item-type>
+		<label>Detail</label>
+		<description>Detail of the Thing status</description>
+	</channel-type>
+	<channel-type id="description-channel">
+		<item-type>String</item-type>
+		<label>Description</label>
+		<description>Description of the Thing status</description>
+	</channel-type>
+</thing:thing-descriptions>
