@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon:addon id="stookwijzer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:addon="https://openhab.org/schemas/addon/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/addon/v1.0.0 https://openhab.org/schemas/addon-1.0.0.xsd">
+
+	<type>binding</type>
+	<name>Stookwijzer Binding</name>
+	<description>
+		Integrates the RIVM Stookwijzer into openHAB.
+		Stookwijzer provides wood-burning advice (yellow/orange/red)
+		per 4-digit postal code area
+		based on wind force and air quality index (LKI).
+		Data source: RIVM WMS
+		(https://data.rivm.nl/geo/alo/wms).
+	</description>
+	<connection>cloud</connection>
+</addon:addon>
