@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.renault.internal.api;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -54,6 +55,7 @@ public class MyRenaultHttpSession {
     private static final String CHARGING_MODE_SCHEDULE = "schedule_mode";
     private static final String CHARGING_MODE_ALWAYS = "always_charging";
     private static final int REQUEST_TIMEOUT_MS = 10_000;
+    private static final String NOT_BE_THERE = "you should not be there but well done for the effort";
 
     private RenaultConfiguration config;
     private HttpClient httpClient;
@@ -75,39 +77,38 @@ public class MyRenaultHttpSession {
 
     public void initSesssion(Car car) throws RenaultException, RenaultForbiddenException, RenaultUpdateException,
             RenaultNotImplementedException, InterruptedException, ExecutionException, TimeoutException {
-        login();
-        getAccountInfo();
-        getJWT();
-        getAccountID();
-
-        final String imageURL = car.getImageURL();
-        if (imageURL == null) {
-            getVehicle(car);
+        synchronized (logger) {
+            login();
+            getAccountInfo();
+            getJWT();
+            getAccountID();
         }
     }
 
     private void login() throws RenaultException, InterruptedException, ExecutionException, TimeoutException {
-        Fields fields = new Fields();
+        final Fields fields = new Fields();
         fields.add("ApiKey", this.constants.getGigyaApiKey());
         fields.add("loginID", config.myRenaultUsername);
         fields.add("password", config.myRenaultPassword);
         final String url = this.constants.getGigyaRootUrl() + "/accounts.login";
-        ContentResponse response = httpClient.FORM(url, fields);
+        final ContentResponse response = httpClient.FORM(url, fields);
         if (HttpStatus.OK_200 == response.getStatus()) {
             if (logger.isTraceEnabled()) {
                 logger.trace("GigyaApi Request: {} Response: [{}] {}\n{}", url, response.getStatus(),
                         response.getReason(), response.getContentAsString());
             }
             try {
-                JsonObject responseJson = JsonParser.parseString(response.getContentAsString()).getAsJsonObject();
-                JsonObject sessionInfoJson = responseJson.getAsJsonObject("sessionInfo");
-                if (sessionInfoJson != null) {
-                    JsonElement element = sessionInfoJson.get("cookieValue");
-                    if (element != null) {
-                        cookieValue = element.getAsString();
-                        logger.debug("Cookie: {}", cookieValue);
-                    }
+                final JsonObject responseJson = JsonParser.parseString(response.getContentAsString()).getAsJsonObject();
+                final JsonObject sessionInfoJson = responseJson.getAsJsonObject("sessionInfo");
+                if (sessionInfoJson == null) {
+                    throw new IllegalStateException("sessionInfoJson is null");
                 }
+                JsonElement element = sessionInfoJson.get("cookieValue");
+                if (element == null) {
+                    throw new IllegalStateException("cookieValue is null");
+                }
+                cookieValue = element.getAsString();
+                logger.debug("Cookie: {}", cookieValue);
             } catch (JsonParseException | ClassCastException | IllegalStateException e) {
                 throw new RenaultException("Login Error: cookie value not found in JSON response");
             }
@@ -315,7 +316,9 @@ public class MyRenaultHttpSession {
             ContentResponse response = request.send();
             logKamereonCall(request, response);
             if (HttpStatus.OK_200 == response.getStatus()) {
-                return JsonParser.parseString(response.getContentAsString()).getAsJsonObject();
+                JsonObject json = JsonParser.parseString(response.getContentAsString()).getAsJsonObject();
+                checkNotSupported(json);
+                return json;
             }
             checkResponse(response);
         } catch (InterruptedException e) {
@@ -325,6 +328,13 @@ public class MyRenaultHttpSession {
             throw new RenaultUpdateException(e.toString());
         }
         return null;
+    }
+
+    private void checkNotSupported(JsonObject json) throws RenaultNotImplementedException {
+        if (Optional.ofNullable(json.get("message")).map(JsonElement::getAsString).filter(NOT_BE_THERE::equals)
+                .isPresent()) {
+            throw new RenaultNotImplementedException(NOT_BE_THERE);
+        }
     }
 
     private void logKamereonCall(Request request, ContentResponse response) {

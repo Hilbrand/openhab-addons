@@ -17,6 +17,7 @@ No discovery
 
 ## Thing Configuration
 
+There is a single thing `car`.
 You require your MyRenault credential, locale and VIN for your MyRenault registered car.
 
 | Parameter         | Description                                                                | Default                          |
@@ -34,7 +35,7 @@ You require your MyRenault credential, locale and VIN for your MyRenault registe
 
 | Channel ID             | Type               | Description                                     | Read Only |
 |------------------------|--------------------|-------------------------------------------------|-----------|
-| batteryavailableEnergy | Number:Energy      | Battery Energy Available                        | Yes       |
+| batteryavailableenergy | Number:Energy      | Battery Energy Available                        | Yes       |
 | batterylevel           | Number             | State of the battery in %                       | Yes       |
 | batterystatusupdated   | DateTime           | Timestamp of the last battery status update     | Yes       |
 | chargingmode           | String             | Charging mode. always_charging or schedule_mode | No        |
@@ -64,11 +65,18 @@ This seams to only allow values 19, 20 and 21 or else the pre-conditioning comma
 The 'pause' and 'chargingmode' may not work on some cars. 
 As an example, 'chargingmode' does not work on Dacia Spring cars.
 
+The `odometer` may not work on some cars.
+
 The Kamereon API Key changes periodically, which causes a communication error.
 To fix this error update the API Key in the bindings configuration.
 The new key value can hopefully be found in the renault-api project: [KAMEREON_APIKEY value](https://github.com/hacf-fr/renault-api/blob/main/src/renault_api/const.py) or in the openHAB forums.
 
 ## Example
+
+renault.items:
+
+```perl
+```
 
 renaultcar.sitemap:
 
