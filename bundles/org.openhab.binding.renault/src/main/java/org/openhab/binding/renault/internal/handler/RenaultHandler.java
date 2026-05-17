@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import javax.measure.Quantity;
 import javax.measure.Unit;
@@ -187,7 +188,7 @@ public class RenaultHandler extends BaseThingHandler {
                         perform(() -> {
                             updateState(CHANNEL_HVAC_STATUS, new StringType(Car.HVAC_STATUS_PENDING));
                             car.resetHVACStatus();
-                            httpSession.initSesssion(car);
+                            httpSession.initSesssion();
                             httpSession.actionHvacOn(car.getHvacTargetTemperature());
                             updateChannel(channelUID.getId());
                         }, "Error during action HVAC on.", true);
@@ -200,7 +201,7 @@ public class RenaultHandler extends BaseThingHandler {
                         ChargingMode newMode = ChargingMode.valueOf(command.toString());
                         if (!ChargingMode.UNKNOWN.equals(newMode)) {
                             perform(() -> {
-                                httpSession.initSesssion(car);
+                                httpSession.initSesssion();
                                 httpSession.actionChargeMode(newMode);
                                 car.setChargeMode(newMode);
                                 updateChannel(channelUID.getId());
@@ -217,7 +218,7 @@ public class RenaultHandler extends BaseThingHandler {
                     try {
                         perform(() -> {
                             boolean pause = OnOffType.ON == command;
-                            httpSession.initSesssion(car);
+                            httpSession.initSesssion();
                             httpSession.actionPause(pause);
                             car.setPauseMode(pause);
                             updateState(CHANNEL_PAUSE, OnOffType.from(command.toString()));
@@ -247,18 +248,18 @@ public class RenaultHandler extends BaseThingHandler {
             return;
         }
         try {
-            httpSession.initSesssion(car);
-            performDisable(car.getImageURL() != null, () -> httpSession.getVehicle(car), () -> {
+            httpSession.initSesssion();
+            performIfNotDisabled(car.getImageURL() != null, () -> httpSession.getVehicle(car), () -> {
             }, "imageURL");
-            performDisable(car.isDisableHvac(), () -> httpSession.getHvacStatus(car), () -> car.setDisableHvac(true),
-                    "HVAC");
-            performDisable(car.isDisableLocation(), () -> httpSession.getLocation(car),
+            performIfNotDisabled(car.isDisableHvac(), () -> httpSession.getHvacStatus(car),
+                    () -> car.setDisableHvac(true), "HVAC");
+            performIfNotDisabled(car.isDisableLocation(), () -> httpSession.getLocation(car),
                     () -> car.setDisableLocation(true), "location");
-            performDisable(car.isDisableCockpit(), () -> httpSession.getCockpit(car), () -> car.setDisableCockpit(true),
-                    "cockpit");
-            performDisable(car.isDisableBattery(), () -> httpSession.getBatteryStatus(car),
+            performIfNotDisabled(car.isDisableCockpit(), () -> httpSession.getCockpit(car),
+                    () -> car.setDisableCockpit(true), "cockpit");
+            performIfNotDisabled(car.isDisableBattery(), () -> httpSession.getBatteryStatus(car),
                     () -> car.setDisableBattery(true), "battery");
-            performDisable(car.isDisableLockStatus(), () -> httpSession.getLockStatus(car),
+            performIfNotDisabled(car.isDisableLockStatus(), () -> httpSession.getLockStatus(car),
                     () -> car.setDisableLockStatus(true), "lock");
 
             ALL_CHANNELS.forEach(this::updateChannel);
@@ -280,14 +281,14 @@ public class RenaultHandler extends BaseThingHandler {
             case CHANNEL_IMAGE -> stringNotBlank(car.getImageURL());
             // ── Location ─────────────────────────────────────────────────────────
             case CHANNEL_LOCATION ->
-                car.isDisableLocation() ? UnDefType.UNDEF : point(car.getGpsLatitude(), car.getGpsLongitude());
+                getIfNotDisabled(car.isDisableLocation(), () -> point(car.getGpsLatitude(), car.getGpsLongitude()));
             case CHANNEL_LOCATION_UPDATED ->
-                car.isDisableLocation() ? UnDefType.UNDEF : dateTime(car.getLocationUpdated());
+                getIfNotDisabled(car.isDisableLocation(), () -> dateTime(car.getLocationUpdated()));
             // ── Cockpit ──────────────────────────────────────────────────────────
             case CHANNEL_ODOMETER ->
-                car.isDisableCockpit() ? UnDefType.UNDEF : quantity(car.getOdometer(), KILO(METRE));
+                getIfNotDisabled(car.isDisableCockpit(), () -> quantity(car.getOdometer(), KILO(METRE)));
             // ── Lock ──────────────────────────────────────────────────────────
-            case CHANNEL_LOCKED -> car.isDisableLockStatus() ? UnDefType.UNDEF : lock(car.getLockStatus());
+            case CHANNEL_LOCKED -> getIfNotDisabled(car.isDisableLockStatus(), () -> lock(car.getLockStatus()));
             default -> null;
         };
         if (state == null && !car.isDisableHvac()) {
@@ -316,6 +317,10 @@ public class RenaultHandler extends BaseThingHandler {
             logger.debug("updateChannel: unhandled channel '{}'", channelId);
         }
         updateState(channelId, state == null ? UnDefType.UNDEF : state);
+    }
+
+    private State getIfNotDisabled(boolean disabled, Supplier<State> supplier) {
+        return disabled ? UnDefType.UNDEF : supplier.get();
     }
 
     private static State stringNotBlank(@Nullable String value) {
@@ -359,7 +364,7 @@ public class RenaultHandler extends BaseThingHandler {
         return value == null ? UnDefType.UNDEF : new DecimalType(value);
     }
 
-    private void performDisable(boolean disabled, CommandHandler handler, Runnable disabler, String type) {
+    private void performIfNotDisabled(boolean disabled, CommandHandler handler, Runnable disabler, String type) {
         if (disabled) {
             return;
         }
@@ -379,8 +384,7 @@ public class RenaultHandler extends BaseThingHandler {
         } catch (InterruptedException e) {
             logger.warn("Error My Renault Http Session.", e);
             Thread.currentThread().interrupt();
-        } catch (RenaultException | RenaultForbiddenException | RenaultUpdateException | RenaultActionException
-                | RenaultNotImplementedException | ExecutionException | TimeoutException e) {
+        } catch (RenaultException | ExecutionException | TimeoutException e) {
             logger.warn("{}", errorMessage, e);
             if (setOffline) {
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
